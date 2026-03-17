@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BIZHAR COMPUTER | MASTER POS</title>
+    <title>BIZHAR COMPUTER | PRO POS</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -14,15 +14,15 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
 
         :root {
-            --bg: #f3f4f6; --card: #ffffff; --text: #111827; --primary: #2563eb; --border: #d1d5db; --success: #10b981; --danger: #ef4444;
+            --bg: #f3f4f6; --card: #ffffff; --text: #111827; --primary: #2563eb; --border: #d1d5db; --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
         }
 
         body.dark-mode {
-            --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --primary: #3b82f6; --border: #334155; --success: #34d399;
+            --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --primary: #3b82f6; --border: #334155;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; }
+        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; padding-bottom: 30px; }
 
         header { 
             background: var(--card); height: 70px; padding: 0 10px; border-bottom: 3px solid var(--primary);
@@ -33,7 +33,7 @@
 
         .btn-tool { 
             padding: 8px; border-radius: 10px; border: 1px solid var(--border); 
-            background: var(--bg); color: var(--text); cursor: pointer; font-size: 13px;
+            background: var(--bg); color: var(--text); cursor: pointer; font-size: 13px; transition: 0.2s;
         }
 
         .container { max-width: 1400px; margin: 15px auto; padding: 0 10px; display: flex; flex-direction: column; gap: 15px; }
@@ -55,26 +55,34 @@
         .stat-box { background: var(--card); padding: 12px; border-radius: 15px; text-align: center; border-bottom: 4px solid var(--primary); }
         .stat-box h3 { font-size: 18px; color: var(--primary); margin-top: 5px; }
 
+        .search-box { margin-bottom: 10px; position: relative; }
+        .search-box i { position: absolute; right: 12px; top: 50%; transform: translateY(0%); color: var(--primary); }
+        body[dir="ltr"] .search-box i { left: 12px; right: auto; }
+        .search-box input { padding-right: 35px; border-color: var(--primary); }
+        body[dir="ltr"] .search-box input { padding-left: 35px; padding-right: 12px; }
+
         .table-wrap { background: var(--card); border-radius: 15px; overflow-x: auto; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 650px; }
         th, td { padding: 12px; text-align: inherit; border-bottom: 1px solid var(--border); }
+        tr.finished { background: rgba(16, 185, 129, 0.08); border-right: 5px solid var(--success); }
 
         #scanner { width: 100%; border-radius: 12px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--primary); }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 15px; }
 
-        .result-box { background: var(--bg); padding: 12px; border-radius: 15px; text-align: center; margin-top: 10px; border: 1px solid var(--border); }
+        .result-box { background: var(--bg); padding: 10px; border-radius: 12px; text-align: center; margin-top: 8px; border: 1px solid var(--border); }
     </style>
 </head>
 <body id="app-body">
 
 <header>
     <div class="brand">BIZHAR COMPUTER</div>
-    <div style="display: flex; gap: 5px; align-items: center;">
-        <button class="btn-tool" onclick="toggleLayout()"><i class="fa-solid fa-desktop"></i></button>
-        <button class="btn-tool" onclick="document.getElementById('modal-inv').style.display='flex'"><i class="fa-solid fa-plus"></i></button>
-        <button class="btn-tool" onclick="toggleDark()"><i id="dark-icon" class="fa-solid fa-moon"></i></button>
-        <select id="lang-sel" class="btn-tool" onchange="applyLang()" style="width: 75px; font-weight: bold;">
-            <option value="ku">Kurdî</option><option value="ar">عربي</option><option value="fa">فارسی</option><option value="tr">Türkçe</option><option value="en">English</option>
+    <div style="display: flex; gap: 4px; align-items: center;">
+        <button class="btn-tool" title="PC Mode" onclick="toggleLayout()"><i class="fa-solid fa-desktop"></i></button>
+        <button class="btn-tool" title="Backup Data" onclick="exportData()"><i class="fa-solid fa-download"></i></button>
+        <button class="btn-tool" title="Add Inventory" onclick="document.getElementById('modal-inv').style.display='flex'"><i class="fa-solid fa-plus"></i></button>
+        <button class="btn-tool" title="Dark Mode" onclick="toggleDark()"><i id="dark-icon" class="fa-solid fa-moon"></i></button>
+        <select id="lang-sel" class="btn-tool" onchange="applyLang()" style="width: 70px; font-weight: bold;">
+            <option value="ku">KU</option><option value="ar">AR</option><option value="fa">FA</option><option value="tr">TR</option><option value="en">EN</option>
         </select>
     </div>
 </header>
@@ -111,12 +119,12 @@
 
             <div class="result-box">
                 <small id="l-total-price">بهایێ گشتی (Total)</small>
-                <div id="o-total" style="font-weight:900; color:var(--success); font-size:20px;">$ 0.00</div>
+                <div id="o-total" style="font-weight:900; color:var(--success); font-size:18px;">$ 0.00</div>
             </div>
 
             <div class="result-box" style="border: 2px dashed var(--primary);">
                 <small id="l-mon">قیستێ هەیڤانە</small>
-                <div id="o-mon" style="font-weight:900; color:var(--primary); font-size:24px;">$ 0.00</div>
+                <div id="o-mon" style="font-weight:900; color:var(--primary); font-size:22px;">$ 0.00</div>
             </div>
 
             <button class="main-btn" onclick="saveSale()"><i class="fa-solid fa-check-double"></i> <span id="b-save">پاشکەفتکرن</span></button>
@@ -131,10 +139,15 @@
             <div class="stat-box" style="border-color:var(--success)"><small id="s4">قازانج</small><h3 id="v4" style="color:var(--success)">0$</h3></div>
         </div>
 
+        <div class="search-box">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="search-input" placeholder="Search customers..." oninput="render()">
+        </div>
+
         <div class="table-wrap">
             <table>
                 <thead>
-                    <tr><th id="th1">کڕیار</th><th id="th2">ئامێر</th><th id="th3">گشتی</th><th id="th4">کردار</th></tr>
+                    <tr><th id="th1">کڕیار</th><th id="th2">ئامێر</th><th id="th3">گشتی</th><th id="th4">قیست</th><th id="th5">کردار</th></tr>
                 </thead>
                 <tbody id="sales-list"></tbody>
             </table>
@@ -145,30 +158,35 @@
 <div class="modal" id="modal-inv">
     <div class="card" style="width:100%; max-width:400px;">
         <h3 id="m-title" style="margin-bottom:15px;">زێدەکرنا ئامێری</h3>
-        <input type="text" id="add-name" placeholder="...">
+        <input type="text" id="add-name" placeholder="Name">
         <input type="text" id="add-barcode" placeholder="Barcode">
         <input type="number" id="add-qty" placeholder="Qty">
         <div style="display:flex; gap:10px; margin-top:15px;">
-            <button class="main-btn" id="m-add" onclick="addInv()" style="background:var(--success); margin:0;">زێدە بکە</button>
-            <button class="main-btn" id="m-close" onclick="document.getElementById('modal-inv').style.display='none'" style="background:#64748b; margin:0;">داخستن</button>
+            <button class="main-btn" id="m-add" onclick="addInv()" style="background:var(--success); margin:0;">Add</button>
+            <button class="main-btn" id="m-close" onclick="document.getElementById('modal-inv').style.display='none'" style="background:#64748b; margin:0;">Close</button>
         </div>
     </div>
 </div>
 
 <script>
+    // Firebase Configuration
     const firebaseConfig = { databaseURL: "https://bizhar-pos-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let inv = [], sales = [];
 
+    // Full Multi-language Support
     const langs = {
-        ku: { dir: "rtl", tform: "تۆمارکرن", lname: "ناڤێ کڕیاری", litem: "ئامێر", lbuy: "کڕین $", ldown: "پێشەکی $", lduration: "ماوێ قیستێ", lmon: "قیستێ هەیڤانە", bsave: "پاشکەفتکرن", s1: "مەخزەن", s2: "کڕیار", s3: "قەرز", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "گشتی", th4: "کردار", mtitle: "زێدەکرنا ئامێری", madd: "زێدە بکە", mclose: "داخستن", ltotal: "بهایێ گشتی" },
-        // ... (other languages can be filled similarly)
+        ku: { dir: "rtl", tform: "تۆمارکرن", lname: "ناڤێ کڕیاری", litem: "ئامێر", lbuy: "کڕین $", ldown: "پێشەکی $", lduration: "ماوێ قیستێ", lmon: "قیستێ هەیڤانە", bsave: "پاشکەفتکرن", s1: "مەخزەن", s2: "کڕیار", s3: "قەرز", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "گشتی", th4: "قیست", th5: "کردار", ltotal: "بهایێ گشتی", mtitle: "زێدەکرنا ئامێری", madd: "زێدە بکە", mclose: "داخستن" },
+        ar: { dir: "rtl", tform: "تسجيل البيع", lname: "اسم الزبون", litem: "الجهاز", lbuy: "سعر الشراء $", ldown: "المقدمة $", lduration: "مدة الأقساط", lmon: "القسط الشهري", bsave: "حفظ البيانات", s1: "المخزن", s2: "الزبائن", s3: "الديون", s4: "الأرباح", th1: "الزبون", th2: "الجهاز", th3: "الإجمالي", th4: "الأقساط", th5: "إجراء", ltotal: "السعر الكلي", mtitle: "إضافة جهاز", madd: "إضافة", mclose: "إغلاق" },
+        fa: { dir: "rtl", tform: "ثبت فروش", lname: "نام مشتری", litem: "دستگاه", lbuy: "خرید $", ldown: "پیش‌پرداخت $", lduration: "مدت اقساط", lmon: "قسط ماهانه", bsave: "ذخیره", s1: "انبار", s2: "مشتریان", s3: "بدهی", s4: "سود", th1: "مشتری", th2: "دستگاه", th3: "کل", th4: "اقساط", th5: "عملیات", ltotal: "قیمت کل", mtitle: "افزودن کالا", madd: "افزودن", mclose: "بستن" },
+        tr: { dir: "ltr", tform: "Satış Kaydı", lname: "Müşteri Adı", litem: "Cihaz", lbuy: "Alış $", ldown: "Peşinat $", lduration: "Taksit Süresi", lmon: "Aylık Taksit", bsave: "Kaydet", s1: "Stok", s2: "Müşteriler", s3: "Borç", s4: "Kâr", th1: "Müşteri", th2: "Cihaz", th3: "Toplam", th4: "Taksit", th5: "İşlem", ltotal: "Toplam Fiyat", mtitle: "Cihaz Ekle", madd: "Ekle", mclose: "Kapat" },
+        en: { dir: "ltr", tform: "Registration", lname: "Customer Name", litem: "Item", lbuy: "Buy $", ldown: "Down Payment $", lduration: "Duration", lmon: "Monthly Payment", bsave: "Save Sale", s1: "Inventory", s2: "Customers", s3: "Debt", s4: "Profit", th1: "Customer", th2: "Item", th3: "Total", th4: "Installments", th5: "Action", ltotal: "Total Price", mtitle: "Add Inventory", madd: "Add", mclose: "Close" }
     };
 
     function applyLang() {
         const val = document.getElementById('lang-sel').value;
-        const l = langs[val] || langs.ku;
+        const l = langs[val];
         document.body.dir = l.dir;
         document.getElementById('t-form').innerText = l.tform;
         document.getElementById('l-name').innerText = l.lname;
@@ -186,6 +204,7 @@
         document.getElementById('th2').innerText = l.th2;
         document.getElementById('th3').innerText = l.th3;
         document.getElementById('th4').innerText = l.th4;
+        document.getElementById('th5').innerText = l.th5;
         document.getElementById('m-title').innerText = l.mtitle;
         document.getElementById('m-add').innerText = l.madd;
         document.getElementById('m-close').innerText = l.mclose;
@@ -198,25 +217,14 @@
         document.getElementById('dark-icon').className = document.body.classList.contains('dark-mode') ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     }
 
+    // Realtime Database Sync
     db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; render(); } });
 
     function calc() {
-        let b = parseFloat(document.getElementById('i-buy').value)||0, d = parseFloat(document.getElementById('i-down').value)||0;
-        let m = parseInt(document.getElementById('i-months').value);
-        
-        // Custom Formula Implementation
-        let rate = 0;
-        if(m === 6) rate = 0.40;
-        else if(m === 8) rate = 0.45;
-        else if(m === 10) rate = 0.50;
-        else if(m === 12) rate = 0.55;
-        else if(m === 14) rate = 0.60;
-        else if(m === 16) rate = 0.75;
-
-        let profitAmount = b * rate;
-        let total = b + profitAmount; // ئەنجامێ دوماهیکێ کامل
+        let b = parseFloat(document.getElementById('i-buy').value)||0, d = parseFloat(document.getElementById('i-down').value)||0, m = parseInt(document.getElementById('i-months').value);
+        let rates = {6:0.4, 8:0.45, 10:0.5, 12:0.55, 14:0.6, 16:0.75};
+        let total = b + (b * (rates[m]||0));
         let mon = (total - d) / m;
-
         document.getElementById('o-total').innerText = "$ " + total.toFixed(2);
         document.getElementById('o-mon').innerText = "$ " + mon.toFixed(2);
         return { total, mon, b, d, m };
@@ -224,9 +232,8 @@
 
     function saveSale() {
         let n = document.getElementById('i-name').value, i = document.getElementById('i-item').value;
-        if(!n || !i) return alert("Fill all fields!");
-        let p = calc();
-        let idx = inv.findIndex(x => x.name === i);
+        if(!n || !i) return alert("Hemiya pire bike!");
+        let p = calc(), idx = inv.findIndex(x => x.name === i);
         if(idx !== -1) inv[idx].qty--;
         sales.unshift({ id:Date.now(), name:n, item:i, total:p.total.toFixed(2), buy:p.b, down:p.d, mon:p.mon.toFixed(2), months:p.m, paid:0, date:new Date().toLocaleDateString() });
         db.ref('/').set({ i: inv, s: sales });
@@ -241,7 +248,7 @@
     function render() {
         document.getElementById('v1').innerText = inv.reduce((a,b)=>a+b.qty,0);
         document.getElementById('v2').innerText = sales.length;
-        let dbt=0, pro=0;
+        let dbt=0, pro=0, query = document.getElementById('search-input').value.toLowerCase();
         sales.forEach(s => { 
             dbt += (parseFloat(s.total) - parseFloat(s.down) - (s.paid*parseFloat(s.mon))); 
             pro += (parseFloat(s.total) - parseFloat(s.buy));
@@ -254,13 +261,15 @@
         inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty})</option>`; });
         
         list.innerHTML = '';
-        sales.forEach(s => {
-            list.innerHTML += `<tr>
-                <td><b>${s.name}</b></td>
+        sales.filter(s => s.name.toLowerCase().includes(query)).forEach(s => {
+            let isDone = s.paid >= s.months;
+            list.innerHTML += `<tr class="${isDone ? 'finished' : ''}">
+                <td><b>${s.name}</b><br><small>${s.date}</small></td>
                 <td>${s.item}</td>
                 <td>${s.total}$</td>
+                <td>${s.paid}/${s.months}</td>
                 <td>
-                    <button class="btn-tool" onclick="pay(${s.id})"><i class="fa-solid fa-plus"></i></button>
+                    <button class="btn-tool" onclick="pay(${s.id})"><i class="fa-solid ${isDone ? 'fa-check-double' : 'fa-plus'}"></i></button>
                     <button class="btn-tool" style="color:var(--danger)" onclick="deleteSale(${s.id})"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>`;
@@ -270,14 +279,23 @@
     function pay(id) { 
         let s=sales.find(x=>x.id===id); 
         if(s.paid < s.months){ s.paid++; db.ref('/').set({i:inv, s:sales}); } 
-        else { alert("Paid Off!"); }
     }
 
     function deleteSale(id) {
-        if(confirm("Dێ ئەڤێ تۆمارێ سڕی؟")){
+        if(confirm("Tu پشراستی ژ سڕینا ڤێ تۆمارێ؟")){
             sales = sales.filter(x => x.id !== id);
             db.ref('/').set({ i: inv, s: sales });
         }
+    }
+
+    function exportData() {
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i: inv, s: sales}));
+        let downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "BIZHAR_COMPUTER_BACKUP.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
     }
 
     function startScan() {
@@ -288,6 +306,7 @@
             if(f) { document.getElementById('i-item').value = f.name; sc.clear(); document.getElementById('scanner').style.display='none'; }
         });
     }
+
     applyLang();
 </script>
 </body>
