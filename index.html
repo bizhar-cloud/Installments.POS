@@ -2,286 +2,271 @@
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIZHAR COMPUTER | PRO POS GLOBAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BIZHAR COMPUTER | PRO POS</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&family=Orbitron:wght@600;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
 
         :root {
-            --primary: #00f2ff;
-            --bg: #05070a;
-            --card: rgba(255, 255, 255, 0.05);
-            --text: #ffffff;
-            --border: rgba(255, 255, 255, 0.1);
+            --primary: #00f2ff; --bg: #0b0e14; --card: #161b22; --text: #ffffff; --border: rgba(255,255,255,0.1);
         }
 
         body.light-mode {
-            --bg: #f4f7f6;
-            --card: #ffffff;
-            --text: #1a1a1a;
-            --border: #ddd;
-            --primary: #0072ff;
+            --bg: #f0f2f5; --card: #ffffff; --text: #1a1a1a; --border: #d1d9e6; --primary: #0072ff;
         }
 
-        * { box-sizing: border-box; transition: 0.3s ease; }
-        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
 
-        .app-container { display: grid; grid-template-columns: 350px 1fr; min-height: 100vh; }
+        /* Layout Container */
+        .container { display: flex; flex-direction: column; min-height: 100vh; }
 
-        /* Sidebar */
-        .sidebar { background: var(--card); border-inline-end: 1px solid var(--border); padding: 25px; backdrop-filter: blur(15px); }
-        .header-tools { display: flex; justify-content: space-between; margin-bottom: 30px; }
-        .tool-btn { background: var(--border); border: none; color: var(--text); padding: 10px; border-radius: 8px; cursor: pointer; }
-        
-        .brand { text-align: center; margin-bottom: 40px; }
-        .brand h1 { font-family: 'Orbitron', sans-serif; color: var(--primary); font-size: 24px; margin: 0; }
+        /* Top Header */
+        header { 
+            padding: 15px; background: var(--card); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
+        }
+        .brand-title { font-weight: 900; color: var(--primary); margin: 0; font-size: 18px; }
 
-        /* Input Styles */
-        .form-group { margin-bottom: 15px; }
+        /* Main Form Section */
+        .input-section { padding: 15px; background: var(--card); margin: 10px; border-radius: 15px; border: 1px solid var(--border); }
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 12px; margin-bottom: 5px; opacity: 0.7; }
-        input, select { width: 100%; padding: 12px; background: rgba(128,128,128,0.1); border: 1px solid var(--border); border-radius: 10px; color: var(--text); outline: none; }
-        input:focus { border-color: var(--primary); }
+        input, select { 
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); 
+            border-radius: 10px; color: var(--text); font-size: 14px; outline: none;
+        }
+        body.light-mode input, body.light-mode select { background: #f9f9f9; }
 
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
-        .btn-main { background: var(--primary); color: #000; }
-        .btn-sec { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        /* Stats Row */
+        .stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 10px; }
+        .stat-box { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
+        .stat-box h3 { margin: 5px 0 0; color: var(--primary); font-size: 16px; }
 
-        /* Main Content */
-        .main-content { padding: 30px; }
-        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid var(--border); }
-        .stat-card h2 { color: var(--primary); font-family: 'Orbitron'; margin: 5px 0 0; }
+        /* Table Section */
+        .list-section { padding: 10px; margin-bottom: 80px; }
+        .table-wrapper { background: var(--card); border-radius: 15px; border: 1px solid var(--border); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { text-align: right; padding: 12px; background: rgba(0,0,0,0.1); font-size: 13px; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
 
-        .table-box { background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(128,128,128,0.1); padding: 15px; text-align: start; }
-        td { padding: 15px; border-bottom: 1px solid var(--border); }
+        /* Buttons */
+        .btn { 
+            width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: bold; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-add { background: var(--primary); color: #000; margin-top: 10px; }
+        .btn-tool { background: var(--border); color: var(--text); padding: 8px; border-radius: 8px; width: auto; display: inline-flex; }
 
-        /* Invoice Print */
-        #print-area { display: none; padding: 50px; background: white; color: black; }
-        @media print { body * { display: none !important; } #print-area { display: block !important; width: 100%; } }
+        /* Monthly Display Box */
+        .result-box { 
+            background: rgba(0, 242, 255, 0.1); padding: 15px; border-radius: 12px; 
+            text-align: center; margin: 15px 0; border: 1px dashed var(--primary);
+        }
 
         /* Modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 50px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; overflow-y: auto; }
+
+        /* Tablet & Desktop */
+        @media (min-width: 768px) {
+            .container { flex-direction: row; }
+            .sidebar { width: 350px; height: 100vh; position: sticky; top: 0; }
+            .main { flex: 1; padding: 20px; }
+            .stats-row { grid-template-columns: repeat(4, 1fr); }
+        }
     </style>
 </head>
-<body class="dark-mode" id="body-tag">
+<body class="dark-mode">
 
-<div class="app-container">
+<div class="container">
     <div class="sidebar">
-        <div class="header-tools">
-            <button class="tool-btn" onclick="toggleMode()"><i id="mode-icon" class="fa-solid fa-sun"></i></button>
-            <select id="lang-sel" class="tool-btn" onchange="updateLang()" style="width: auto;">
-                <option value="ku">Kurdî</option>
-                <option value="ar">العربية</option>
-                <option value="en">English</option>
-                <option value="fa">فارسی</option>
-                <option value="tr">Türkçe</option>
-            </select>
-        </div>
+        <header>
+            <h1 class="brand-title">BIZHAR COMPUTER</h1>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-tool" onclick="toggleTheme()"><i id="t-icon" class="fa-solid fa-sun"></i></button>
+                <select id="lang" onchange="setLang()" style="width: auto; padding: 5px;">
+                    <option value="ku">KU</option>
+                    <option value="ar">AR</option>
+                    <option value="en">EN</option>
+                </select>
+            </div>
+        </header>
 
-        <div class="brand">
-            <h1>BIZHAR COMPUTER</h1>
-            <small style="letter-spacing: 2px; opacity: 0.5;">PREMIUM POS</small>
-        </div>
-
-        <div class="form-group">
-            <label id="l-name">ناڤێ کڕیاری</label>
-            <input type="text" id="cust-name" placeholder="...">
-        </div>
-
-        <div class="form-group">
-            <label id="l-item">ئامێر</label>
-            <select id="item-list"></select>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
+        <div class="input-section">
             <div class="form-group">
-                <label id="l-cost">بهایێ کڕینێ $</label>
-                <input type="number" id="price-in" oninput="calc()">
+                <label id="l-name">ناڤێ کڕیاری</label>
+                <input type="text" id="c-name" placeholder="...">
             </div>
             <div class="form-group">
-                <label id="l-down">پێشەکی $</label>
-                <input type="number" id="down-in" oninput="calc()">
+                <label id="l-item">ئامێر</label>
+                <select id="item-sel"></select>
+            </div>
+            <div class="grid-inputs">
+                <div class="form-group">
+                    <label id="l-cost">بها $</label>
+                    <input type="number" id="cost" oninput="recalc()">
+                </div>
+                <div class="form-group">
+                    <label id="l-down">پێشەکی $</label>
+                    <input type="number" id="down" oninput="recalc()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label id="l-months">ماوێ قیستێ</label>
+                <select id="months" onchange="recalc()">
+                    <option value="6">6 Months (38%)</option>
+                    <option value="8">8 Months (45%)</option>
+                    <option value="12">12 Months (56%)</option>
+                    <option value="16">16 Months (75%)</option>
+                </select>
+            </div>
+            <div class="result-box">
+                <small id="l-mon-label">هەیڤانە (Monthly)</small>
+                <div id="mon-out" style="font-size: 24px; font-weight: 900; color: var(--primary);">0.00 $</div>
+            </div>
+            <button class="btn btn-add" onclick="save()"><i class="fa-solid fa-plus"></i> <span id="l-save">تۆمارکرن</span></button>
+            <button class="btn btn-tool" style="width:100%; margin-top:10px;" onclick="openAdmin()"><i class="fa-solid fa-cog"></i> <span id="l-admin">ڕێکخستن</span></button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="stats-row">
+            <div class="stat-box"><small id="s-inv">مەخزەن</small><h3 id="c-inv">0</h3></div>
+            <div class="stat-box"><small id="s-cust">کڕیار</small><h3 id="c-cust">0</h3></div>
+            <div class="stat-box"><small id="s-debt">قەرز</small><h3 id="c-debt">0$</h3></div>
+            <div class="stat-box"><small id="s-inc">داهات</small><h3 id="c-inc">0$</h3></div>
+        </div>
+
+        <div class="list-section">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="th-n">کڕیار</th>
+                            <th id="th-i">ئامێر</th>
+                            <th id="th-t">گشتی</th>
+                            <th id="th-r">باقی</th>
+                            <th id="th-a">کردار</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
             </div>
         </div>
-
-        <div class="form-group">
-            <label id="l-months">ماوێ قیستێ (هەیڤ)</label>
-            <select id="month-sel" onchange="calc()">
-                <option value="6">6 Months (38%)</option>
-                <option value="8">8 Months (45%)</option>
-                <option value="12">12 Months (56%)</option>
-                <option value="16">16 Months (75%)</option>
-            </select>
-        </div>
-
-        <div style="background: rgba(0, 242, 255, 0.05); padding: 20px; border-radius: 12px; border-right: 4px solid var(--primary); margin-bottom: 20px;">
-            <span style="font-size: 11px; opacity: 0.6;" id="l-monthly">هەیڤانە</span>
-            <div id="monthly-out" style="font-size: 26px; font-weight: 900; color: var(--primary); font-family: 'Orbitron';">0.00 $</div>
-        </div>
-
-        <button class="btn btn-main" onclick="saveSale()" id="b-save"><i class="fa-solid fa-check"></i> تۆمارکرن</button>
-        <button class="btn btn-sec" onclick="openAdmin()" id="b-admin"><i class="fa-solid fa-gears"></i> ڕێکخستن</button>
-    </div>
-
-    <div class="main-content">
-        <div class="stats">
-            <div class="stat-card"><span id="s1">مەخزەن</span><h2 id="inv-count">0</h2></div>
-            <div class="stat-card"><span id="s2">کڕیار</span><h2 id="cust-count">0</h2></div>
-            <div class="stat-card"><span id="s3">قەرز</span><h2 id="debt-total">0 $</h2></div>
-            <div class="stat-card"><span id="s4">داهات</span><h2 id="inc-total">0 $</h2></div>
-        </div>
-
-        <div class="table-box">
-            <table id="main-table">
-                <thead>
-                    <tr>
-                        <th id="th1">کڕیار</th>
-                        <th id="th2">ئامێر</th>
-                        <th id="th3">گشتی</th>
-                        <th id="th4">باقی</th>
-                        <th id="th5">کردار</th>
-                    </tr>
-                </thead>
-                <tbody id="tbody"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<div id="print-area">
-    <h1 style="text-align:center;">BIZHAR COMPUTER</h1>
-    <h3 style="text-align:center; border: 1px solid #000; padding: 5px;">وەصڵا قیستێ</h3>
-    <br>
-    <p><b>کڕیار:</b> <span id="p-name"></span></p>
-    <p><b>ئامێر:</b> <span id="p-item"></span></p>
-    <p><b>بهایێ گشتی:</b> <span id="p-total"></span> $</p>
-    <p><b>هەیڤانە:</b> <span id="p-month"></span> $</p>
-    <p><b>باقی:</b> <span id="p-rem"></span> $</p>
-    <br><br>
-    <div style="display:flex; justify-content: space-between;">
-        <span>واژوویا کڕیاری: _________</span>
-        <span>مۆر و واژوو: _________</span>
     </div>
 </div>
 
 <div id="admin-modal" class="modal">
-    <div class="stat-card" style="max-width: 500px; margin: auto; background: var(--bg);">
-        <h2 id="ad-title">مەخزەن</h2>
-        <input type="text" id="st-name" placeholder="Item Name">
-        <input type="number" id="st-qty" placeholder="Qty">
-        <button class="btn btn-main" onclick="addStock()">+ Add</button>
-        <button class="btn btn-sec" onclick="exportXLS()">Export Excel</button>
-        <button class="btn btn-sec" onclick="closeAdmin()">Close</button>
+    <div style="max-width:400px; margin:auto; background:var(--card); padding:20px; border-radius:15px;">
+        <h3>Stock / مەخزەن</h3>
+        <input type="text" id="st-name" placeholder="Item Name"><br><br>
+        <input type="number" id="st-qty" placeholder="Qty"><br><br>
+        <button class="btn btn-add" onclick="addSt()">+ Add Stock</button>
+        <button class="btn btn-tool" style="width:100%; margin-top:10px;" onclick="closeAdmin()">Close</button>
     </div>
 </div>
 
 <script>
+    // Firebase Setup
     const firebaseConfig = { databaseURL: "https://bizhar-pos-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let inventory = [], sales = [], lang = 'ku';
+    let inv = [], sales = [];
 
-    const words = {
-        ku: { name: "ناڤێ کڕیاری", item: "ئامێر", cost: "بهایێ کڕینێ $", down: "پێشەکی $", m: "ماوێ قیستێ", mon: "هەیڤانە", save: "تۆمارکرن", adm: "ڕێکخستن", s1: "مەخزەن", s2: "کڕیار", s3: "قەرز", s4: "داهات", th1: "کڕیار", th2: "ئامێر", th3: "گشتی", th4: "باقی", th5: "کردار" },
-        ar: { name: "اسم الزبون", item: "الجهاز", cost: "سعر الشراء $", down: "المقدمة $", m: "مدة القسط", mon: "القسط الشهري", save: "تسجيل", adm: "الإعدادات", s1: "المخزن", s2: "الزبائن", s3: "الديون", s4: "الدخل", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th4: "المتبقي", th5: "إجراء" },
-        en: { name: "Customer Name", item: "Item", cost: "Cost Price $", down: "Down Payment $", m: "Months", mon: "Monthly", save: "Register", adm: "Settings", s1: "Stock", s2: "Customers", s3: "Debts", s4: "Income", th1: "Customer", th2: "Item", th3: "Total", th4: "Balance", th5: "Action" }
+    // Language Data
+    const i18n = {
+        ku: { name:"ناڤێ کڕیاری", item:"ئامێر", cost:"بها", down:"پێشەکی", months:"ماوێ قیستێ", save:"تۆمارکرن", adm:"ڕێکخستن", sinv:"مەخزەن", scust:"کڕیار", sdebt:"قەرز", sinc:"داهات", thn:"کڕیار", thi:"ئامێر", tht:"گشتی", thr:"باقی", tha:"کردار" },
+        en: { name:"Customer", item:"Item", cost:"Cost", down:"Down", months:"Months", save:"Save", adm:"Settings", sinv:"Stock", scust:"Cust", sdebt:"Debt", sinc:"Income", thn:"Name", thi:"Item", tht:"Total", thr:"Rem", tha:"Act" }
     };
 
-    function updateLang() {
-        lang = document.getElementById('lang-sel').value;
-        const t = words[lang] || words.en;
-        document.body.dir = (lang === 'en' || lang === 'tr') ? 'ltr' : 'rtl';
+    function setLang() {
+        let l = document.getElementById('lang').value;
+        let t = i18n[l] || i18n.en;
+        document.body.dir = (l === 'en') ? 'ltr' : 'rtl';
         document.getElementById('l-name').innerText = t.name;
         document.getElementById('l-item').innerText = t.item;
         document.getElementById('l-cost').innerText = t.cost;
         document.getElementById('l-down').innerText = t.down;
-        document.getElementById('l-months').innerText = t.m;
-        document.getElementById('l-monthly').innerText = t.mon;
-        document.getElementById('b-save').innerText = t.save;
-        document.getElementById('b-admin').innerText = t.adm;
-        document.getElementById('s1').innerText = t.s1; document.getElementById('s2').innerText = t.s2;
-        document.getElementById('s3').innerText = t.s3; document.getElementById('s4').innerText = t.s4;
-        document.getElementById('th1').innerText = t.th1; document.getElementById('th2').innerText = t.th2;
-        document.getElementById('th3').innerText = t.th3; document.getElementById('th4').innerText = t.th4;
-        document.getElementById('th5').innerText = t.th5;
+        document.getElementById('l-months').innerText = t.months;
+        document.getElementById('l-save').innerText = t.save;
+        document.getElementById('l-admin').innerText = t.adm;
+        document.getElementById('s-inv').innerText = t.sinv;
+        document.getElementById('s-cust').innerText = t.scust;
+        document.getElementById('s-debt').innerText = t.sdebt;
+        document.getElementById('s-inc').innerText = t.sinc;
+        document.getElementById('th-n').innerText = t.thn;
+        document.getElementById('th-i').innerText = t.thi;
+        document.getElementById('th-t').innerText = t.tht;
+        document.getElementById('th-r').innerText = t.thr;
+        document.getElementById('th-a').innerText = t.tha;
         ui();
     }
 
-    function toggleMode() {
-        document.getElementById('body-tag').classList.toggle('light-mode');
-        const icon = document.getElementById('mode-icon');
+    function toggleTheme() {
+        document.body.classList.toggle('light-mode');
+        let icon = document.getElementById('t-icon');
         icon.className = icon.className.includes('sun') ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
     }
 
-    db.ref('/').on('value', s => { const d = s.val(); if(d){ inventory=d.i||[]; sales=d.s||[]; ui(); } });
+    // DB Listeners
+    db.ref('/').on('value', snap => {
+        let d = snap.val();
+        if(d) { inv = d.i || []; sales = d.s || []; ui(); }
+    });
 
-    function calc() {
-        let p = parseFloat(document.getElementById('price-in').value)||0, d = parseFloat(document.getElementById('down-in').value)||0, m = parseInt(document.getElementById('month-sel').value);
+    function recalc() {
+        let c = parseFloat(document.getElementById('cost').value)||0, d = parseFloat(document.getElementById('down').value)||0, m = parseInt(document.getElementById('months').value);
         let r = {6:0.38, 8:0.45, 12:0.56, 16:0.75}[m];
-        let total = p + (p*r), mon = (total - d)/m;
-        document.getElementById('monthly-out').innerText = mon.toFixed(2) + " $";
+        let total = c + (c*r), mon = (total - d)/m;
+        document.getElementById('mon-out').innerText = mon.toFixed(2) + " $";
         return { total, mon, d, m };
     }
 
-    function saveSale() {
-        let n = document.getElementById('cust-name').value, i = document.getElementById('item-list').value;
-        if(!n || !i) return alert("Fill data!");
-        let p = calc();
-        let idx = inventory.findIndex(x => x.name === i);
-        inventory[idx].qty--;
+    function save() {
+        let n = document.getElementById('c-name').value, i = document.getElementById('item-sel').value;
+        if(!n || !i) return alert("Pire bike!");
+        let p = recalc();
+        let idx = inv.findIndex(x => x.name === i);
+        inv[idx].qty--;
         sales.unshift({ id:Date.now(), name:n, item:i, total:p.total.toFixed(2), down:p.d.toFixed(2), mon:p.mon.toFixed(2), months:p.m, paid:0 });
-        db.ref('/').set({ i: inventory, s: sales });
+        db.ref('/').set({ i: inv, s: sales });
+        document.getElementById('c-name').value = "";
     }
 
     function ui() {
-        document.getElementById('inv-count').innerText = inventory.reduce((a,b)=>a+b.qty,0);
-        document.getElementById('cust-count').innerText = sales.length;
+        document.getElementById('c-inv').innerText = inv.reduce((a,b)=>a+b.qty,0);
+        document.getElementById('c-cust').innerText = sales.length;
         let dbt=0, inc=0;
         sales.forEach(s => { 
             let p_v = parseFloat(s.down) + (s.paid * parseFloat(s.mon));
             inc += p_v; dbt += (parseFloat(s.total) - p_v);
         });
-        document.getElementById('debt-total').innerText = dbt.toFixed(2)+" $";
-        document.getElementById('inc-total').innerText = inc.toFixed(2)+" $";
+        document.getElementById('c-debt').innerText = dbt.toFixed(1) + "$";
+        document.getElementById('c-inc').innerText = inc.toFixed(1) + "$";
 
-        let sel = document.getElementById('item-list'), tb = document.getElementById('tbody');
-        sel.innerHTML = ''; inventory.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty})</option>`; });
+        let sel = document.getElementById('item-sel'), tb = document.getElementById('tbody');
+        sel.innerHTML = ''; inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty})</option>`; });
         
         tb.innerHTML = '';
         sales.forEach(s => {
-            let rem = (parseFloat(s.total) - parseFloat(s.down) - (s.paid * parseFloat(s.mon))).toFixed(2);
+            let rem = (parseFloat(s.total) - parseFloat(s.down) - (s.paid * parseFloat(s.mon))).toFixed(1);
             tb.innerHTML += `<tr><td>${s.name}</td><td>${s.item}</td><td>${s.total}$</td><td>${rem}$</td>
-            <td><button class="tool-btn" onclick="pay(${s.id})">+</button> <button class="tool-btn" onclick="printV(${s.id})"><i class="fa-solid fa-print"></i></button></td></tr>`;
+            <td><button class="btn-tool" onclick="pay(${s.id})">+</button></td></tr>`;
         });
     }
 
-    function pay(id) { let s=sales.find(x=>x.id===id); if(s.paid < s.months){ s.paid++; db.ref('/').set({i:inventory, s:sales}); } }
-
-    function printV(id) {
-        let s=sales.find(x=>x.id===id);
-        let rem = (parseFloat(s.total) - parseFloat(s.down) - (s.paid * parseFloat(s.mon))).toFixed(2);
-        document.getElementById('p-name').innerText = s.name;
-        document.getElementById('p-item').innerText = s.item;
-        document.getElementById('p-total').innerText = s.total;
-        document.getElementById('p-month').innerText = s.mon;
-        document.getElementById('p-rem').innerText = rem;
-        window.print();
-    }
-
+    function pay(id) { let s=sales.find(x=>x.id===id); if(s.paid < s.months){ s.paid++; db.ref('/').set({i:inv, s:sales}); } }
     function openAdmin() { let p=prompt("Pass:"); if(p==="1234") document.getElementById('admin-modal').style.display='block'; }
     function closeAdmin() { document.getElementById('admin-modal').style.display='none'; }
-    function addStock() {
+    function addSt() {
         let n=document.getElementById('st-name').value, q=parseInt(document.getElementById('st-qty').value);
-        if(n&&q){ let f=inventory.find(x=>x.name===n); if(f) f.qty+=q; else inventory.push({name:n, qty:q}); db.ref('/').set({i:inventory, s:sales}); }
+        if(n&&q){ let f=inv.find(x=>x.name===n); if(f) f.qty+=q; else inv.push({name:n, qty:q}); db.ref('/').set({i:inv, s:sales}); }
     }
-    function exportXLS() { let ws=XLSX.utils.json_to_sheet(sales); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Sales"); XLSX.writeFile(wb, "Report.xlsx"); }
 </script>
 </body>
 </html>
