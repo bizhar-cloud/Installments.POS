@@ -22,27 +22,29 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
+        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; }
 
+        /* HEADER FIX: Guaranteed Visibility */
         header { 
-            background: var(--card); height: 70px; padding: 0 15px; border-bottom: 3px solid var(--primary);
+            background: var(--card); height: 75px; padding: 0 15px; border-bottom: 3px solid var(--primary);
             display: flex; justify-content: space-between; align-items: center; 
-            position: sticky; top: 0; z-index: 9999; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 99999 !important; /* Extremely high z-index */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        .brand { font-weight: 900; font-size: 16px; color: var(--primary); }
-        .header-tools { display: flex; gap: 8px; align-items: center; }
+        .brand { font-weight: 900; font-size: 16px; color: var(--primary); white-space: nowrap; }
+        .header-tools { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; }
 
         .btn-tool { 
             padding: 10px; border-radius: 12px; border: 1px solid var(--border); 
             background: var(--bg); color: var(--text); cursor: pointer; font-size: 14px; 
-            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; min-width: 40px;
         }
 
-        .container { width: 100%; max-width: 1400px; margin: 15px auto; padding: 0 15px; display: block; }
+        .container { width: 100%; max-width: 1400px; margin: 15px auto; padding: 0 15px; display: block; position: relative; z-index: 10; }
         
-        /* Fixed PC Mode Layout */
-        .pc-mode { display: grid !important; grid-template-columns: 380px 1fr !important; gap: 20px; align-items: start; }
+        /* PC MODE CSS */
+        .pc-mode-active { display: grid !important; grid-template-columns: 380px 1fr !important; gap: 20px; align-items: start; }
 
         .card { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         
@@ -59,11 +61,10 @@
 
         .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
         .stat-box { background: var(--card); padding: 15px; border-radius: 18px; text-align: center; border-bottom: 4px solid var(--primary); }
-        .stat-box h3 { color: var(--primary); margin-top: 5px; }
 
         .search-box { margin-bottom: 15px; position: relative; }
-        .search-box i { position: absolute; left: 15px; top: 18px; color: var(--primary); z-index: 5; }
-        .search-box input { padding-left: 45px; border: 2px solid var(--primary); }
+        .search-box i { position: absolute; left: 15px; top: 18px; color: var(--primary); }
+        .search-box input { padding-left: 45px; border-color: var(--primary); }
 
         .table-wrap { background: var(--card); border-radius: 15px; overflow-x: auto; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 650px; }
@@ -71,7 +72,7 @@
         tr.finished { background: rgba(16, 185, 129, 0.1); border-right: 5px solid var(--success); }
 
         #scanner { width: 100%; border-radius: 12px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--primary); }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 15px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 999999; padding: 15px; }
 
         .result-box { background: var(--bg); padding: 12px; border-radius: 15px; text-align: center; margin-top: 10px; border: 1px solid var(--border); }
     </style>
@@ -81,18 +82,20 @@
 <header>
     <div class="brand">BIZHAR COMPUTER</div>
     <div class="header-tools">
-        <button class="btn-tool" onclick="toggleLayout()"><i class="fa-solid fa-desktop"></i></button>
-        <button class="btn-tool" onclick="exportData()"><i class="fa-solid fa-download"></i></button>
-        <button class="btn-tool" onclick="document.getElementById('modal-inv').style.display='flex'"><i class="fa-solid fa-plus"></i></button>
-        <button class="btn-tool" onclick="toggleDark()"><i id="dark-icon" class="fa-solid fa-moon"></i></button>
+        <button class="btn-tool" onclick="toggleLayout()" title="Change Mode"><i id="mode-icon" class="fa-solid fa-desktop"></i></button>
+        <button class="btn-tool" onclick="exportData()" title="Backup"><i class="fa-solid fa-download"></i></button>
+        <button class="btn-tool" onclick="document.getElementById('modal-inv').style.display='flex'" title="Add Item"><i class="fa-solid fa-plus"></i></button>
+        <button class="btn-tool" onclick="toggleDark()" title="Dark Mode"><i id="dark-icon" class="fa-solid fa-moon"></i></button>
         <select id="lang-sel" class="btn-tool" onchange="applyLang()" style="width: 70px; font-weight: bold;">
-            <option value="ku">KU</option><option value="ar">AR</option><option value="en">EN</option>
+            <option value="ku">KU</option>
+            <option value="ar">AR</option>
+            <option value="en">EN</option>
         </select>
     </div>
 </header>
 
 <div class="container" id="app-container">
-    <div id="sidebar-area">
+    <div id="side-form">
         <div class="card">
             <h3 id="t-form" style="font-weight:900;">تۆمارکرن</h3>
             <div id="scanner"></div>
@@ -125,7 +128,7 @@
         </div>
     </div>
 
-    <div id="main-area">
+    <div id="main-list">
         <div class="stats">
             <div class="stat-box"><small id="s1">مەخزەن</small><h3 id="v1">0</h3></div>
             <div class="stat-box"><small id="s2">کڕیار</small><h3 id="v2">0</h3></div>
@@ -133,10 +136,7 @@
             <div class="stat-box" style="border-color:var(--success)"><small id="s4">قازانج</small><h3 id="v4" style="color:var(--success)">0$</h3></div>
         </div>
 
-        <div class="search-box">
-            <i class="fa-solid fa-search"></i>
-            <input type="text" id="search-input" placeholder="گەڕیان بۆ ناڤێ کڕیاری..." oninput="render()">
-        </div>
+        <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="search-input" placeholder="Search..." oninput="render()"></div>
 
         <div class="table-wrap">
             <table>
@@ -151,10 +151,8 @@
 
 <div class="modal" id="modal-inv">
     <div class="card" style="width:100%; max-width:400px;">
-        <h3 id="m-title">زێدەکرنا ئامێری</h3>
-        <input type="text" id="add-name" placeholder="Name">
-        <input type="text" id="add-barcode" placeholder="Barcode">
-        <input type="number" id="add-qty" placeholder="Qty">
+        <h3 id="m-title">Add Item</h3>
+        <input type="text" id="add-name" placeholder="Name"><input type="text" id="add-barcode" placeholder="Barcode"><input type="number" id="add-qty" placeholder="Qty">
         <div style="display:flex; gap:10px; margin-top:15px;">
             <button class="main-btn" onclick="addInv()" style="background:var(--success); margin:0;">Add</button>
             <button class="main-btn" onclick="document.getElementById('modal-inv').style.display='none'" style="background:#64748b; margin:0;">Close</button>
@@ -188,7 +186,14 @@
         document.getElementById('l-total-price').innerText = l.ltotal; document.getElementById('m-title').innerText = l.mtitle;
     }
 
-    function toggleLayout() { document.getElementById('app-container').classList.toggle('pc-mode'); window.scrollTo(0,0); }
+    function toggleLayout() { 
+        const cont = document.getElementById('app-container');
+        const icon = document.getElementById('mode-icon');
+        cont.classList.toggle('pc-mode-active');
+        icon.className = cont.classList.contains('pc-mode-active') ? 'fa-solid fa-mobile-screen' : 'fa-solid fa-desktop';
+        window.scrollTo(0,0);
+    }
+
     function toggleDark() { 
         document.body.classList.toggle('dark-mode'); 
         document.getElementById('dark-icon').className = document.body.classList.contains('dark-mode') ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
@@ -207,7 +212,7 @@
 
     function saveSale() {
         let n = document.getElementById('i-name').value, i = document.getElementById('i-item').value;
-        if(!n || !i) return alert("Fill all fields!");
+        if(!n || !i) return alert("Hemiya pire bike!");
         let p = calc(), idx = inv.findIndex(x => x.name === i);
         if(idx!==-1) inv[idx].qty--;
         sales.unshift({ id:Date.now(), name:n, item:i, total:p.total.toFixed(2), buy:p.b, down:p.d, mon:p.mon.toFixed(2), months:p.m, paid:0, date:new Date().toLocaleDateString() });
@@ -236,29 +241,26 @@
         sales.filter(s => s.name.toLowerCase().includes(query)).forEach(s => {
             let isDone = s.paid >= s.months;
             list.innerHTML += `<tr class="${isDone?'finished':''}">
-                <td><b>${s.name}</b><br><small>${s.date}</small></td>
-                <td>${s.item}</td><td>${s.total}$</td><td>${s.paid}/${s.months}</td>
-                <td><button class="btn-tool" onclick="pay(${s.id})"><i class="fa-solid ${isDone?'fa-check-double':'fa-plus'}"></i></button>
+                <td><b>${s.name}</b></td><td>${s.item}</td><td>${s.total}$</td><td>${s.paid}/${s.months}</td>
+                <td><button class="btn-tool" onclick="pay(${s.id})"><i class="fa-solid ${isDone?'fa-check':'fa-plus'}"></i></button>
                 <button class="btn-tool" style="color:var(--danger)" onclick="delS(${s.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
         });
     }
 
     function pay(id) { let s=sales.find(x=>x.id===id); if(s.paid < s.months){ s.paid++; db.ref('/').set({i:inv, s:sales}); } }
-    function delS(id) { if(confirm("Sure to delete?")){ sales=sales.filter(x=>x.id!==id); db.ref('/').set({i:inv, s:sales}); } }
-    
+    function delS(id) { if(confirm("Sure?")){ sales=sales.filter(x=>x.id!==id); db.ref('/').set({i:inv, s:sales}); } }
     function exportData() {
         let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i:inv, s:sales}));
-        let dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "BIZHAR_POS_BACKUP.json"); dl.click();
+        let dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "BIZHAR_BACKUP.json"); dl.click();
     }
 
     function startScan() {
-        const scannerDiv = document.getElementById('scanner');
-        scannerDiv.style.display = 'block';
+        document.getElementById('scanner').style.display = 'block';
         let sc = new Html5QrcodeScanner("scanner", { fps: 15, qrbox: 250 });
         sc.render((txt) => {
             let f = inv.find(x => x.barcode === txt);
-            if(f) { document.getElementById('i-item').value = f.name; sc.clear(); scannerDiv.style.display='none'; }
-        }, (err) => {});
+            if(f) { document.getElementById('i-item').value = f.name; sc.clear(); document.getElementById('scanner').style.display='none'; }
+        });
     }
     applyLang();
 </script>
