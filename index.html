@@ -2,202 +2,208 @@
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIZHAR COMPUTER | FINANCIAL POS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BIZHAR COMPUTER | SCANNER POS</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&family=Poppins:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&family=Outfit:wght@400;700&display=swap');
 
         :root {
-            --bg: #f3f4f6; --card: #ffffff; --text: #111827; --primary: #2563eb; --border: #e5e7eb; --profit: #10b981;
+            --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --primary: #2563eb; --border: #e2e8f0;
         }
 
         body.dark-mode {
-            --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --primary: #3b82f6; --border: #334155; --profit: #34d399;
+            --bg: #0b0f1a; --card: #161e2e; --text: #f8fafc; --primary: #3b82f6; --border: #2d3748;
         }
 
-        * { box-sizing: border-box; transition: 0.2s ease; }
-        body { font-family: 'Noto Sans Arabic', 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
 
         header { 
-            background: var(--card); padding: 12px 20px; border-bottom: 3px solid var(--primary);
-            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: var(--card); padding: 15px 20px; border-bottom: 2px solid var(--primary);
+            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;
         }
 
-        .container { max-width: 1400px; margin: 20px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .container { max-width: 1400px; margin: 15px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 992px) { .container { grid-template-columns: 380px 1fr; } }
 
-        .card { background: var(--card); padding: 25px; border-radius: 18px; border: 1px solid var(--border); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 13px; margin-bottom: 6px; font-weight: 700; opacity: 0.8; }
+        .app-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        .form-group { margin-bottom: 15px; position: relative; }
+        label { display: block; font-size: 13px; margin-bottom: 5px; font-weight: 700; opacity: 0.8; }
         input, select { 
-            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; 
-            background: var(--bg); color: var(--text); font-size: 14px; outline: none; border: 1px solid var(--border);
+            width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 12px; 
+            background: var(--bg); color: var(--text); font-size: 15px; outline: none;
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .scan-btn {
+            position: absolute; left: 10px; top: 32px; background: var(--primary); color: white;
+            border: none; border-radius: 8px; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        [dir="ltr"] .scan-btn { left: unset; right: 10px; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-        @media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(5, 1fr); } }
-        .stat-card { background: var(--card); padding: 15px; border-radius: 15px; text-align: center; border-bottom: 4px solid var(--primary); }
-        .stat-card.profit { border-bottom-color: var(--profit); }
-        .stat-card h3 { margin: 5px 0 0; font-size: 18px; color: var(--primary); }
-        .stat-card.profit h3 { color: var(--profit); }
+        .main-btn { width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        
+        #reader { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 15px; display: none; border: 2px solid var(--primary); }
 
-        .table-wrap { background: var(--card); border-radius: 18px; border: 1px solid var(--border); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { background: rgba(0,0,0,0.02); padding: 15px; text-align: inherit; font-size: 13px; border-bottom: 2px solid var(--border); }
-        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+        .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        @media (min-width: 768px) { .stats { grid-template-columns: repeat(5, 1fr); } }
+        .s-card { background: var(--card); padding: 15px; border-radius: 15px; text-align: center; border: 1px solid var(--border); }
+        .s-card h3 { margin: 5px 0; color: var(--primary); }
 
-        .search-box { margin-bottom: 15px; }
-        .search-box input { border-radius: 30px; padding: 12px 25px; border: 2px solid var(--border); }
+        .table-wrap { background: var(--card); border-radius: 20px; overflow-x: auto; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th, td { padding: 15px; text-align: inherit; border-bottom: 1px solid var(--border); }
 
-        #print-receipt { display: none; padding: 30px; background: white; color: black; }
-        @media print { body * { display: none !important; } #print-receipt { display: block !important; } }
+        .action-icon { width: 35px; height: 35px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; }
     </style>
 </head>
-<body id="main-body">
+<body id="app-body">
 
 <header>
-    <div style="font-weight: 900; font-size: 20px; color: var(--primary); letter-spacing: 1px;">BIZHAR COMPUTER</div>
+    <div style="font-weight: 900; font-size: 18px; color: var(--primary);">BIZHAR COMPUTER</div>
     <div style="display: flex; gap: 10px;">
-        <select id="lang-sel" onchange="setLang()" style="width: 80px; padding: 5px; border-radius: 8px;">
-            <option value="ku">Kurdî</option>
-            <option value="ar">العربية</option>
-            <option value="en">English</option>
-            <option value="fa">فارسی</option>
-            <option value="tr">Türkçe</option>
+        <select id="lang-sel" onchange="changeLang()" style="width: 70px; border-radius: 8px;">
+            <option value="ku">KU</option><option value="ar">AR</option><option value="en">EN</option><option value="tr">TR</option>
         </select>
-        <button class="btn-outline" onclick="toggleTheme()" style="width: 42px; height: 42px; border-radius: 12px;"><i id="t-icon" class="fa-solid fa-moon"></i></button>
+        <button onclick="toggleTheme()" class="action-icon"><i id="t-icon" class="fa-solid fa-moon"></i></button>
     </div>
 </header>
 
 <div class="container">
     <div class="sidebar">
-        <div class="card">
-            <h3 id="txt-form-title" style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">تۆمارکرنا وەسڵێ</h3>
+        <div class="app-card">
+            <h3 id="txt-title">تۆمارکرن</h3>
+            
+            <div id="reader"></div>
+
             <div class="form-group">
                 <label id="lbl-name">ناڤێ کڕیاری</label>
-                <input type="text" id="in-name" placeholder="...">
+                <input type="text" id="cust-name" placeholder="...">
             </div>
+            
             <div class="form-group">
-                <label id="lbl-item">ئامێر</label>
-                <select id="in-item"></select>
+                <label id="lbl-item">ئامێر (Scan یان هەلبژێرە)</label>
+                <select id="item-sel"></select>
+                <button class="scan-btn" onclick="startScan()"><i class="fa-solid fa-barcode"></i></button>
             </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="form-group"><label id="lbl-cost">بهایێ کڕینێ $</label><input type="number" id="in-buy" oninput="runCalc()"></div>
-                <div class="form-group"><label id="lbl-down">پێشەکی $</label><input type="number" id="in-down" oninput="runCalc()"></div>
+                <div class="form-group"><label id="lbl-buy">کڕین $</label><input type="number" id="p-buy" oninput="calc()"></div>
+                <div class="form-group"><label id="lbl-down">پێشەکی $</label><input type="number" id="p-down" oninput="calc()"></div>
             </div>
+
             <div class="form-group">
-                <label id="lbl-months">ماوێ قیستێ</label>
-                <select id="in-months" onchange="runCalc()">
+                <label id="lbl-m">قیست (Months)</label>
+                <select id="p-months" onchange="calc()">
                     <option value="6">6 Months (38%)</option>
-                    <option value="8">8 Months (45%)</option>
                     <option value="12">12 Months (56%)</option>
                     <option value="16">16 Months (75%)</option>
                 </select>
             </div>
-            <div style="background: rgba(37, 99, 235, 0.05); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; border: 1px solid var(--primary);">
-                <small id="lbl-monthly">قیستێ هەیڤانە (Monthly)</small>
-                <div id="out-mon" style="font-size: 24px; font-weight: 900; color: var(--primary);">0.00 $</div>
+
+            <div style="background: rgba(37,99,235,0.1); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px;">
+                <small id="lbl-mon">هەیڤانە (Monthly)</small>
+                <div id="out-mon" style="font-size: 24px; font-weight: 900; color: var(--primary);">$ 0.00</div>
             </div>
-            <button class="btn btn-primary" onclick="pushSale()" id="btn-save"><i class="fa-solid fa-file-invoice-dollar"></i> پاشکەفتکرن</button>
-            <button class="btn btn-outline" style="margin-top:10px" onclick="openManager()"><i class="fa-solid fa-shield-halved"></i> <span id="txt-admin">مەخزەن و داتا</span></button>
+
+            <button class="main-btn" onclick="save()"><i class="fa-solid fa-check"></i> <span id="btn-txt">پاشکەفتکرن</span></button>
         </div>
     </div>
 
     <div class="main">
-        <div class="stats-grid">
-            <div class="stat-card"><small id="s1">مەخزەن</small><h3 id="v1">0</h3></div>
-            <div class="stat-card"><small id="s2">کڕیار</small><h3 id="v2">0</h3></div>
-            <div class="stat-card"><small id="s3">قەرز</small><h3 id="v3">0 $</h3></div>
-            <div class="stat-card"><small id="s4">داهات</small><h3 id="v4">0 $</h3></div>
-            <div class="stat-card profit"><small id="s5">قازانج</small><h3 id="v5">0 $</h3></div>
-        </div>
-
-        <div class="search-box">
-            <input type="text" id="in-search" onkeyup="ui()" placeholder="گەڕیان ب ناڤی...">
+        <div class="stats">
+            <div class="s-card"><small id="s1">مەخزەن</small><h3 id="v1">0</h3></div>
+            <div class="s-card"><small id="s2">کڕیار</small><h3 id="v2">0</h3></div>
+            <div class="s-card"><small id="s3">قەرز</small><h3 id="v3">0 $</h3></div>
+            <div class="s-card"><small id="s4">داهات</small><h3 id="v4">0 $</h3></div>
+            <div class="s-card" style="border-color: #10b981;"><small id="s5">قازانج</small><h3 id="v5" style="color:#10b981">0 $</h3></div>
         </div>
 
         <div class="table-wrap">
             <table>
                 <thead>
-                    <tr>
-                        <th id="th1">کڕیار</th><th id="th2">ئامێر</th><th id="th3">گشتی</th><th id="th4">باقی</th><th id="th5">کردار</th>
-                    </tr>
+                    <tr><th id="th1">کڕیار</th><th id="th2">ئامێر</th><th id="th3">گشتی</th><th id="th4">باقی</th><th id="th5">کردار</th></tr>
                 </thead>
-                <tbody id="tb-body"></tbody>
+                <tbody id="list-body"></tbody>
             </table>
         </div>
     </div>
 </div>
 
-<div id="print-receipt"></div>
-
 <script>
     const firebaseConfig = { databaseURL: "https://bizhar-pos-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let inv = [], sales = [];
+    let inventory = [], sales = [];
 
-    const lDict = {
-        ku: { dir: "rtl", name: "ناڤێ کڕیاری", item: "ئامێر", buy: "بهایێ کڕینێ $", down: "پێشەکی $", m: "ماوێ قیستێ", mon: "هەیڤانە", save: "پاشکەفتکرن", adm: "مەخزەن", s1: "مەخزەن", s2: "کڕیار", s3: "قەرز", s4: "داهات", s5: "قازانج", th1: "کڕیار", search: "گەڕیان ب ناڤێ کڕیاری..." },
-        ar: { dir: "rtl", name: "اسم الزبون", item: "الجهاز", buy: "سعر الشراء $", down: "المقدمة $", m: "مدة القسط", mon: "القسط", save: "حفظ", adm: "المخزن", s1: "المخزن", s2: "الزبائن", s3: "الديون", s4: "الدخل", s5: "الأرباح", th1: "الزبون", search: "بحث بالاسم..." },
-        en: { dir: "ltr", name: "Customer Name", item: "Device", buy: "Cost Price $", down: "Down Payment $", m: "Months", mon: "Monthly", save: "Save Receipt", adm: "Stock / DB", s1: "Stock", s2: "Cust", s3: "Debt", s4: "Income", s5: "Profit", th1: "Name", search: "Search by name..." },
-        fa: { dir: "rtl", name: "نام مشتری", item: "دستگاه", buy: "قیمت خرید $", down: "پیش پرداخت", m: "اقساط", mon: "ماهانه", save: "ثبت", adm: "انبار", s1: "انبار", s2: "مشتری", s3: "بدهی", s4: "درآمد", s5: "سود", th1: "نام", search: "جستجو..." },
-        tr: { dir: "ltr", name: "Müşteri Adı", item: "Cihaz", buy: "Alış Fiyatı $", down: "Peşinat $", m: "Taksit", mon: "Aylık", save: "Kaydet", adm: "Stok", s1: "Stok", s2: "Müşteri", s3: "Borç", s4: "Gelir", s5: "Kar", th1: "İsim", search: "İsimle ara..." }
+    const langs = {
+        ku: { dir: "rtl", name: "ناڤێ کڕیاری", item: "ئامێر (Scan)", buy: "کڕین $", down: "پێشەکی $", m: "قیست", mon: "هەیڤانە", save: "پاشکەفتکرن", s1: "مەخزەن", s2: "کڕیار", s3: "قەرز", s4: "داهات", s5: "قازانج", th1: "کڕیار" },
+        en: { dir: "ltr", name: "Customer", item: "Item (Scan)", buy: "Cost $", down: "Down $", m: "Months", mon: "Monthly", save: "Save", s1: "Stock", s2: "Cust", s3: "Debt", s4: "Inc", s5: "Profit", th1: "Name" }
     };
 
-    function setLang() {
+    function changeLang() {
         const l = document.getElementById('lang-sel').value;
-        const t = lDict[l];
-        document.getElementById('main-body').dir = t.dir;
+        const t = (l === 'en' || l === 'tr') ? langs.en : langs.ku;
+        document.getElementById('app-body').dir = t.dir;
         document.getElementById('lbl-name').innerText = t.name;
         document.getElementById('lbl-item').innerText = t.item;
-        document.getElementById('lbl-cost').innerText = t.buy;
+        document.getElementById('lbl-buy').innerText = t.buy;
         document.getElementById('lbl-down').innerText = t.down;
-        document.getElementById('lbl-months').innerText = t.m;
-        document.getElementById('lbl-monthly').innerText = t.mon;
-        document.getElementById('btn-save').innerText = t.save;
-        document.getElementById('txt-admin').innerText = t.adm;
-        document.getElementById('s1').innerText = t.s1; document.getElementById('s2').innerText = t.s2;
-        document.getElementById('s3').innerText = t.s3; document.getElementById('s4').innerText = t.s4; document.getElementById('s5').innerText = t.s5;
+        document.getElementById('lbl-m').innerText = t.m;
+        document.getElementById('lbl-mon').innerText = t.mon;
+        document.getElementById('btn-txt').innerText = t.save;
+        document.getElementById('s1').innerText = t.s1; document.getElementById('s5').innerText = t.s5;
         document.getElementById('th1').innerText = t.th1;
-        document.getElementById('in-search').placeholder = t.search;
         ui();
     }
 
-    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; ui(); } });
+    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inventory=d.i||[]; sales=d.s||[]; ui(); } });
 
-    function runCalc() {
-        let b = parseFloat(document.getElementById('in-buy').value)||0, d = parseFloat(document.getElementById('in-down').value)||0, m = parseInt(document.getElementById('in-months').value);
-        let rate = {6:0.38, 8:0.45, 12:0.56, 16:0.75}[m];
+    // BARCODE SCANNER LOGIC
+    let scanner;
+    function startScan() {
+        document.getElementById('reader').style.display = 'block';
+        scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        scanner.render((text) => {
+            // "text" is the Barcode value
+            const item = inventory.find(x => x.barcode === text || x.name === text);
+            if(item) {
+                document.getElementById('item-sel').value = item.name;
+                scanner.clear();
+                document.getElementById('reader').style.display = 'none';
+            } else {
+                alert("Barcode not found! Add it to inventory first.");
+            }
+        });
+    }
+
+    function calc() {
+        let b = parseFloat(document.getElementById('p-buy').value)||0, d = parseFloat(document.getElementById('p-down').value)||0, m = parseInt(document.getElementById('p-months').value);
+        let rate = {6:0.38, 12:0.56, 16:0.75}[m];
         let total = b + (b * rate), mon = (total - d) / m;
-        document.getElementById('out-mon').innerText = mon.toFixed(2) + " $";
+        document.getElementById('out-mon').innerText = "$ " + mon.toFixed(2);
         return { total, mon, d, m, b };
     }
 
-    function pushSale() {
-        let n = document.getElementById('in-name').value, i = document.getElementById('in-item').value;
-        if(!n || !i) return alert("Pire bike!");
-        let p = runCalc();
-        let idx = inv.findIndex(x => x.name === i);
-        inv[idx].qty--;
-        sales.unshift({ 
-            id:Date.now(), name:n, item:i, total:p.total.toFixed(2), buy:p.b, down:p.d, mon:p.mon.toFixed(2), months:p.m, paid:0, date:new Date().toLocaleDateString() 
-        });
-        db.ref('/').set({ i: inv, s: sales });
-        document.getElementById('in-name').value = "";
+    function save() {
+        let n = document.getElementById('cust-name').value, i = document.getElementById('item-sel').value;
+        if(!n || !i) return alert("Hemiya pire bike!");
+        let p = calc();
+        let idx = inventory.findIndex(x => x.name === i);
+        inventory[idx].qty--;
+        sales.unshift({ id:Date.now(), name:n, item:i, total:p.total.toFixed(2), buy:p.b, down:p.d, mon:p.mon.toFixed(2), months:p.m, paid:0, date:new Date().toLocaleDateString() });
+        db.ref('/').set({ i: inventory, s: sales });
+        document.getElementById('cust-name').value = "";
     }
 
     function ui() {
-        document.getElementById('v1').innerText = inv.reduce((a,b)=>a+b.qty,0);
+        document.getElementById('v1').innerText = inventory.reduce((a,b)=>a+b.qty,0);
         document.getElementById('v2').innerText = sales.length;
         let dbt=0, inc=0, pro=0;
         sales.forEach(s => { 
@@ -208,65 +214,23 @@
         document.getElementById('v4').innerText = inc.toFixed(1)+"$";
         document.getElementById('v5').innerText = pro.toFixed(1)+"$";
 
-        let sel = document.getElementById('in-item'), tb = document.getElementById('tb-body'), q = document.getElementById('in-search').value.toLowerCase();
+        let sel = document.getElementById('item-sel'), tb = document.getElementById('list-body');
         sel.innerHTML = '<option value="">...</option>'; 
-        inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty})</option>`; });
+        inventory.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name}</option>`; });
         
         tb.innerHTML = '';
-        sales.filter(s => s.name.toLowerCase().includes(q)).forEach(s => {
+        sales.forEach(s => {
             let rem = (parseFloat(s.total) - parseFloat(s.down) - (s.paid * parseFloat(s.mon))).toFixed(1);
             tb.innerHTML += `<tr>
-                <td><b>${s.name}</b><br><small>${s.date}</small></td>
-                <td>${s.item}</td><td>${s.total}$</td><td style="color:${rem>0?'red':'green'}"><b>${rem}$</b></td>
-                <td style="display:flex; gap:5px;">
-                    <button class="btn-outline" style="padding:5px 8px;" onclick="payInstall(${s.id})"><i class="fa-solid fa-plus"></i></button>
-                    <button class="btn-outline" style="padding:5px 8px;" onclick="doPrint(${s.id})"><i class="fa-solid fa-print"></i></button>
-                </td>
+                <td><b>${s.name}</b></td><td>${s.item}</td><td>${s.total}$</td><td style="color:${rem>0?'red':'green'}"><b>${rem}$</b></td>
+                <td><button class="action-icon" onclick="pay(${s.id})">+</button></td>
             </tr>`;
         });
     }
 
-    function payInstall(id) { let s=sales.find(x=>x.id===id); if(s.paid < s.months){ s.paid++; db.ref('/').set({i:inv, s:sales}); } }
-
-    function doPrint(id) {
-        let s = sales.find(x => x.id === id);
-        let rem = (parseFloat(s.total) - parseFloat(s.down) - (s.paid * parseFloat(s.mon))).toFixed(1);
-        document.getElementById('print-receipt').innerHTML = `
-            <div style="text-align:center"><h2>BIZHAR COMPUTER</h2><hr></div>
-            <p><b>Name:</b> ${s.name}</p><p><b>Item:</b> ${s.item}</p>
-            <p><b>Total:</b> ${s.total}$</p><p><b>Paid:</b> ${(parseFloat(s.total)-rem).toFixed(1)}$</p>
-            <p><b>Remaining:</b> ${rem}$</p><p><b>Date:</b> ${s.date}</p>
-            <br><div style="display:flex; justify-content:space-between"><span>Sign: _________</span><span>Stamp: _________</span></div>`;
-        window.print();
-    }
-
-    function openManager() {
-        let p = prompt("Password:");
-        if(p === "1234") {
-            let a = prompt("1: Add Item, 2: Backup, 3: Restore");
-            if(a === "1") {
-                let n = prompt("Name:"), q = parseInt(prompt("Qty:"));
-                if(n && q) { let f=inv.find(x=>x.name===n); if(f) f.qty+=q; else inv.push({name:n, qty:q}); db.ref('/').set({i:inv, s:sales}); }
-            } else if(a === "2") {
-                let b = new Blob([JSON.stringify({i:inv, s:sales})], {type: "application/json"});
-                let l = document.createElement("a"); l.href = URL.createObjectURL(b); l.download = "bizhar_pos.json"; l.click();
-            } else if(a === "3") {
-                let f = document.createElement('input'); f.type = 'file';
-                f.onchange = e => {
-                    let r = new FileReader();
-                    r.onload = ev => { db.ref('/').set(JSON.parse(ev.target.result)); alert("Success!"); };
-                    r.readAsText(e.target.files[0]);
-                }; f.click();
-            }
-        }
-    }
-
-    function toggleTheme() {
-        document.body.classList.toggle('dark-mode');
-        let i = document.getElementById('t-icon');
-        i.className = i.className.includes('moon') ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-    }
-    window.onload = setLang;
+    function pay(id) { let s=sales.find(x=>x.id===id); if(s.paid < s.months){ s.paid++; db.ref('/').set({i:inventory, s:sales}); } }
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+    window.onload = changeLang;
 </script>
 </body>
 </html>
