@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BIZHAR COMPUTER | PRO POS</title>
+    <title>BIZHAR COMPUTER | MASTER POS</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -22,253 +22,242 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
+        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; }
 
         header { 
-            background: var(--card); height: 65px; padding: 0 15px; border-bottom: 3px solid var(--primary);
+            background: var(--card); height: 60px; padding: 0 15px; border-bottom: 3px solid var(--primary);
             display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;
         }
 
-        .brand { font-weight: 900; font-size: 16px; color: var(--primary); }
+        .brand { font-weight: 900; font-size: 15px; color: var(--primary); letter-spacing: 1px; }
 
         .btn-tool { 
-            padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); 
-            background: var(--bg); color: var(--text); cursor: pointer; font-size: 14px; font-weight: 700;
+            padding: 8px; border-radius: 10px; border: 1px solid var(--border); 
+            background: var(--bg); color: var(--text); cursor: pointer; font-size: 14px;
         }
 
-        .container { max-width: 1400px; margin: 15px auto; padding: 0 10px; display: grid; gap: 20px; transition: all 0.4s ease; }
-        .pc-layout { grid-template-columns: 380px 1fr !important; }
+        .container { max-width: 1400px; margin: 15px auto; padding: 0 10px; display: grid; gap: 15px; }
+        .container.pc-mode { grid-template-columns: 360px 1fr; }
+        @media (min-width: 1024px) { .container { grid-template-columns: 360px 1fr; } }
 
-        .card { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        
-        .section-title { font-weight: 900; margin-bottom: 15px; color: var(--primary); border-right: 4px solid var(--primary); padding-right: 10px; font-size: 16px; }
-
-        label { font-size: 13px; font-weight: 700; display: block; margin-top: 10px; }
+        .card { background: var(--card); padding: 18px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         
         input, select { 
             width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 12px; 
-            background: var(--card); color: var(--text); font-size: 15px; margin-top: 5px; 
-            outline: none; appearance: auto;
+            background: var(--bg); color: var(--text); font-size: 14px; margin-top: 5px; outline: none;
         }
 
         .main-btn { 
-            width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: 900; 
-            background: var(--primary); color: white; margin-top: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 900; 
+            background: var(--primary); color: white; margin-top: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
-        @media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
-        .stat-item { background: var(--card); padding: 15px; border-radius: 18px; text-align: center; border-bottom: 4px solid var(--primary); }
-        .stat-item h3 { font-size: 20px; color: var(--primary); margin-top: 5px; font-weight: 900; }
+        .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: var(--card); padding: 12px; border-radius: 15px; text-align: center; border-bottom: 4px solid var(--primary); }
+        .stat-box h3 { font-size: 18px; color: var(--primary); margin-top: 5px; }
 
-        .table-area { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
-        .scroll-box { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
-        th { background: rgba(0,0,0,0.03); padding: 15px; text-align: inherit; font-weight: 800; border-bottom: 2px solid var(--border); }
-        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .table-wrap { background: var(--card); border-radius: 15px; overflow-x: auto; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 12px; text-align: inherit; border-bottom: 1px solid var(--border); }
 
-        #scanner-ui { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 15px; border: 3px solid var(--primary); }
+        #scanner { width: 100%; border-radius: 12px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--primary); }
+
+        /* Modal Settings */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 15px; }
 
-        /* Receipt Style for 80mm printers */
-        #receipt-box { 
-            width: 80mm; background: #fff; color: #000; padding: 10px; font-family: 'Noto Sans Arabic', sans-serif;
-            border: 1px dashed #ccc; display: none; margin: 0 auto;
-        }
-        .rec-head { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-        .rec-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
-        .rec-total { border-top: 1px solid #000; margin-top: 10px; padding-top: 5px; font-weight: 900; }
-
+        /* Print Style */
         @media print {
             body * { visibility: hidden; }
-            #receipt-box, #receipt-box * { visibility: visible; }
-            #receipt-box { position: fixed; left: 0; top: 0; width: 100%; display: block !important; border: none; }
+            #receipt-print, #receipt-print * { visibility: visible; }
+            #receipt-print { position: absolute; left: 0; top: 0; width: 100%; text-align: center; font-family: sans-serif; }
         }
     </style>
 </head>
-<body id="main-body">
+<body id="app-body">
 
 <header>
     <div class="brand">BIZHAR COMPUTER</div>
-    <div style="display: flex; gap: 8px;">
-        <button class="btn-tool" onclick="togglePCMode()"><i class="fa-solid fa-desktop"></i></button>
-        <button class="btn-tool" onclick="document.getElementById('inv-modal').style.display='flex'"><i class="fa-solid fa-plus"></i></button>
+    <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="btn-tool" onclick="toggleLayout()"><i class="fa-solid fa-mobile-screen"></i></button>
+        <button class="btn-tool" onclick="document.getElementById('modal-inv').style.display='flex'"><i class="fa-solid fa-plus"></i></button>
         <button class="btn-tool" onclick="toggleDark()"><i id="dark-icon" class="fa-solid fa-moon"></i></button>
+        <select id="lang-sel" class="btn-tool" onchange="applyLang()" style="width: 60px;">
+            <option value="ku">KU</option><option value="en">EN</option>
+        </select>
     </div>
 </header>
 
-<div class="container" id="main-container">
+<div class="container" id="app-container">
     <div class="sidebar">
         <div class="card">
-            <h3 class="section-title">تۆمارکرنا وەسڵێ</h3>
-            <div id="scanner-ui"></div>
+            <h3 id="t-form" style="margin-bottom:10px; font-weight:900;">تۆمارکرن</h3>
+            <div id="scanner"></div>
+            
+            <label id="l-name" style="font-size:12px; font-weight:700;">ناڤێ کڕیاری</label>
+            <input type="text" id="i-name" placeholder="...">
 
-            <label>ناڤێ کڕیاری</label>
-            <input type="text" id="in-name" placeholder="...">
-
-            <label>هەلبژارتنا ئامێری</label>
-            <div style="display:flex; gap:8px;">
-                <select id="in-item"></select>
-                <button onclick="openScanner()" class="btn-tool" style="background:var(--primary); color:white;"><i class="fa-solid fa-barcode"></i></button>
+            <label id="l-item" style="font-size:12px; font-weight:700; margin-top:10px; display:block;">ئامێر</label>
+            <div style="display:flex; gap:5px;">
+                <select id="i-item"></select>
+                <button onclick="startScan()" class="btn-tool" style="background:var(--primary); color:white;"><i class="fa-solid fa-barcode"></i></button>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div><label>بهایێ کڕینێ $</label><input type="number" id="in-buy" oninput="updateCalculation()"></div>
-                <div><label>پێشەکی $</label><input type="number" id="in-down" oninput="updateCalculation()"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                <div><label id="l-buy" style="font-size:11px;">کڕین $</label><input type="number" id="i-buy" oninput="calc()"></div>
+                <div><label id="l-down" style="font-size:11px;">پێشەکی $</label><input type="number" id="i-down" oninput="calc()"></div>
             </div>
 
-            <label>ماوێ قیستێ (هەیڤ)</label>
-            <select id="in-months" onchange="updateCalculation()">
-                <option value="6">6 Months</option>
-                <option value="8">8 Months</option>
-                <option value="10">10 Months</option>
-                <option value="12">12 Months</option>
-                <option value="14">14 Months</option>
-                <option value="16">16 Months</option>
+            <label style="font-size:12px; font-weight:700; margin-top:10px; display:block;">ماوێ قیستێ (هەیڤ)</label>
+            <select id="i-months" onchange="calc()">
+                <option value="6">6 Months (38%)</option>
+                <option value="12">12 Months (56%)</option>
+                <option value="16">16 Months (75%)</option>
             </select>
 
-            <div style="background: var(--bg); padding: 20px; border-radius: 15px; text-align: center; margin-top: 20px; border: 2px dashed var(--primary);">
-                <small style="font-weight:700; opacity:0.7;">قیستێ هەیڤانە</small>
-                <div id="out-monthly" style="font-size: 28px; font-weight: 900; color: var(--primary);">$ 0.00</div>
+            <div style="background:var(--bg); padding:15px; border-radius:15px; text-align:center; margin-top:15px; border: 2px dashed var(--primary);">
+                <small id="l-mon">قیستێ هەیڤانە</small>
+                <div id="o-mon" style="font-weight:900; color:var(--primary); font-size:24px;">$ 0.00</div>
             </div>
 
-            <button class="main-btn" onclick="saveToCloud()"><i class="fa-solid fa-save"></i> <span>پاشکەفتکرن</span></button>
+            <button class="main-btn" onclick="saveSale()"><i class="fa-solid fa-check-double"></i> <span id="b-save">پاشکەفتکرن</span></button>
         </div>
     </div>
 
-    <div class="content">
-        <div class="stats-grid">
-            <div class="stat-item"><small>مەخزەن</small><h3 id="v1">0</h3></div>
-            <div class="stat-item"><small>کڕیار</small><h3 id="v2">0</h3></div>
-            <div class="stat-item"><small>قەرز</small><h3 id="v3">0$</h3></div>
-            <div class="stat-item" style="border-color: var(--success);"><small>قازانج</small><h3 id="v4" style="color: var(--success);">0$</h3></div>
+    <div class="main-content">
+        <div class="stats">
+            <div class="stat-box"><small id="s1">مەخزەن</small><h3 id="v1">0</h3></div>
+            <div class="stat-box"><small id="s2">کڕیار</small><h3 id="v2">0</h3></div>
+            <div class="stat-box"><small id="s3">قەرز</small><h3 id="v3">0$</h3></div>
+            <div class="stat-box" style="border-color:var(--success)"><small id="s4">قازانج</small><h3 id="v4" style="color:var(--success)">0$</h3></div>
         </div>
 
-        <div class="table-area">
-            <div class="scroll-box">
-                <table>
-                    <thead>
-                        <tr><th>کڕیار</th><th>ئامێر</th><th>گشتی</th><th>باقی</th><th>کردار</th></tr>
-                    </thead>
-                    <tbody id="sales-body"></tbody>
-                </table>
-            </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th id="th1">کڕیار</th><th id="th2">ئامێر</th><th id="th3">گشتی</th><th id="th4">کردار</th></tr>
+                </thead>
+                <tbody id="sales-list"></tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<div class="modal" id="inv-modal">
+<div class="modal" id="modal-inv">
     <div class="card" style="width:100%; max-width:400px;">
-        <h3 class="section-title">زێدەکرنا کالای</h3>
-        <input type="text" id="add-n" placeholder="ناڤێ کالای">
-        <input type="text" id="add-b" placeholder="بارکۆد">
-        <input type="number" id="add-q" placeholder="ژمارە (Qty)">
+        <h3 style="margin-bottom:15px;">زێدەکرنا ئامێری</h3>
+        <input type="text" id="add-name" placeholder="ناڤێ ئامێری">
+        <input type="text" id="add-barcode" placeholder="بارکۆد (Barcode)">
+        <input type="number" id="add-qty" placeholder="ژمارە (Qty)">
         <div style="display:flex; gap:10px; margin-top:15px;">
-            <button class="main-btn" onclick="addStock()" style="background:var(--success); margin:0;">زێدە بکە</button>
-            <button class="main-btn" onclick="document.getElementById('inv-modal').style.display='none'" style="background:#64748b; margin:0;">داخستن</button>
+            <button class="main-btn" onclick="addInv()" style="background:var(--success); margin:0;">زێدە بکە</button>
+            <button class="main-btn" onclick="document.getElementById('modal-inv').style.display='none'" style="background:#64748b; margin:0;">داخستن</button>
         </div>
     </div>
 </div>
 
-<div id="receipt-box">
-    <div class="rec-head">
-        <h3 style="margin:0;">BIZHAR COMPUTER</h3>
-        <small id="r-date"></small>
-    </div>
-    <div class="rec-row"><span>کڕیار:</span><span id="r-name"></span></div>
-    <div class="rec-row"><span>ئامێر:</span><span id="r-item"></span></div>
-    <div class="rec-row"><span>ماوێ قیستێ:</span><span id="r-months"></span></div>
-    <div class="rec-row"><span>پێشەکی:</span><span id="r-down"></span></div>
-    <div class="rec-row"><span>قیستێ هەیڤانە:</span><span id="r-mon"></span></div>
-    <div class="rec-row rec-total"><span>کۆژمێ گشتی:</span><span id="r-total"></span></div>
-    <div style="text-align:center; margin-top:15px; font-size:10px;">سوپاس بۆ سەرەدانا تە</div>
+<div id="receipt-print" style="display:none; padding:20px;">
+    <h2>BIZHAR COMPUTER</h2>
+    <hr>
+    <p id="p-date"></p>
+    <p id="p-cust"></p>
+    <p id="p-item"></p>
+    <h3 id="p-total"></h3>
+    <p>سوپاس بۆ هەلبژارتنا مە</p>
 </div>
 
 <script>
     const firebaseConfig = { databaseURL: "https://bizhar-pos-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let inventory = [], sales = [];
+    let inv = [], sales = [];
 
-    function togglePCMode() { document.getElementById('main-container').classList.toggle('pc-layout'); }
+    function toggleLayout() { document.getElementById('app-container').classList.toggle('pc-mode'); }
     function toggleDark() { 
         document.body.classList.toggle('dark-mode'); 
         document.getElementById('dark-icon').className = document.body.classList.contains('dark-mode') ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     }
 
-    db.ref('/').on('value', snap => { const d = snap.val(); if(d) { inventory = d.i || []; sales = d.s || []; updateUI(); } });
+    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; render(); } });
 
-    function updateCalculation() {
-        let buy = parseFloat(document.getElementById('in-buy').value) || 0;
-        let down = parseFloat(document.getElementById('in-down').value) || 0;
-        let months = parseInt(document.getElementById('in-months').value);
-        let rate = {6:0.38, 8:0.45, 10:0.52, 12:0.60, 14:0.68, 16:0.75}[months];
-        let total = buy + (buy * rate);
-        let monthly = (total - down) / months;
-        document.getElementById('out-monthly').innerText = "$ " + monthly.toFixed(2);
-        return { total, monthly, buy, down, months };
+    function calc() {
+        let b = parseFloat(document.getElementById('i-buy').value)||0, d = parseFloat(document.getElementById('i-down').value)||0;
+        let m = parseInt(document.getElementById('i-months').value);
+        let rate = (m === 6) ? 0.38 : (m === 12) ? 0.56 : 0.75;
+        let total = b + (b * rate), mon = (total - d) / m;
+        document.getElementById('o-mon').innerText = "$ " + mon.toFixed(2);
+        return { total, mon, b, d, m };
     }
 
-    function saveToCloud() {
-        let name = document.getElementById('in-name').value;
-        let item = document.getElementById('in-item').value;
-        if(!name || !item) return alert("Hەمی خانەیان پڕ بکە!");
-        let p = updateCalculation();
-        let idx = inventory.findIndex(x => x.name === item);
-        inventory[idx].qty--;
-        sales.unshift({ id: Date.now(), name, item, total: p.total.toFixed(2), buy: p.buy, down: p.down, mon: p.monthly.toFixed(2), months: p.months, paid: 0, date: new Date().toLocaleString('ku-IQ') });
-        db.ref('/').set({ i: inventory, s: sales });
-        document.getElementById('in-name').value = "";
-    }
-
-    function addStock() {
-        let n = document.getElementById('add-n').value, b = document.getElementById('add-b').value, q = parseInt(document.getElementById('add-q').value);
-        if(n && q) { inventory.push({ name: n, barcode: b, qty: q }); db.ref('/').set({ i: inventory, s: sales }); document.getElementById('inv-modal').style.display = 'none'; }
-    }
-
-    function updateUI() {
-        document.getElementById('v1').innerText = inventory.reduce((a,b) => a + b.qty, 0);
-        document.getElementById('v2').innerText = sales.length;
-        let debt = 0, profit = 0;
-        sales.forEach(s => {
-            let remain = parseFloat(s.total) - parseFloat(s.down) - (s.paid * parseFloat(s.mon));
-            debt += remain; profit += (parseFloat(s.total) - parseFloat(s.buy));
+    function saveSale() {
+        let n = document.getElementById('i-name').value, i = document.getElementById('i-item').value;
+        if(!n || !i) return alert("Hemiya pire bike!");
+        let p = calc();
+        let idx = inv.findIndex(x => x.name === i);
+        inv[idx].qty--;
+        sales.unshift({ 
+            id:Date.now(), name:n, item:i, total:p.total.toFixed(2), 
+            buy:p.b, down:p.d, mon:p.mon.toFixed(2), 
+            months:p.m, paid:0, date:new Date().toLocaleDateString() 
         });
-        document.getElementById('v3').innerText = debt.toFixed(1) + "$";
-        document.getElementById('v4').innerText = profit.toFixed(1) + "$";
-        let sel = document.getElementById('in-item');
-        sel.innerHTML = '<option value="">هەلبژێرە...</option>';
-        inventory.forEach(x => { if(x.qty > 0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty})</option>`; });
-        let list = document.getElementById('sales-body');
+        db.ref('/').set({ i: inv, s: sales });
+        document.getElementById('i-name').value = "";
+    }
+
+    function addInv() {
+        let n = document.getElementById('add-name').value, b = document.getElementById('add-barcode').value, q = parseInt(document.getElementById('add-qty').value);
+        if(n && q){ inv.push({name:n, barcode:b, qty:q}); db.ref('/').set({i:inv, s:sales}); document.getElementById('modal-inv').style.display='none'; }
+    }
+
+    function render() {
+        document.getElementById('v1').innerText = inv.reduce((a,b)=>a+b.qty,0);
+        document.getElementById('v2').innerText = sales.length;
+        let dbt=0, pro=0;
+        sales.forEach(s => { 
+            dbt += (parseFloat(s.total) - parseFloat(s.down) - (s.paid*parseFloat(s.mon))); 
+            pro += (parseFloat(s.total) - parseFloat(s.buy));
+        });
+        document.getElementById('v3').innerText = dbt.toFixed(1) + "$";
+        document.getElementById('v4').innerText = pro.toFixed(1) + "$";
+
+        let sel = document.getElementById('i-item'), list = document.getElementById('sales-list');
+        sel.innerHTML = '<option value="">...</option>';
+        inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty})</option>`; });
+        
         list.innerHTML = '';
         sales.forEach(s => {
-            let rem = (parseFloat(s.total) - parseFloat(s.down) - (s.paid * parseFloat(s.mon))).toFixed(1);
-            list.innerHTML += `<tr><td><b>${s.name}</b></td><td>${s.item}</td><td>${s.total}$</td><td style="color:${rem > 0 ? '#ef4444' : '#10b981'}"><b>${rem}$</b></td>
-            <td><button class="btn-tool" onclick="payInst(${s.id})"><i class="fa-solid fa-plus"></i></button>
-            <button class="btn-tool" onclick="printRec(${s.id})"><i class="fa-solid fa-print"></i></button></td></tr>`;
+            list.innerHTML += `<tr><td><b>${s.name}</b></td><td>${s.item}</td><td>${s.total}$</td>
+            <td>
+                <button class="btn-tool" onclick="pay(${s.id})"><i class="fa-solid fa-plus"></i></button>
+                <button class="btn-tool" onclick="printR(${s.id})"><i class="fa-solid fa-print"></i></button>
+            </tr>`;
         });
     }
 
-    function payInst(id) { let s = sales.find(x => x.id === id); if(s.paid < s.months) { s.paid++; db.ref('/').set({ i: inventory, s: sales }); } }
-    
-    function printRec(id) {
+    function pay(id) { 
+        let s=sales.find(x=>x.id===id); 
+        if(s.paid < s.months){ 
+            s.paid++; 
+            db.ref('/').set({i:inv, s:sales}); 
+        } else {
+            alert("Ev qerze xlas buye!");
+        }
+    }
+
+    function printR(id) {
         let s = sales.find(x => x.id === id);
-        document.getElementById('r-date').innerText = s.date;
-        document.getElementById('r-name').innerText = s.name;
-        document.getElementById('r-item').innerText = s.item;
-        document.getElementById('r-months').innerText = s.months + " هەیڤ";
-        document.getElementById('r-down').innerText = s.down + "$";
-        document.getElementById('r-mon').innerText = s.mon + "$";
-        document.getElementById('r-total').innerText = s.total + "$";
+        document.getElementById('p-date').innerText = "Date: " + s.date;
+        document.getElementById('p-cust').innerText = "Customer: " + s.name;
+        document.getElementById('p-item').innerText = "Item: " + s.item;
+        document.getElementById('p-total').innerText = "Total: " + s.total + "$";
         window.print();
     }
 
-    function openScanner() {
-        document.getElementById('scanner-ui').style.display = 'block';
-        let sc = new Html5QrcodeScanner("scanner-ui", { fps: 15, qrbox: 250 });
+    function startScan() {
+        document.getElementById('scanner').style.display = 'block';
+        let sc = new Html5QrcodeScanner("scanner", { fps: 15, qrbox: 250 });
         sc.render((txt) => {
-            let f = inventory.find(x => x.barcode === txt || x.name === txt);
-            if(f) { document.getElementById('in-item').value = f.name; sc.clear(); document.getElementById('scanner-ui').style.display = 'none'; }
+            let f = inv.find(x => x.barcode === txt || x.name === txt);
+            if(f) { document.getElementById('i-item').value = f.name; sc.clear(); document.getElementById('scanner').style.display='none'; }
         });
     }
 </script>
