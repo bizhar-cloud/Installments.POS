@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIZHAR POS | Cloud Edition</title>
+    <title>BIZHAR POS | Final Edition</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -12,27 +12,42 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&family=Orbitron:wght@600;800&display=swap');
         :root { --primary: #00f2ff; --success: #00ff88; --danger: #ff3366; --dark: #03050a; --glass: rgba(255, 255, 255, 0.03); }
-        * { box-sizing: border-box; transition: 0.3s ease; }
+        * { box-sizing: border-box; transition: 0.2s ease; }
         body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--dark); color: #e0e0e0; margin: 0; min-height: 100vh; }
+        
+        /* UI Desktop Styles */
         .app-container { display: flex; min-height: 100vh; }
-        .sidebar { width: 320px; background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border-left: 1px solid rgba(255,255,255,0.08); padding: 20px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar { width: 340px; background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border-left: 1px solid rgba(255,255,255,0.08); padding: 20px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
         .main-content { flex: 1; padding: 25px; }
-        .brand { font-family: 'Orbitron', sans-serif; font-size: 20px; color: var(--primary); text-align: center; margin-bottom: 25px; text-shadow: 0 0 10px rgba(0,242,255,0.4); }
+        .brand { font-family: 'Orbitron', sans-serif; font-size: 22px; color: var(--primary); text-align: center; margin-bottom: 20px; }
         .card { background: var(--glass); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-        input, select { width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; margin-bottom: 12px; outline: none; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        input, select { width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; margin-bottom: 12px; outline: none; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
         .btn-primary { background: var(--primary); color: #000; }
-        .btn-backup-hub { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; }
-        .backup-menu { display: none; background: rgba(0,0,0,0.8); border-radius: 12px; padding: 10px; border: 1px solid var(--success); margin-bottom: 15px; }
-        .menu-item { padding: 10px; cursor: pointer; border-radius: 8px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
-        .menu-item:hover { background: rgba(0,255,136,0.1); color: var(--success); }
+        .btn-admin { background: linear-gradient(135deg, #6e8efb, #a777e3); color: white; }
         .stat-box { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-        .stat-item { background: var(--glass); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.08); text-align: center; }
+        .stat-item { background: var(--glass); padding: 15px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.08); text-align: center; }
         table { width: 100%; border-collapse: collapse; }
-        th { padding: 12px; text-align: right; font-size: 12px; opacity: 0.6; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; }
-        .sync-status { font-size: 10px; text-align: center; margin-bottom: 10px; color: var(--success); }
-        @media (max-width: 1000px) { .app-container { flex-direction: column; } .sidebar { width: 100%; height: auto; } .stat-box { grid-template-columns: 1fr 1fr; } }
+        td, th { padding: 15px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        /* Print Layout Styles */
+        #printable-invoice { display: none; color: #000; padding: 50px; background: #fff; }
+        @media print {
+            body * { display: none !important; }
+            #printable-invoice { display: block !important; width: 100%; }
+            @page { margin: 0.5cm; }
+        }
+        .inv-header { text-align: center; border-bottom: 3px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+        .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .inv-field { border-bottom: 1px dashed #ccc; padding: 5px 0; }
+        .inv-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .inv-table th, .inv-table td { border: 1px solid #000; padding: 12px; text-align: center; }
+        .sig-section { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center; }
+        .sig-box { height: 100px; border: 1px solid #eee; border-radius: 10px; margin-top: 10px; position: relative; }
+        .stamp-circle { width: 80px; height: 80px; border: 2px dashed #000; border-radius: 50%; margin: 10px auto; opacity: 0.2; }
+
+        /* Admin Panel Modal */
+        .admin-panel { display: none; background: rgba(0,0,0,0.97); position: fixed; inset: 0; z-index: 1000; padding: 40px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -40,40 +55,27 @@
 <div class="app-container">
     <div class="sidebar">
         <div class="brand">BIZHAR COMPUTER</div>
-        <div class="sync-status" id="sync-icon"><i class="fa-solid fa-cloud"></i> داتابەیس یا گرێدایە</div>
-        
         <div class="card">
-            <h4 style="margin:0 0 10px 0; color:var(--primary)">فرۆشتنا نوو</h4>
+            <h4 style="margin:0 0 15px 0; color:var(--primary)">فرۆشتنا نوو</h4>
             <input type="text" id="c-name" placeholder="ناڤێ کڕیاری">
             <select id="item-select"></select>
             <div style="display:flex; gap:8px;">
-                <input type="number" id="cost-in" placeholder="کڕین $" oninput="recalc()">
+                <input type="number" id="cost-in" placeholder="بهایێ کڕینێ $" oninput="recalc()">
                 <input type="number" id="down-in" placeholder="پێشەکی $" oninput="recalc()">
             </div>
             <select id="months-in" onchange="recalc()">
-                <option value="6">6 هەیڤ (38%)</option><option value="8">8 هەیڤ (45%)</option>
-                <option value="10">10 هەیڤ (48%)</option><option value="12">12 هەیڤ (56%)</option>
-                <option value="14">14 هەیڤ (64%)</option><option value="16">16 هەیڤ (75%)</option>
+                <option value="6">6 هەیڤ (38%)</option>
+                <option value="8">8 هەیڤ (45%)</option>
+                <option value="10">10 هەیڤ (48%)</option>
+                <option value="12">12 هەیڤ (56%)</option>
+                <option value="14">14 هەیڤ (64%)</option>
+                <option value="16">16 هەیڤ (75%)</option>
             </select>
-            <div style="padding:10px; background:rgba(0,0,0,0.3); border-radius:10px; border-right:3px solid var(--primary); margin-bottom:12px;">
-                هەیڤانە: <b id="out-monthly" style="color:var(--primary)">0 $</b>
+            <div style="background:rgba(0,242,255,0.05); padding:12px; border-radius:10px; border-right:4px solid var(--primary); margin-bottom:12px;">
+                هەیڤانە: <b id="out-monthly" style="color:var(--primary); font-size:18px;">0 $</b>
             </div>
-            <button class="btn btn-primary" onclick="addSale()">تۆمارکرن</button>
-        </div>
-
-        <button class="btn btn-backup-hub" onclick="checkPassword()">
-            <i class="fa-solid fa-lock"></i> باکئاپ و پاراستن
-        </button>
-        <div id="backup-menu" class="backup-menu">
-            <div class="menu-item" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> هەناردە بۆ Excel</div>
-            <div class="menu-item" onclick="confirmReset()"><i class="fa-solid fa-trash"></i> رەشکرنا هەمی داتایان</div>
-        </div>
-
-        <div class="card">
-            <h4 style="margin:0 0 10px 0;">مەخزەن</h4>
-            <input type="text" id="st-name" placeholder="ئامێر">
-            <input type="number" id="st-qty" placeholder="عدەد">
-            <button class="btn" style="background:rgba(255,255,255,0.05); color:#fff;" onclick="addStock()">زێدەکرن</button>
+            <button class="btn btn-primary" onclick="addSale()">تۆمارکرنا فرۆشتنێ</button>
+            <button class="btn btn-admin" onclick="openAdmin()"><i class="fa-solid fa-lock"></i> مەخزەن و ڕێکخستن</button>
         </div>
     </div>
 
@@ -86,121 +88,182 @@
         </div>
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0">لیستا قیستان (Live)</h3>
-                <input type="text" id="search" placeholder="گەڕیان..." onkeyup="ui()" style="width:250px; margin:0;">
+                <h3 style="margin:0">لیستا قیستان</h3>
+                <input type="text" id="search" placeholder="گەڕیان ب ناڤی..." onkeyup="ui()" style="width:250px; margin:0;">
             </div>
             <table>
-                <thead><tr><th>کڕیار</th><th>ئامێر</th><th>گشتی</th><th>هەیڤانە</th><th>باقی</th><th>کردار</th></tr></thead>
+                <thead><tr><th>کڕیار</th><th>ئامێر</th><th>گشتی</th><th>باقی</th><th>کردار</th></tr></thead>
                 <tbody id="log-list"></tbody>
             </table>
         </div>
     </div>
 </div>
 
+<div id="printable-invoice">
+    <div class="inv-header">
+        <h1 style="margin:0; font-family:'Orbitron'; letter-spacing: 2px;">BIZHAR COMPUTER</h1>
+        <p style="margin:5px 0;">بۆ فرۆشتنا کۆمپیوتەر و ئامێرێن تەکنەلۆژی ب قیست</p>
+        <div style="background:#000; color:#fff; padding:8px 30px; display:inline-block; border-radius:5px; margin-top:10px; font-weight:bold;">فاتۆرا فرۆشتنێ</div>
+    </div>
+
+    <div class="inv-grid">
+        <div class="inv-field"><b>ڕێکەفت:</b> <span id="inv-date"></span></div>
+        <div class="inv-field"><b>ناڤێ کڕیاری:</b> <span id="inv-cname"></span></div>
+        <div class="inv-field"><b>ناڤێ ئامێری:</b> <span id="inv-item"></span></div>
+        <div class="inv-field"><b>ماوێ قیستێ:</b> <span id="inv-months"></span> هەیڤ</div>
+    </div>
+
+    <table class="inv-table">
+        <tr style="background:#f9f9f9;">
+            <th>بهایێ گشتی (Interest Included)</th>
+            <th>پێشەکی (Down Payment)</th>
+            <th>پارێ هاتیەدان (Paid)</th>
+            <th>باقیێ قەرزی (Balance)</th>
+        </tr>
+        <tr>
+            <td id="inv-total" style="font-weight:bold;"></td>
+            <td id="inv-down"></td>
+            <td id="inv-paid"></td>
+            <td id="inv-rem" style="color:red; font-weight:bold;"></td>
+        </tr>
+    </table>
+
+    <div style="background:#f0f0f0; padding:15px; border-radius:10px; border:1px solid #ccc; display:flex; justify-content: space-around;">
+        <div><b>هەیڤانە (Monthly):</b> <span id="inv-monthly" style="font-size:20px;"></span> $</div>
+        <div><b>هەیڤێن ماینە:</b> <span id="inv-mrem"></span> هەیڤ</div>
+    </div>
+
+    <div class="sig-section">
+        <div>
+            <b>واژوویا کڕیاری</b>
+            <div class="sig-box"></div>
+        </div>
+        <div>
+            <b>مۆر (STAMP)</b>
+            <div class="stamp-circle"></div>
+        </div>
+        <div>
+            <b>واژوویا نڤیسینگەهێ</b>
+            <div class="sig-box"></div>
+        </div>
+    </div>
+
+    <div style="text-align:center; margin-top:40px; font-size:12px; border-top:1px solid #eee; padding-top:10px;">
+        <p>ئەڤ فاتۆرە ب سیستەمێ **BIZHAR COMPUTER** هاتییە ڕێکخستن | سوپاس بۆ سەرەدانا تە</p>
+    </div>
+</div>
+
+<div id="admin-panel" class="admin-panel">
+    <div style="max-width:800px; margin:auto;">
+        <button class="btn" style="width:50px; background:var(--danger); float:left;" onclick="closeAdmin()">X</button>
+        <h2 style="color:var(--primary); text-align:center;">ڕێکخستنا مەخزەن و داتایان</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:40px;">
+            <div class="card">
+                <h3>+ زێدەکرنا ئامێران</h3>
+                <input type="text" id="st-name" placeholder="ناڤێ ئامێری">
+                <input type="number" id="st-qty" placeholder="دانە">
+                <button class="btn btn-primary" onclick="addStock()">تۆمارکردن د مەخزەنی دا</button>
+            </div>
+            <div class="card">
+                <h3>باکئاپ و هەناردە</h3>
+                <button class="btn" style="background:#2ecc71; color:#fff;" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+                <button class="btn" style="background:#e67e22; color:#fff;" onclick="downloadBackup()"><i class="fa-solid fa-file-code"></i> Download JSON</button>
+                <button class="btn" style="background:var(--danger); color:#fff; margin-top:20px;" onclick="confirmReset()">ڕەشکرنا هەمی داتایان</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // --- FIREBASE CONFIG ---
-    // تێبینی: من ناڤێ پڕۆژێ تە دانا، هەکە لینك جودا بوو، دێ ب تنێ DatabaseURL گوهۆڕی
-    const firebaseConfig = {
-        databaseURL: "https://bizhar-pos-default-rtdb.firebaseio.com/" 
-    };
+    const firebaseConfig = { databaseURL: "https://bizhar-pos-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    const ADMIN_PASS = "1234";
     let inv = [], sales = [];
 
-    // --- DATA SYNC ---
-    // خواندنا داتایان ژ فایربەیس (هەر گوهۆڕینەك دێ ئێكسەر ل ڤێرە دیار بیت)
-    db.ref('/').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            inv = data.inventory || [];
-            sales = data.sales || [];
-            ui();
-        }
-    });
-
-    function checkPassword() {
-        let m = document.getElementById('backup-menu');
-        if(m.style.display === 'block') { m.style.display = 'none'; return; }
-        let entry = prompt("پاسۆرد:");
-        if(entry === ADMIN_PASS) m.style.display = 'block';
-    }
+    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; ui(); } });
 
     function recalc() {
-        let c = parseFloat(document.getElementById('cost-in').value) || 0, 
-            d = parseFloat(document.getElementById('down-in').value) || 0, 
-            m = parseInt(document.getElementById('months-in').value);
+        let c = parseFloat(document.getElementById('cost-in').value)||0, d = parseFloat(document.getElementById('down-in').value)||0, m = parseInt(document.getElementById('months-in').value);
         let r = {6:0.38, 8:0.45, 10:0.48, 12:0.56, 14:0.64, 16:0.75}[m];
-        let total = c + (c * r), monthly = (total - d) / m;
+        let total = c + (c*r), monthly = (total - d)/m;
         document.getElementById('out-monthly').innerText = monthly.toFixed(2) + " $";
         return { total, monthly, d, m };
     }
 
     function addSale() {
         let n = document.getElementById('c-name').value, i = document.getElementById('item-select').value;
-        if(!n || !i) return alert("خانەیان پڕ بکە");
+        if(!n || !i) return alert("تکایە ناڤ و ئامێری پڕ بکە");
         let p = recalc();
-        let itemIndex = inv.findIndex(x => x.name === i);
-        if(inv[itemIndex].qty > 0) {
-            inv[itemIndex].qty--;
-            sales.unshift({ id:Date.now(), name:n, item:i, total:p.total.toFixed(2), down:p.d.toFixed(2), monthly:p.monthly.toFixed(2), months:p.m, paid:0, date:new Date().toLocaleString('ku-IQ') });
-            sync();
-            document.getElementById('c-name').value = "";
-        }
+        let idx = inv.findIndex(x=>x.name===i);
+        if(idx === -1 || inv[idx].qty <= 0) return alert("ئامێر د مەخزەنی دا نەماینە!");
+        inv[idx].qty--;
+        sales.unshift({ id:Date.now(), name:n, item:i, total:p.total.toFixed(2), down:p.d.toFixed(2), monthly:p.monthly.toFixed(2), months:p.m, paid:0, date:new Date().toLocaleDateString('ku-IQ') });
+        sync();
+        document.getElementById('c-name').value = "";
     }
 
-    function addStock() {
-        let n = document.getElementById('st-name').value, q = parseInt(document.getElementById('st-qty').value);
-        if(n && q) {
-            let f = inv.find(x=>x.name===n);
-            if(f) f.qty+=q; else inv.push({name:n, qty:q});
-            sync();
-            document.getElementById('st-name').value = ""; document.getElementById('st-qty').value = "";
-        }
-    }
-
-    function pay(id) {
-        let s = sales.find(x => x.id === id);
-        if(s.paid < s.months) { s.paid++; sync(); }
-    }
-
-    function sync() {
-        // ناردنا داتایان بۆ فایربەیس
-        db.ref('/').set({ inventory: inv, sales: sales });
-    }
+    function sync() { db.ref('/').set({ i: inv, s: sales }); }
 
     function ui() {
-        document.getElementById('s-inv').innerText = inv.reduce((a, b) => a + b.qty, 0);
+        document.getElementById('s-inv').innerText = inv.reduce((a,b)=>a+b.qty,0);
         document.getElementById('s-cust').innerText = sales.length;
-        let dbt = 0, inc = 0;
-        sales.forEach(s => { let p_val = parseFloat(s.down) + (s.paid * parseFloat(s.monthly)); inc += p_val; dbt += (parseFloat(s.total) - p_val); });
-        document.getElementById('s-debt').innerText = dbt.toFixed(2) + " $";
-        document.getElementById('s-income').innerText = inc.toFixed(2) + " $";
+        let dbt=0, inc=0;
+        sales.forEach(s => { let p_v = parseFloat(s.down)+(s.paid*parseFloat(s.monthly)); inc+=p_v; dbt+=(parseFloat(s.total)-p_v); });
+        document.getElementById('s-debt').innerText = dbt.toFixed(2)+" $"; 
+        document.getElementById('s-income').innerText = inc.toFixed(2)+" $";
         
         let sel = document.getElementById('item-select'), list = document.getElementById('log-list');
-        sel.innerHTML = '<option value="">ئامێری هەلبژێرە...</option>';
-        inv.forEach(x => { if(x.qty > 0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty})</option>`; });
+        sel.innerHTML = '<option value="">هەلبژارتنا ئامێری...</option>';
+        inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty} دانە)</option>`; });
         
         list.innerHTML = '';
         let q = document.getElementById('search').value.toLowerCase();
-        sales.filter(x => x.name.toLowerCase().includes(q) || x.item.toLowerCase().includes(q)).forEach(s => {
+        sales.filter(x => x.name.toLowerCase().includes(q)).forEach(s => {
             let rem = (parseFloat(s.total) - parseFloat(s.down) - (s.paid * parseFloat(s.monthly))).toFixed(2);
-            list.innerHTML += `<tr><td>${s.name}</td><td>${s.item}</td><td>${s.total}$</td><td style="color:var(--primary)">${s.monthly}$</td><td><b style="color:${rem<=0?'var(--success)':'var(--danger)'}">${rem}$</b></td><td><button onclick="pay(${s.id})" style="background:none; border:1px solid var(--success); color:var(--success); border-radius:5px; cursor:pointer; padding:2px 8px;">+</button></td></tr>`;
+            list.innerHTML += `<tr><td><b>${s.name}</b></td><td>${s.item}</td><td>${s.total}$</td><td><b style="color:${rem<=0?'#00ff88':'#ff3366'}">${rem}$</b></td>
+            <td>
+                <button class="btn" style="width:auto; display:inline-flex; background:var(--success); color:#000;" onclick="pay(${s.id})"><i class="fa-solid fa-plus"></i></button>
+                <button class="btn" style="width:auto; display:inline-flex; background:white; color:#000;" onclick="printInv(${s.id})"><i class="fa-solid fa-print"></i></button>
+            </td></tr>`;
         });
     }
 
-    function exportToExcel() {
-        let ws = XLSX.utils.json_to_sheet(sales.map(s => ({"کڕیار":s.name,"ئامێر":s.item,"گشتی":s.total,"پێشەکی":s.down,"قیست":s.monthly,"داینە":s.paid,"مێژوو":s.date})));
-        let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Sales"); XLSX.writeFile(wb, "Bizhar_Sales.xlsx");
+    function pay(id) { let s=sales.find(x=>x.id===id); if(s.paid<s.months){ s.paid++; sync(); } }
+
+    function printInv(id) {
+        let s = sales.find(x=>x.id===id);
+        let paid_val = parseFloat(s.down) + (s.paid * parseFloat(s.monthly));
+        let rem_val = parseFloat(s.total) - paid_val;
+        
+        document.getElementById('inv-cname').innerText = s.name;
+        document.getElementById('inv-date').innerText = s.date;
+        document.getElementById('inv-item').innerText = s.item;
+        document.getElementById('inv-months').innerText = s.months;
+        document.getElementById('inv-total').innerText = s.total + " $";
+        document.getElementById('inv-down').innerText = s.down + " $";
+        document.getElementById('inv-paid').innerText = paid_val.toFixed(2) + " $";
+        document.getElementById('inv-rem').innerText = rem_val.toFixed(2) + " $";
+        document.getElementById('inv-monthly').innerText = s.monthly;
+        document.getElementById('inv-mrem').innerText = s.months - s.paid;
+        
+        window.print();
     }
 
-    function confirmReset() {
-        if(confirm("ئەرێ تو پشت راستی تە دڤێت هەمی داتایان رەش بکەی؟")) {
-            db.ref('/').set({ inventory: [], sales: [] });
-            location.reload();
-        }
+    function openAdmin() { let p = prompt("تکایە پاسۆرد بنڤیسە:"); if(p==="1234") document.getElementById('admin-panel').style.display='block'; }
+    function closeAdmin() { document.getElementById('admin-panel').style.display='none'; }
+    function addStock() { 
+        let n=document.getElementById('st-name').value, q=parseInt(document.getElementById('st-qty').value); 
+        if(n&&q){ 
+            let f=inv.find(x=>x.name===n); 
+            if(f) f.qty+=q; else inv.push({name:n, qty:q}); 
+            sync(); 
+            document.getElementById('st-name').value=""; document.getElementById('st-qty').value="";
+            alert("مەخزەن هاتە نووکرن");
+        } 
     }
+    function exportToExcel() { let ws = XLSX.utils.json_to_sheet(sales); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Sales"); XLSX.writeFile(wb, "Bizhar_POS_Report.xlsx"); }
+    function downloadBackup() { let b = new Blob([JSON.stringify({i:inv, s:sales})], {type:"application/json"}); let a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = "Bizhar_Backup.json"; a.click(); }
+    function confirmReset() { if(confirm("ئەرێ تو دڵنیایی هەمی داتایان ڕەش بکەی؟")) db.ref('/').set({i:[], s:[]}); }
 </script>
 </body>
 </html>
