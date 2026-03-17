@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BIZHAR COMPUTER | PRO POS</title>
+    <title>BIZHAR COMPUTER | NEON POS</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -14,142 +14,171 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
 
         :root {
-            --bg: #f3f4f6; --card: #ffffff; --text: #111827; --primary: #2563eb; --border: #d1d5db; --success: #10b981; --danger: #ef4444; --header-h: 110px;
+            --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --primary: #2563eb; 
+            --neon-blue: #00d2ff; --neon-purple: #9d50bb; --border: #cbd5e1; --success: #10b981; --danger: #ef4444;
         }
 
         body.dark-mode {
-            --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --primary: #3b82f6; --border: #334155;
+            --bg: #050b18; --card: #111a2e; --text: #f1f5f9; --primary: #3b82f6; 
+            --neon-blue: #00f2ff; --neon-purple: #bd00ff; --border: #1e293b;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
+        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s ease; overflow-x: hidden; }
 
-        /* HEADER FIX: Guaranteed Visibility & Premium Design */
+        /* NEON HEADER */
         header { 
-            background: var(--card); height: var(--header-h); padding: 10px 15px; border-bottom: 4px solid var(--primary);
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            position: sticky; top: 0; z-index: 999999; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            background: var(--card); height: 80px; padding: 0 20px; 
+            border-bottom: 3px solid transparent;
+            border-image: linear-gradient(to right, var(--neon-blue), var(--neon-purple)) 1;
+            display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 99999; box-shadow: 0 5px 20px rgba(0, 210, 255, 0.15);
         }
 
-        .header-top { display: flex; justify-content: center; gap: 10px; width: 100%; margin-bottom: 8px; }
-        
-        .brand-box { text-align: center; }
-        .brand-name { font-weight: 900; font-size: 18px; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; }
-        .brand-sub { font-size: 10px; opacity: 0.7; font-weight: 700; margin-top: -3px; }
-
-        .btn-tool { 
-            padding: 8px 12px; border-radius: 12px; border: 1.5px solid var(--border); 
-            background: var(--bg); color: var(--text); cursor: pointer; font-size: 14px; 
-            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        .brand { 
+            font-weight: 900; font-size: 20px; 
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
+            letter-spacing: 1px;
         }
-        .btn-tool:hover { transform: translateY(-2px); border-color: var(--primary); }
 
-        .container { width: 100%; max-width: 1450px; margin: 15px auto; padding: 0 15px; display: block; }
-        
-        /* PC MODE STYLES */
-        .pc-mode-active { display: grid !important; grid-template-columns: 380px 1fr !important; gap: 20px; align-items: start; }
+        /* SETTINGS NEON MENU */
+        .settings-container { position: relative; }
+        .settings-btn { 
+            width: 48px; height: 48px; border-radius: 14px; 
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; border: none; font-size: 22px;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+            transition: 0.3s;
+        }
+        .settings-btn:hover { transform: rotate(45deg) scale(1.1); }
 
-        .card { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: 0 5px 10px rgba(0,0,0,0.03); }
-        
+        .dropdown-menu { 
+            position: absolute; left: 0; top: 60px; background: var(--card); 
+            border: 2px solid var(--neon-blue); border-radius: 20px; width: 250px; 
+            display: none; flex-direction: column; padding: 12px; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4); 
+            z-index: 100000; backdrop-filter: blur(10px);
+        }
+        .dropdown-menu.show { display: flex; animation: slideDown 0.3s ease-out; }
+
+        @keyframes slideDown { from { opacity:0; transform: translateY(-10px); } to { opacity:1; transform: translateY(0); } }
+
+        .menu-item { 
+            display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; 
+            cursor: pointer; color: var(--text); font-size: 14px; transition: 0.2s; border: none; background: none; width: 100%; text-align: right; font-weight: 700;
+        }
+        .menu-item:hover { background: linear-gradient(to left, rgba(0, 210, 255, 0.1), transparent); color: var(--neon-blue); }
+        .menu-item i { color: var(--neon-purple); width: 20px; text-align: center; }
+
+        /* LAYOUT & PC MODE */
+        .container { width: 100%; max-width: 1400px; margin: 25px auto; padding: 0 15px; }
+        .pc-mode-active { display: grid !important; grid-template-columns: 400px 1fr !important; gap: 30px; align-items: start; }
+
+        .card { 
+            background: var(--card); padding: 25px; border-radius: 25px; 
+            border: 1px solid var(--border); margin-bottom: 25px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+        }
+
         input, select { 
-            width: 100%; padding: 13px; border: 2px solid var(--border); border-radius: 12px; 
-            background: var(--bg); color: var(--text); font-size: 14px; margin-top: 5px; outline: none; transition: 0.3s;
+            width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 15px; 
+            background: var(--bg); color: var(--text); font-size: 14px; margin-top: 8px; outline: none;
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(37, 99, 235, 0.2); }
+        input:focus { border-color: var(--neon-blue); }
 
         .main-btn { 
-            width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 900; 
-            background: var(--primary); color: white; margin-top: 15px; cursor: pointer; 
+            width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: 900; 
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: white; margin-top: 20px; cursor: pointer; 
             display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px;
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
         }
 
-        .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 15px; }
-        .stat-box { background: var(--card); padding: 15px; border-radius: 20px; text-align: center; border-bottom: 5px solid var(--primary); transition: 0.3s; }
-        .stat-box:hover { transform: scale(1.02); }
+        .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: var(--card); padding: 20px; border-radius: 22px; text-align: center; border-bottom: 5px solid var(--neon-blue); }
 
-        .search-box { margin-bottom: 15px; position: relative; }
-        .search-box i { position: absolute; left: 15px; top: 18px; color: var(--primary); }
-        .search-box input { padding-left: 45px; border: 2px solid var(--primary); }
-
-        .table-wrap { background: var(--card); border-radius: 18px; overflow-x: auto; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
-        th, td { padding: 15px; text-align: right; border-bottom: 1px solid var(--border); }
-        tr:hover { background: rgba(0,0,0,0.02); }
+        .table-wrap { background: var(--card); border-radius: 22px; overflow: hidden; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: rgba(0, 210, 255, 0.05); padding: 18px; color: var(--neon-blue); text-align: right; }
+        td { padding: 16px; border-bottom: 1px solid var(--border); text-align: right; }
         tr.finished { background: rgba(16, 185, 129, 0.08); border-right: 6px solid var(--success); }
 
-        #scanner { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 12px; border: 3px solid var(--primary); }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999999; padding: 15px; backdrop-filter: blur(5px); }
-
-        .result-box { background: var(--bg); padding: 12px; border-radius: 15px; text-align: center; margin-top: 10px; border: 1.5px solid var(--border); }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 999999; backdrop-filter: blur(8px); }
     </style>
 </head>
 <body id="app-body">
 
 <header>
-    <div class="header-top">
-        <button class="btn-tool" onclick="toggleLayout()" title="PC/Mobile Mode"><i id="mode-icon" class="fa-solid fa-desktop"></i></button>
-        <button class="btn-tool" onclick="exportData()" title="Backup"><i class="fa-solid fa-cloud-download"></i></button>
-        <button class="btn-tool" onclick="document.getElementById('modal-inv').style.display='flex'" title="Add Inventory"><i class="fa-solid fa-plus-circle"></i></button>
-        <button class="btn-tool" onclick="toggleDark()" title="Dark Mode"><i id="dark-icon" class="fa-solid fa-moon"></i></button>
-        <select id="lang-sel" class="btn-tool" onchange="applyLang()" style="width: 75px; font-weight: 900;">
-            <option value="ku">KU</option><option value="ar">AR</option><option value="en">EN</option>
-        </select>
+    <div class="settings-container">
+        <button class="settings-btn" onclick="toggleMenu()"><i class="fa-solid fa-ghost"></i></button>
+        <div class="dropdown-menu" id="main-menu">
+            <button class="menu-item" onclick="toggleLayout()"><i class="fa-solid fa-display"></i> <span id="m-pc">PC Mode</span></button>
+            <button class="menu-item" onclick="toggleDark()"><i class="fa-solid fa-wand-magic-sparkles"></i> <span id="m-dark">Dark Mode</span></button>
+            <button class="menu-item" onclick="exportData()"><i class="fa-solid fa-cloud-arrow-down"></i> <span id="m-backup">Backup</span></button>
+            <button class="menu-item" onclick="showAddInv()"><i class="fa-solid fa-microchip"></i> <span id="m-add">Inventory</span></button>
+            <hr style="opacity: 0.1; margin: 10px 0;">
+            <div style="padding: 5px 12px;">
+                <select id="lang-sel" onchange="applyLang()" style="border:1px solid var(--neon-blue); font-weight:900; background:transparent;">
+                    <option value="ku">Kurdî ☀️</option>
+                    <option value="ar">العربية 🌙</option>
+                    <option value="fa">فارسی 💎</option>
+                    <option value="tr">Türkçe 🛡️</option>
+                    <option value="en">English 🌐</option>
+                </select>
+            </div>
+        </div>
     </div>
-    <div class="brand-box">
-        <div class="brand-name">BIZHAR COMPUTER</div>
-        <div class="brand-sub">IT SOLUTIONS & HARDWARE SPECIALIST</div>
-    </div>
+    <div class="brand">BIZHAR COMPUTER</div>
+    <div style="width:48px;"></div>
 </header>
 
 <div class="container" id="app-container">
-    <div id="left-side">
+    <div id="side-p">
         <div class="card">
-            <h3 id="t-form" style="font-weight:900; margin-bottom:10px; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-pen-to-square"></i> تۆمارکرن</h3>
-            <div id="scanner"></div>
+            <h3 id="t-form" style="font-weight:900; color:var(--neon-blue);"><i class="fa-solid fa-bolt"></i> تۆمارکرن</h3>
+            <div id="scanner" style="display:none; margin-top:10px;"></div>
             
             <label id="l-name" style="font-size:12px; font-weight:700; margin-top:10px; display:block;">ناڤێ کڕیاری</label>
-            <input type="text" id="i-name" placeholder="Name...">
+            <input type="text" id="i-name" placeholder="...">
 
-            <label id="l-item" style="font-size:12px; font-weight:700; margin-top:10px; display:block;">ئامێر</label>
-            <div style="display:flex; gap:6px;">
-                <select id="i-item"></select>
-                <button onclick="startScan()" class="btn-tool" style="background:var(--primary); color:white; border:none;"><i class="fa-solid fa-barcode"></i></button>
+            <label id="l-item" style="font-size:12px; font-weight:700; margin-top:12px; display:block;">ئامێر</label>
+            <div style="display:flex; gap:8px;"><select id="i-item"></select>
+                <button onclick="startScan()" class="main-btn" style="margin:0; width:60px; height:50px;"><i class="fa-solid fa-qrcode"></i></button>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;">
-                <div><label id="l-buy" style="font-size:11px; font-weight:700;">کڕین $</label><input type="number" id="i-buy" oninput="calc()"></div>
-                <div><label id="l-down" style="font-size:11px; font-weight:700;">پێشەکی $</label><input type="number" id="i-down" oninput="calc()"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+                <div><label id="l-buy" style="font-size:11px;">کڕین $</label><input type="number" id="i-buy" oninput="calc()"></div>
+                <div><label id="l-down" style="font-size:11px;">پێشەکی $</label><input type="number" id="i-down" oninput="calc()"></div>
             </div>
 
-            <label id="l-duration" style="font-size:12px; font-weight:700; margin-top:12px; display:block;">ماوێ قیستێ (هەیڤ)</label>
+            <label id="l-duration" style="font-size:12px; font-weight:700; margin-top:15px; display:block;">ماوێ قیستێ</label>
             <select id="i-months" onchange="calc()">
-                <option value="6">6 Months (40%)</option><option value="8">8 Months (45%)</option>
-                <option value="10">10 Months (50%)</option><option value="12">12 Months (55%)</option>
-                <option value="14">14 Months (60%)</option><option value="16">16 Months (75%)</option>
+                <option value="6">6 Months (40%)</option>
+                <option value="12">12 Months (55%)</option>
+                <option value="16">16 Months (75%)</option>
             </select>
 
-            <div class="result-box"><small id="l-total-price">بهایێ گشتی</small><div id="o-total" style="font-weight:900; color:var(--success); font-size:22px;">$ 0.00</div></div>
-            <div class="result-box" style="border: 2px dashed var(--primary); background: rgba(37,99,235,0.05);"><small id="l-mon">قیستێ هەیڤانە</small><div id="o-mon" style="font-weight:900; color:var(--primary); font-size:26px;">$ 0.00</div></div>
+            <div style="background:rgba(0, 210, 255, 0.05); padding:15px; border-radius:18px; margin-top:20px; text-align:center; border:2px dashed var(--neon-blue);">
+                <small id="l-mon">قیستێ هەیڤانە</small>
+                <div id="o-mon" style="font-weight:900; color:var(--neon-blue); font-size:28px;">$ 0.00</div>
+            </div>
 
             <button class="main-btn" onclick="saveSale()"><i class="fa-solid fa-save"></i> <span id="b-save">پاشکەفتکرن</span></button>
         </div>
     </div>
 
-    <div id="right-side">
+    <div id="main-p">
         <div class="stats">
-            <div class="stat-box"><small id="s1">مەخزەن</small><h3 id="v1">0</h3></div>
-            <div class="stat-box"><small id="s2">کڕیار</small><h3 id="v2">0</h3></div>
-            <div class="stat-box"><small id="s3">قەرز</small><h3 id="v3">0$</h3></div>
-            <div class="stat-box" style="border-color:var(--success)"><small id="s4">قازانج</small><h3 id="v4" style="color:var(--success)">0$</h3></div>
+            <div class="stat-box" style="border-color: var(--neon-purple);"><small id="s1">مەخزەن</small><h3 id="v1">0</h3></div>
+            <div class="stat-box" style="border-color: var(--success);"><small id="s4">قازانج</small><h3 id="v4" style="color:var(--success)">0$</h3></div>
         </div>
-
-        <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="search-input" placeholder="گەڕیان..." oninput="render()"></div>
-
+        <input type="text" id="search-input" placeholder="Search..." oninput="render()" style="margin-bottom:20px; border-color:var(--neon-purple);">
         <div class="table-wrap">
             <table>
-                <thead>
-                    <tr><th id="th1">کڕیار</th><th id="th2">ئامێر</th><th id="th3">گشتی</th><th id="th4">قیست</th><th id="th5">کردار</th></tr>
-                </thead>
+                <thead><tr><th id="th1">کڕیار</th><th id="th2">ئامێر</th><th id="th3">گشتی</th><th id="th4">قیست</th><th id="th5">کردار</th></tr></thead>
                 <tbody id="sales-list"></tbody>
             </table>
         </div>
@@ -157,15 +186,11 @@
 </div>
 
 <div class="modal" id="modal-inv">
-    <div class="card" style="width:100%; max-width:420px;">
-        <h3 id="m-title" style="margin-bottom:15px; border-bottom:2px solid var(--primary); padding-bottom:10px;">زێدەکرنا ئامێری</h3>
-        <input type="text" id="add-name" placeholder="Item Name">
-        <input type="text" id="add-barcode" placeholder="Barcode">
-        <input type="number" id="add-qty" placeholder="Quantity">
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="main-btn" onclick="addInv()" style="background:var(--success); margin:0; flex:1;">Add</button>
-            <button class="main-btn" onclick="document.getElementById('modal-inv').style.display='none'" style="background:#64748b; margin:0; flex:1;">Close</button>
-        </div>
+    <div class="card" style="width:90%; max-width:400px; border:2px solid var(--neon-blue);">
+        <h3 id="m-title">Inventory</h3>
+        <input type="text" id="add-name" placeholder="Item Name"><input type="text" id="add-barcode" placeholder="Barcode"><input type="number" id="add-qty" placeholder="Qty">
+        <button class="main-btn" onclick="addInv()">Confirm</button>
+        <button class="main-btn" onclick="document.getElementById('modal-inv').style.display='none'" style="background:#475569;">Close</button>
     </div>
 </div>
 
@@ -176,52 +201,49 @@
     let inv = [], sales = [];
 
     const langs = {
-        ku: { dir: "rtl", tform: "تۆمارکرن", lname: "ناڤێ کڕیاری", litem: "ئامێر", lbuy: "کڕین $", ldown: "پێشەکی $", lduration: "ماوێ قیستێ", lmon: "قیستێ هەیڤانە", bsave: "پاشکەفتکرن", s1: "مەخزەن", s2: "کڕیار", s3: "قەرز", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "گشتی", th4: "قیست", th5: "کردار", ltotal: "بهایێ گشتی", mtitle: "زێدەکرنا ئامێری" },
-        ar: { dir: "rtl", tform: "تسجيل", lname: "اسم الزبون", litem: "الجهاز", lbuy: "شراء $", ldown: "مقدمة $", lduration: "المدة", lmon: "القسط", bsave: "حفظ", s1: "المخزن", s2: "الزبائن", s3: "الديون", s4: "الأرباح", th1: "الزبون", th2: "الجهاز", th3: "الإجمالي", th4: "الأقساط", th5: "إجراء", ltotal: "السعر الكلي", mtitle: "إضافة جهاز" },
-        en: { dir: "ltr", tform: "Register", lname: "Customer", litem: "Item", lbuy: "Buy $", ldown: "Down $", lduration: "Months", lmon: "Monthly", bsave: "Save", s1: "Stock", s2: "Clients", s3: "Debt", s4: "Profit", th1: "Name", th2: "Item", th3: "Total", th4: "Paid", th5: "Action", ltotal: "Total Price", mtitle: "Add Item" }
+        ku: { dir: "rtl", tform: "تۆمارکرن", lname: "ناڤێ کڕیاری", litem: "ئامێر", lbuy: "کڕین $", ldown: "پێشەکی $", lduration: "ماوێ قیستێ", lmon: "قیستێ هەیڤانە", bsave: "پاشکەفتکرن", s1: "مەخزەن", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "گشتی", th4: "قیست", th5: "کردار", mpc: "مۆدێ کۆمپیوتەری", mdark: "مۆدێ تاریک", mbackup: "باکئەپ", madd: "مەخزەن", mtitle: "زێدەکرنا ئامێری" },
+        ar: { dir: "rtl", tform: "تسجيل", lname: "اسم الزبون", litem: "الجهاز", lbuy: "شراء $", ldown: "مقدمة $", lduration: "المدة", lmon: "القسط", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", th1: "الزبون", th2: "الجهاز", th3: "الإجمالي", th4: "الأقساط", th5: "إجراء", mpc: "وضع الكمبيوتر", mdark: "الوضع الليلي", mbackup: "نسخة احتياطية", madd: "المخزن", mtitle: "إضافة جهاز" },
+        fa: { dir: "rtl", tform: "ثبت", lname: "نام مشتری", litem: "دستگاه", lbuy: "خرید $", ldown: "پیش پرداخت $", lduration: "مدت", lmon: "قسط ماهانه", bsave: "ذخیره", s1: "انبار", s4: "سود", th1: "مشتری", th2: "دستگاه", th3: "کل", th4: "قسط", th5: "عملیات", mpc: "حالت دسکتاپ", mdark: "حالت شب", mbackup: "پشتیبان", madd: "انبارداری", mtitle: "افزودن کالا" },
+        tr: { dir: "ltr", tform: "Kayıt", lname: "Müşteri", litem: "Cihaz", lbuy: "Alış $", ldown: "Peşinat $", lduration: "Süre", lmon: "Aylık", bsave: "Kaydet", s1: "Stok", s4: "Kâr", th1: "Müşteri", th2: "Cihaz", th3: "Toplam", th4: "Taksit", th5: "İşlem", mpc: "Bilgisayar Modu", mdark: "Karanlık Mod", mbackup: "Yedekle", madd: "Stok", mtitle: "Cihaz Ekle" },
+        en: { dir: "ltr", tform: "Register", lname: "Customer", litem: "Item", lbuy: "Buy $", ldown: "Down $", lduration: "Months", lmon: "Monthly", bsave: "Save", s1: "Stock", s4: "Profit", th1: "Name", th2: "Item", th3: "Total", th4: "Paid", th5: "Action", mpc: "PC Mode", mdark: "Dark Mode", mbackup: "Backup", madd: "Inventory", mtitle: "Add Item" }
     };
+
+    function toggleMenu() { document.getElementById('main-menu').classList.toggle('show'); }
+    function toggleLayout() { document.getElementById('app-container').classList.toggle('pc-mode-active'); toggleMenu(); }
+    function toggleDark() { document.body.classList.toggle('dark-mode'); toggleMenu(); }
+    function showAddInv() { document.getElementById('modal-inv').style.display='flex'; toggleMenu(); }
+
+    window.onclick = function(e) { if (!e.target.closest('.settings-container')) document.getElementById('main-menu').classList.remove('show'); }
+
+    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; render(); } });
 
     function applyLang() {
         const l = langs[document.getElementById('lang-sel').value];
-        document.body.dir = l.dir; document.getElementById('t-form').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> ${l.tform}`;
+        document.body.dir = l.dir;
+        document.getElementById('t-form').innerHTML = `<i class="fa-solid fa-bolt"></i> ${l.tform}`;
         document.getElementById('l-name').innerText = l.lname; document.getElementById('l-item').innerText = l.litem;
         document.getElementById('l-buy').innerText = l.lbuy; document.getElementById('l-down').innerText = l.ldown;
         document.getElementById('l-duration').innerText = l.lduration; document.getElementById('l-mon').innerText = l.lmon;
         document.getElementById('b-save').innerText = l.bsave; document.getElementById('s1').innerText = l.s1;
-        document.getElementById('s2').innerText = l.s2; document.getElementById('s3').innerText = l.s3;
         document.getElementById('s4').innerText = l.s4; document.getElementById('th1').innerText = l.th1;
         document.getElementById('th2').innerText = l.th2; document.getElementById('th3').innerText = l.th3;
         document.getElementById('th4').innerText = l.th4; document.getElementById('th5').innerText = l.th5;
-        document.getElementById('l-total-price').innerText = l.ltotal; document.getElementById('m-title').innerText = l.mtitle;
+        document.getElementById('m-pc').innerText = l.mpc; document.getElementById('m-dark').innerText = l.mdark;
+        document.getElementById('m-backup').innerText = l.mbackup; document.getElementById('m-add').innerText = l.madd;
+        document.getElementById('m-title').innerText = l.mtitle;
     }
-
-    function toggleLayout() { 
-        const cont = document.getElementById('app-container');
-        const icon = document.getElementById('mode-icon');
-        cont.classList.toggle('pc-mode-active');
-        icon.className = cont.classList.contains('pc-mode-active') ? 'fa-solid fa-mobile-screen' : 'fa-solid fa-desktop';
-        window.scrollTo(0,0);
-    }
-
-    function toggleDark() { 
-        document.body.classList.toggle('dark-mode'); 
-        document.getElementById('dark-icon').className = document.body.classList.contains('dark-mode') ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-    }
-
-    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; render(); } });
 
     function calc() {
         let b = parseFloat(document.getElementById('i-buy').value)||0, d = parseFloat(document.getElementById('i-down').value)||0, m = parseInt(document.getElementById('i-months').value);
-        let rates = {6:0.4, 8:0.45, 10:0.5, 12:0.55, 14:0.6, 16:0.75};
-        let total = b + (b * (rates[m]||0)), mon = (total - d) / m;
-        document.getElementById('o-total').innerText = "$ " + total.toLocaleString();
-        document.getElementById('o-mon').innerText = "$ " + mon.toLocaleString();
+        let rates = {6:0.4, 12:0.55, 16:0.75};
+        let total = b + (b * (rates[m]||0.4)), mon = (total - d) / m;
+        document.getElementById('o-mon').innerText = "$ " + mon.toFixed(2);
         return { total, mon, b, d, m };
     }
 
     function saveSale() {
         let n = document.getElementById('i-name').value, i = document.getElementById('i-item').value;
-        if(!n || !i) return alert("Pire bike!");
+        if(!n || !i) return alert("Hemiya pire bike!");
         let p = calc(), idx = inv.findIndex(x => x.name === i);
         if(idx!==-1) inv[idx].qty--;
         sales.unshift({ id:Date.now(), name:n, item:i, total:p.total.toFixed(2), buy:p.b, down:p.d, mon:p.mon.toFixed(2), months:p.m, paid:0, date:new Date().toLocaleDateString() });
@@ -236,41 +258,33 @@
 
     function render() {
         document.getElementById('v1').innerText = inv.reduce((a,b)=>a+b.qty,0);
-        document.getElementById('v2').innerText = sales.length;
-        let dbt=0, pro=0, query = document.getElementById('search-input').value.toLowerCase();
-        sales.forEach(s => { dbt += (parseFloat(s.total) - parseFloat(s.down) - (s.paid*parseFloat(s.mon))); pro += (parseFloat(s.total) - parseFloat(s.buy)); });
-        document.getElementById('v3').innerText = dbt.toLocaleString() + "$";
-        document.getElementById('v4').innerText = pro.toLocaleString() + "$";
-
+        let pro=0, query = document.getElementById('search-input').value.toLowerCase();
+        sales.forEach(s => { pro += (parseFloat(s.total) - parseFloat(s.buy)); });
+        document.getElementById('v4').innerText = pro.toFixed(0) + "$";
         let sel = document.getElementById('i-item'), list = document.getElementById('sales-list');
         sel.innerHTML = '<option value="">...</option>';
-        inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty})</option>`; });
-        
+        inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name}</option>`; });
         list.innerHTML = '';
         sales.filter(s => s.name.toLowerCase().includes(query)).forEach(s => {
             let isDone = s.paid >= s.months;
-            list.innerHTML += `<tr class="${isDone?'finished':''}">
-                <td><b>${s.name}</b><br><small>${s.date}</small></td><td>${s.item}</td><td>${s.total}$</td><td>${s.paid}/${s.months}</td>
-                <td><button class="btn-tool" onclick="pay(${s.id})"><i class="fa-solid ${isDone?'fa-check-double':'fa-plus'}"></i></button>
-                <button class="btn-tool" style="color:var(--danger)" onclick="delS(${s.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            list.innerHTML += `<tr class="${isDone?'finished':''}"><td><b>${s.name}</b><br><small>${s.date}</small></td><td>${s.item}</td><td>${s.total}$</td><td>${s.paid}/${s.months}</td>
+                <td><button onclick="pay(${s.id})" class="settings-btn" style="width:32px; height:32px; font-size:14px; display:inline-flex;">+</button> 
+                <button onclick="delS(${s.id})" class="settings-btn" style="width:32px; height:32px; font-size:14px; background:var(--danger); display:inline-flex;">×</button></td></tr>`;
         });
     }
 
     function pay(id) { let s=sales.find(x=>x.id===id); if(s.paid < s.months){ s.paid++; db.ref('/').set({i:inv, s:sales}); } }
     function delS(id) { if(confirm("Tu pişrasti؟")){ sales=sales.filter(x=>x.id!==id); db.ref('/').set({i:inv, s:sales}); } }
-    
     function exportData() {
         let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i:inv, s:sales}));
         let dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "BIZHAR_BACKUP.json"); dl.click();
     }
-
     function startScan() {
-        const scDiv = document.getElementById('scanner');
-        scDiv.style.display = 'block';
+        document.getElementById('scanner').style.display = 'block';
         let sc = new Html5QrcodeScanner("scanner", { fps: 15, qrbox: 250 });
         sc.render((txt) => {
             let f = inv.find(x => x.barcode === txt);
-            if(f) { document.getElementById('i-item').value = f.name; sc.clear(); scDiv.style.display='none'; }
+            if(f) { document.getElementById('i-item').value = f.name; sc.clear(); document.getElementById('scanner').style.display='none'; }
         });
     }
     applyLang();
