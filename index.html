@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BIZHAR COMPUTER | PRO POS SYSTEM</title>
+    <title>Installments POS</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -11,108 +11,126 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&family=Roboto:wght@400;700&display=swap');
 
         :root {
             --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --primary: #2563eb; 
-            --neon-blue: #00d2ff; --neon-purple: #9d50bb; --border: #cbd5e1; --success: #10b981; --danger: #ef4444;
+            --neon-blue: #00d2ff; --neon-purple: #bd00ff; --border: #cbd5e1; --success: #10b981; --danger: #ef4444;
             --shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
 
         body.dark-mode {
             --bg: #020617; --card: #0f172a; --text: #f1f5f9; --primary: #3b82f6; 
-            --neon-blue: #00f2ff; --neon-purple: #bd00ff; --border: #1e293b;
+            --neon-blue: #00f2ff; --neon-purple: #df00ff; --border: #1e293b;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Noto Sans Arabic', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
+        body { font-family: 'Noto Sans Arabic', 'Roboto', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
+
+        /* Login */
+        #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 999999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
+        .login-box { background: var(--card); padding: 40px; border-radius: 30px; border: 2px solid var(--neon-blue); box-shadow: 0 0 50px rgba(0,210,255,0.2); width: 350px; text-align: center; }
 
         header { 
-            background: var(--card); height: 75px; padding: 0 20px; 
+            background: var(--card); height: 80px; padding: 0 20px; 
             border-bottom: 2px solid var(--border);
             display: flex; justify-content: space-between; align-items: center; 
             position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow);
         }
 
-        .brand { font-weight: 900; font-size: 22px; background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand { 
+            font-weight: 900; font-size: 26px; 
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            text-shadow: 0 0 15px rgba(0,210,255,0.2);
+        }
 
         .settings-btn { width: 45px; height: 45px; border-radius: 12px; background: var(--bg); color: var(--neon-blue); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1.5px solid var(--neon-blue); font-size: 20px; transition: 0.3s; }
 
         /* Menu */
-        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; }
         .menu-overlay.show { display: flex; }
-        .dropdown-menu { background: var(--card); border-radius: 25px; width: 320px; padding: 25px; box-shadow: 0 30px 60px rgba(0,0,0,0.3); animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 2px solid var(--neon-blue); }
-        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        .menu-item { display: flex; align-items: center; gap: 15px; padding: 14px; border-radius: 15px; cursor: pointer; color: var(--text); border: none; background: none; width: 100%; text-align: inherit; font-weight: 700; transition: 0.2s; margin-bottom: 8px; }
-        .menu-item:hover { background: var(--bg); color: var(--primary); transform: translateX(-5px); }
+        .dropdown-menu { background: var(--card); border-radius: 30px; width: 340px; padding: 25px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); border: 2px solid var(--neon-blue); max-height: 90vh; overflow-y: auto; }
+        
+        .menu-item { display: flex; align-items: center; gap: 15px; padding: 16px; border-radius: 18px; cursor: pointer; color: var(--text); border: none; background: none; width: 100%; text-align: inherit; font-weight: 700; transition: 0.3s; margin-bottom: 8px; font-size: 15px; }
+        .menu-item i { width: 25px; color: var(--neon-blue); }
+        .menu-item:hover { background: var(--bg); transform: translateX(-5px); border-right: 4px solid var(--neon-blue); }
 
         .container { width: 100%; max-width: 1400px; margin: 25px auto; padding: 0 15px; }
-        .pc-mode-active { display: grid !important; grid-template-columns: 380px 1fr !important; gap: 25px; }
+        .pc-mode-active { display: grid !important; grid-template-columns: 420px 1fr !important; gap: 30px; }
         
-        .card { background: var(--card); padding: 25px; border-radius: 22px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: var(--shadow); }
-        
-        input, select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text); margin-top: 8px; outline: none; font-size: 15px; }
-        input:focus { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0,210,255,0.1); }
+        .card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: var(--shadow); position: relative; }
+        input, select { width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 15px; background: var(--bg); color: var(--text); margin-top: 8px; outline: none; font-size: 15px; }
 
-        .main-btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 900; background: linear-gradient(45deg, var(--primary), var(--neon-blue)); color: white; margin-top: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 5px 15px rgba(37,99,235,0.2); }
+        .main-btn { width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: 900; background: linear-gradient(45deg, var(--primary), var(--neon-blue)); color: white; margin-top: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
         
-        #reader-container { display: none; margin-bottom: 20px; border-radius: 20px; overflow: hidden; border: 4px solid var(--neon-blue); position: relative; box-shadow: 0 0 30px rgba(0,210,255,0.3); }
-        .scan-close { position: absolute; top: 15px; right: 15px; z-index: 10; background: var(--danger); color: white; border: none; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-weight: 900; }
+        #reader-container { display: none; margin-bottom: 20px; border-radius: 20px; overflow: hidden; border: 4px solid var(--neon-blue); position: relative; background: #000; }
+        .scan-close { position: absolute; top: 15px; right: 15px; z-index: 10; background: var(--danger); color: white; border: none; padding: 10px 15px; border-radius: 12px; cursor: pointer; font-weight: bold; }
 
-        .table-wrap { background: var(--card); border-radius: 20px; overflow-x: auto; border: 1px solid var(--border); }
+        .table-wrap { background: var(--card); border-radius: 25px; overflow-x: auto; border: 1.5px solid var(--border); }
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 16px; border-bottom: 1px solid var(--border); text-align: inherit; }
-        th { background: var(--bg); color: var(--primary); font-size: 14px; }
+        th { background: var(--bg); padding: 18px; font-weight: 900; color: var(--primary); text-align: center; }
+        td { padding: 16px; border-bottom: 1px solid var(--border); text-align: center; }
 
-        .btn-sm { width: 36px; height: 36px; border-radius: 10px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-sm:hover { transform: scale(1.1); }
+        .btn-sm { width: 38px; height: 38px; border-radius: 10px; border: none; color: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 2px; }
         
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .stat-box { padding: 20px; border-radius: 20px; background: var(--card); border-right: 5px solid var(--primary); box-shadow: var(--shadow); }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 99999; backdrop-filter: blur(10px); }
+        .modal-card { background: var(--card); border-radius: 30px; padding: 30px; border: 2px solid var(--neon-blue); width: 95%; max-width: 900px; max-height: 85vh; overflow-y: auto; }
 
-        /* Inventory Special Styles */
-        .inventory-card { background: var(--card); border-radius: 30px; padding: 30px; border: 2px solid var(--neon-blue); width: 95%; max-width: 850px; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
-        .stock-badge { padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; }
-        .low-stock { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
-        .in-stock { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
-
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 99999; backdrop-filter: blur(10px); }
-
-        @media print { body * { visibility: hidden; } #print-area, #print-area * { visibility: visible; } #print-area { position: absolute; left: 0; top: 0; width: 100%; } }
+        #print-area { padding: 20px; background: white; color: black; width: 350px; display: none; direction: rtl; }
+        @media print { body * { visibility: hidden; } #print-area, #print-area * { visibility: visible; } #print-area { display: block !important; position: absolute; left: 0; top: 0; } }
+        
+        .dev-link { text-decoration: none; color: var(--neon-blue); font-weight: 900; transition: 0.3s; }
+        .dev-link:hover { text-shadow: 0 0 10px var(--neon-blue); }
     </style>
 </head>
-<body id="app-body">
+<body>
+
+<div id="login-overlay">
+    <div class="login-box">
+        <h2 id="log-t" style="color:var(--neon-blue); margin-bottom:20px; font-weight: 900;">Installments POS</h2>
+        <input type="text" id="login-user" placeholder="USERNAME">
+        <input type="password" id="login-pass" placeholder="PASSWORD">
+        <button class="main-btn" onclick="checkLogin()" id="log-btn">LOGIN</button>
+    </div>
+</div>
 
 <header>
     <div style="width: 45px;"></div>
-    <div class="brand">BIZHAR COMPUTER</div>
-    <button class="settings-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars-staggered"></i></button>
+    <div class="brand">Installments POS</div>
+    <button class="settings-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
 </header>
 
 <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()">
     <div class="dropdown-menu" onclick="event.stopPropagation()">
-        <h4 id="m-header" style="text-align:center; color:var(--neon-blue); margin-bottom:15px;">SETTINGS</h4>
+        <h4 id="m-header" style="text-align:center; color:var(--neon-blue); margin-bottom:20px;">MENU</h4>
         <button class="menu-item" onclick="toggleLayout()"><i class="fa-solid fa-desktop"></i> <span id="m-pc">PC Mode</span></button>
         <button class="menu-item" onclick="toggleDark()"><i class="fa-solid fa-moon"></i> <span id="m-dark">Dark Mode</span></button>
-        <button class="menu-item" onclick="exportData()"><i class="fa-solid fa-cloud-arrow-down"></i> <span id="m-backup">Backup</span></button>
-        <button class="menu-item" onclick="showAddInv()"><i class="fa-solid fa-boxes-packing"></i> <span id="m-add">Inventory</span></button>
-        <hr style="opacity: 0.1; margin: 15px 0;">
-        <select id="lang-sel" onchange="applyLang()" style="height: 50px; border: 2px solid var(--neon-blue);">
-            <option value="ku">کوردی (بادینی)</option>
-            <option value="en">English</option>
+        <button class="menu-item" onclick="showReports()"><i class="fa-solid fa-chart-pie"></i> <span id="m-reports">Reports</span></button>
+        <button class="menu-item" onclick="showArchive()"><i class="fa-solid fa-box-archive"></i> <span id="m-archive">Archive</span></button>
+        <button class="menu-item" onclick="showRecycleBin()"><i class="fa-solid fa-trash"></i> <span id="m-trash">Recycle Bin</span></button>
+        <button class="menu-item" onclick="checkInvPass()"><i class="fa-solid fa-warehouse"></i> <span id="m-add">Inventory</span></button>
+        <button class="menu-item" onclick="exportData()"><i class="fa-solid fa-download"></i> <span id="m-backup">Backup</span></button>
+        <button class="menu-item" onclick="showAbout()"><i class="fa-solid fa-info-circle"></i> <span id="m-about">About</span></button>
+
+        <select id="lang-sel" onchange="applyLang()" style="height: 50px; border: 2px solid var(--neon-blue); margin-top: 10px;">
+            <option value="bd">کوردی (بادینی)</option>
+            <option value="sr">کوردی (سۆرانی)</option>
             <option value="ar">العربية</option>
+            <option value="en">English</option>
             <option value="tr">Türkçe</option>
             <option value="fa">فارسی</option>
         </select>
-        <button class="main-btn" onclick="toggleMenu()" id="btn-close" style="background:#475569;">CLOSE</button>
+        
+        <button class="menu-item" onclick="logout()" style="color:var(--danger); margin-top: 10px;"><i class="fa-solid fa-sign-out"></i> <span id="m-logout">Logout</span></button>
+        <button class="main-btn" onclick="toggleMenu()" id="btn-close" style="background:#64748b;">CLOSE</button>
     </div>
 </div>
 
 <div class="container" id="app-container">
     <div id="side-p">
-        <div class="card">
-            <h3 id="t-form" style="margin-bottom:20px; color:var(--primary);"><i class="fa-solid fa-cart-plus"></i> NEW SALE</h3>
+        <div class="card" style="border-top: 5px solid var(--primary);">
+            <h3 id="t-form"><i class="fa-solid fa-plus-circle"></i> NEW SALE</h3>
             
             <div id="reader-container">
                 <button class="scan-close" onclick="stopScan()">X</button>
@@ -122,42 +140,46 @@
             <label id="l-name">CUSTOMER NAME</label>
             <input type="text" id="i-name" placeholder="...">
 
-            <label id="l-item" style="margin-top:15px; display:block;">SELECT DEVICE</label>
+            <label id="l-item" style="margin-top:15px; display:block;">SELECT ITEM</label>
             <div style="display:flex; gap:8px;">
-                <select id="i-item"></select>
-                <button onclick="startScan('sale')" class="main-btn" style="margin-top:8px; width:60px; background:var(--text);"><i class="fa-solid fa-barcode"></i></button>
+                <select id="i-item" style="flex: 1;"></select>
+                <button onclick="startScan('sale')" class="main-btn" style="margin-top:8px; width:55px; background:var(--text);"><i class="fa-solid fa-barcode"></i></button>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
                 <div><label id="l-buy">COST $</label><input type="number" id="i-buy" oninput="calc()"></div>
                 <div><label id="l-down">DOWNPAY $</label><input type="number" id="i-down" oninput="calc()"></div>
             </div>
 
-            <label id="l-duration" style="margin-top:15px; display:block;">PERIOD</label>
+            <label id="l-duration" style="margin-top:15px; display:block;">PLAN</label>
             <select id="i-months" onchange="calc()">
+                <option value="2">2 Months (15%)</option>
+                <option value="3">3 Months (25%)</option>
+                <option value="4">4 Months (35%)</option>
                 <option value="6">6 Months (40%)</option>
-                <option value="12">12 Months (55%)</option>
-                <option value="16">16 Months (75%)</option>
+                <option value="8">8 Months (50%)</option>
+                <option value="10">10 Months (60%)</option>
+                <option value="12">12 Months (70%)</option>
             </select>
 
             <div style="display:flex; justify-content:space-between; margin-top:20px; background:var(--bg); padding:15px; border-radius:15px; border:1px dashed var(--neon-blue);">
-                <div style="text-align:center;"><small id="l-total-box">TOTAL</small><div id="o-total" style="font-weight:900; font-size:18px;">$0</div></div>
-                <div style="text-align:center;"><small id="l-mon">MONTHLY</small><div id="o-mon" style="font-weight:900; color:var(--primary); font-size:18px;">$0</div></div>
+                <div style="text-align:center;"><small id="l-total-box">TOTAL</small><div id="o-total" style="font-weight:900; font-size:20px;">$0</div></div>
+                <div style="text-align:center;"><small id="l-mon">MONTHLY</small><div id="o-mon" style="font-weight:900; color:var(--primary); font-size:20px;">$0</div></div>
             </div>
 
-            <button class="main-btn" onclick="saveSale()"><i class="fa-solid fa-floppy-disk"></i> <span id="b-save">SAVE</span></button>
+            <button class="main-btn" onclick="saveSale()"><i class="fa-solid fa-save"></i> <span id="b-save">SAVE</span></button>
         </div>
     </div>
 
     <div id="main-p">
-        <div class="stat-grid">
-            <div class="stat-box"><small id="s1">STOCK</small><h3 id="v1">0</h3></div>
-            <div class="stat-box" style="border-color:var(--success);"><small id="s4">PROFIT</small><h3 id="v4" style="color:var(--success)">0$</h3></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div class="card" style="margin:0; padding:15px; border-left: 5px solid var(--neon-blue);"><small id="s1">STOCK</small><h3 id="v1">0</h3></div>
+            <div class="card" style="margin:0; padding:15px; border-left: 5px solid var(--success);"><small id="s4">PROFIT</small><h3 id="v4" style="color:var(--success)">$0</h3></div>
         </div>
         
-        <div style="display:flex; gap:12px; margin-bottom:20px;">
-            <input type="text" id="search-input" placeholder="Search customer or item..." oninput="render()" style="margin-top:0;">
-            <button onclick="startScan('search')" class="main-btn" style="margin:0; width:60px;"><i class="fa-solid fa-magnifying-glass-chart"></i></button>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <input type="text" id="search-input" placeholder="Search..." oninput="render()" style="margin:0;">
+            <button onclick="startScan('search')" class="main-btn" style="margin:0; width:55px;"><i class="fa-solid fa-qrcode"></i></button>
         </div>
 
         <div class="table-wrap">
@@ -171,176 +193,203 @@
     </div>
 </div>
 
-<div class="modal" id="modal-inv">
-    <div class="inventory-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-            <h2 id="m-title" style="color:var(--neon-blue);"><i class="fa-solid fa-boxes-stacked"></i> INVENTORY</h2>
-            <button onclick="document.getElementById('modal-inv').style.display='none'" style="background:none; border:none; color:var(--danger); font-size:30px; cursor:pointer;">&times;</button>
+<div class="modal" id="modal-universal">
+    <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 id="modal-title" style="color:var(--neon-blue);">TITLE</h2>
+            <button onclick="closeModal()" style="background:var(--danger); border:none; color:white; width: 35px; height: 35px; border-radius: 50%; cursor:pointer;">&times;</button>
         </div>
-
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:15px; margin-bottom:20px;">
-            <div><label style="font-size:12px; font-weight:700;">NAME</label><input type="text" id="add-name"></div>
-            <div>
-                <label style="font-size:12px; font-weight:700;">BARCODE</label>
-                <div style="display:flex; gap:5px;"><input type="text" id="add-barcode"><button onclick="startScan('add')" class="main-btn" style="width:45px; margin-top:8px; height:45px;"><i class="fa-solid fa-barcode"></i></button></div>
-            </div>
-            <div><label style="font-size:12px; font-weight:700;">QTY</label><input type="number" id="add-qty" value="1"></div>
-        </div>
-        
-        <button class="main-btn" id="btn-add-confirm" onclick="addInv()">ADD TO STOCK</button>
-
-        <div style="margin-top:30px; border-radius:15px; overflow:hidden; border:1px solid var(--border);">
-            <table style="min-width:100%; font-size:14px;">
-                <thead style="background:var(--bg);"><tr><th>ITEM</th><th>BARCODE</th><th>QTY</th><th>X</th></tr></thead>
-                <tbody id="inventory-list-body"></tbody>
-            </table>
-        </div>
+        <div id="modal-content"></div>
     </div>
 </div>
 
-<div id="print-area" style="display:none;"></div>
+<div id="print-area"></div>
 
 <script>
     const firebaseConfig = { databaseURL: "https://bizhar-pos-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let inv = [], sales = [], scanner = null;
+    
+    let inv = [], sales = [], archive = [], trash = [], reports = [], scanner = null;
+    const SECRET_KEY = "07503644666";
 
-    const langs = {
-        ku: { dir: "rtl", mhead: "ڕێکخستن", tform: "تۆمارکرنا نوی", lname: "ناڤێ کڕیاری", litem: "هەلبژارتنا ئامێری", lbuy: "بهایێ کڕینێ $", ldown: "پێشەکی $", lduration: "ماوێ قیستێ", lmon: "قیستا هەیڤانە", ltotal: "کۆمێ گشتی", bsave: "پاشکەفتکرن", s1: "کۆگە (پارچە)", s4: "کۆما قازانجی", th1: "کڕیار", th2: "ئامێر", th3: "کۆمێ گشتی", th_down: "پێشەکی", th4: "قیستێن دای", th5: "کردار", mpc: "مودێ کۆمپیوتەری", mdark: "مودێ تاریك", mbackup: "باکئەپ", madd: "مەخزەن", mtitle: "بڕێڤەبرنا مەخزەنی", bclose: "داخستن", bconf: "زێدە بکە" },
-        en: { dir: "ltr", mhead: "SETTINGS", tform: "NEW SALE", lname: "CUSTOMER NAME", litem: "DEVICE", lbuy: "COST $", ldown: "DOWNPAY $", lduration: "PERIOD", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", mpc: "PC MODE", mdark: "DARK MODE", mbackup: "BACKUP", madd: "INVENTORY", mtitle: "INVENTORY MGMT", bclose: "CLOSE", bconf: "ADD" },
-        ar: { dir: "rtl", mhead: "الإعدادات", tform: "بيع جديد", lname: "اسم الزبون", litem: "الجهاز", lbuy: "سعر الشراء", ldown: "المقدمة", lduration: "الأشهر", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الربح", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "المقدمة", th4: "الأقساط", th5: "إجراء", mpc: "وضع الحاسوب", mdark: "الوضع الليلي", mbackup: "نسخة", madd: "المخزن", mtitle: "إدارة المخزن", bclose: "إغلاق", bconf: "إضافة" },
-        tr: { dir: "ltr", mhead: "AYARLAR", tform: "YENİ SATIŞ", lname: "MÜŞTERİ", litem: "CİHAZ", lbuy: "MALİYET", ldown: "PEŞİNAT", lduration: "AY", lmon: "AYLIK", ltotal: "TOPLAM", bsave: "KAYDET", s1: "STOK", s4: "KAR", th1: "İSİM", th2: "CİHAZ", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM", mpc: "PC MODU", mdark: "KARANLIK MOD", mbackup: "YEDEKLE", madd: "ENVANTER", mtitle: "ENVANTER YÖNETİMİ", bclose: "KAPAT", bconf: "EKLE" },
-        fa: { dir: "rtl", mhead: "تنظیمات", tform: "فروش جدید", lname: "نام مشتری", litem: "کالا", lbuy: "خرید", ldown: "پیش‌پرداخت", lduration: "ماه", lmon: "قسط", ltotal: "کل", bsave: "ذخیره", s1: "انبار", s4: "سود", th1: "مشتری", th2: "کالا", th3: "مجموع", th_down: "پیش", th4: "اقساط", th5: "عملیات", mpc: "حالت کامپیوتر", mdark: "حالت شب", mbackup: "پشتیبان", madd: "انبار", mtitle: "مدیریت انبار", bclose: "بستن", bconf: "افزودن" }
+    const translations = {
+        bd: { dir: "rtl", mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", litem: "ئامێر", lbuy: "بهایێ کڕینێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان...", inv_name: "ناڤێ ئامێری", inv_barcode: "بارکۆد", inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیف", mtrash: "گلێش", mbackup: "باکئەپ", mreports: "ڕاپۆرت", mabout: "دەربارەی سیستەمی", mlogout: "چوونەدەر", mpc: "شاشا کومپیتەری", mdark: "شەڤ", log_btn: "چوونە ژوور", log_u: "ناڤێ بکارهێنەری", log_p: "کۆد", about_txt: "ئەڤ سیستەمە هاتیە دروستکرن ژ لایێ <b>بژار ڕەشید</b> ڤە بۆ بڕێڤەبرنا کارێن قیست و فرۆشتنێ ب شێوازەکێ هوشمەند.", th_date: "رێکەفت", th_amt: "بڕ" },
+        sr: { dir: "rtl", mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", litem: "ئامێر", lbuy: "نرخی کڕین", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن", search: "گەڕان...", inv_name: "ناوی کاڵا", inv_barcode: "بارکۆد", inv_qty: "ژمارە", inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپ", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدەرەوە", mpc: "شاشەی کۆمپیوتەر", mdark: "شەو", log_btn: "چوونەژوورەوە", log_u: "ناوی بەکارهێنەر", log_p: "کۆد", about_txt: "ئەم سیستمە لەلایەن <b>بژار ڕەشید</b> گەشەی پێدراوە بۆ بەڕێوەبردنی قیست و فرۆشتن بە شێوازێکی پێشکەوتوو.", th_date: "بەروار", th_amt: "بڕ" },
+        ar: { dir: "rtl", mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", litem: "الجهاز", lbuy: "التكلفة", ldown: "المقدمة", lduration: "المدة", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "مقدمة", th4: "الأقساط", th5: "إجراء", madd: "المخزن", bclose: "إغلاق", search: "بحث...", inv_name: "المادة", inv_barcode: "بارکود", inv_qty: "الكمية", inv_add: "إضافة", marchive: "الأرشيف", mtrash: "المحذوفات", mbackup: "نسخ احتياطي", mreports: "التقارير", mabout: "حول المطور", mlogout: "تسجيل الخروج", mpc: "وضع الحاسوب", mdark: "الوضع الليلي", log_btn: "دخول", log_u: "اسم المستخدم", log_p: "كلمة المرور", about_txt: "تم تطوير هذا النظام بواسطة <b>بژار رشید</b> لإدارة المبيعات والأقساط بطريقة حديثة.", th_date: "التاريخ", th_amt: "المبلغ" },
+        en: { dir: "ltr", mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", litem: "ITEM", lbuy: "COST", ldown: "DOWNPAY", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE", search: "Search...", inv_name: "Item Name", inv_barcode: "Barcode", inv_qty: "Qty", inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Backup", mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mdark: "Dark Mode", log_btn: "LOGIN", log_u: "USERNAME", log_p: "PASSWORD", about_txt: "Developed by <b>BIZHAR RASHEED</b> for modern management.", th_date: "Date", th_amt: "Amount" },
+        tr: { dir: "ltr", mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", litem: "ÜRÜN", lbuy: "MALİYET", ldown: "PEŞİNAT", lduration: "VADE", lmon: "TAKSİT", ltotal: "TOPLAM", bsave: "KAYDET", s1: "STOK", s4: "KÂR", th1: "AD", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM", madd: "ENVANTER", bclose: "KAPAT", search: "Ara...", inv_name: "Ürün Adı", inv_barcode: "Barkod", inv_qty: "Adet", inv_add: "Ekle", marchive: "Arşiv", mtrash: "Çöp Kutusu", mbackup: "Yedekle", mreports: "Raporlar", mabout: "Hakkında", mlogout: "Çıkış Yap", mpc: "Masaüstü", mdark: "Gece Modu", log_btn: "GİRİŞ", log_u: "KULLANICI", log_p: "ŞİFRE", about_txt: "Bu sistem <b>BİZHAR RAŞİD</b> tarafından geliştirilmiştir.", th_date: "Tarih", th_amt: "Miktar" },
+        fa: { dir: "rtl", mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", litem: "کالا", lbuy: "هزینه", ldown: "پیش‌پرداخت", lduration: "مدت", lmon: "قسط", ltotal: "مجموع", bsave: "ذخیره", s1: "انبار", s4: "سود", th1: "نام", th2: "کالا", th3: "مجموع", th_down: "پیش‌پرداخت", th4: "اقساط", th5: "عملیات", madd: "موجودی", bclose: "بستن", search: "جستجو...", inv_name: "نام کالا", inv_barcode: "بارکد", inv_qty: "تعداد", inv_add: "افزودن", marchive: "آرشیو", mtrash: "زباله", mbackup: "پشتیبان", mreports: "گزارش‌ها", mabout: "درباره ما", mlogout: "خروج", mpc: "حالت دسکتاپ", mdark: "حالت شب", log_btn: "ورود", log_u: "نام کاربری", log_p: "رمز عبور", about_txt: "این سیستم توسط <b>بژار رشید</b> طراحی شده است.", th_date: "تاریخ", th_amt: "مبلغ" }
     };
 
-    function toggleMenu() { document.getElementById('menu-overlay').classList.toggle('show'); }
-    function toggleLayout() { document.getElementById('app-container').classList.toggle('pc-mode-active'); toggleMenu(); }
-    function toggleDark() { document.body.classList.toggle('dark-mode'); toggleMenu(); }
+    window.onload = () => { if(localStorage.getItem("bizhar_logged") === "true") document.getElementById('login-overlay').style.display = 'none'; applyLang(); };
     
-    function showAddInv() { 
-        document.getElementById('modal-inv').style.display='flex'; 
-        renderInventoryTable();
-        toggleMenu(); 
+    function checkLogin() { 
+        if(document.getElementById('login-user').value === "BIZHAR" && document.getElementById('login-pass').value === SECRET_KEY) { 
+            localStorage.setItem("bizhar_logged", "true"); 
+            document.getElementById('login-overlay').style.display = 'none'; 
+        } else { alert("ACCESS DENIED!"); } 
     }
 
+    function logout() { localStorage.removeItem("bizhar_logged"); location.reload(); }
+    function checkInvPass() { if(prompt("MASTER KEY:") === SECRET_KEY) showInventory(); }
+
+    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; archive=d.a||[]; trash=d.t||[]; reports=d.r||[]; render(); } });
+    function updateDB() { db.ref('/').set({ i: inv, s: sales, a: archive, t: trash, r: reports }); }
+
+    function calc() {
+        let b = parseFloat(document.getElementById('i-buy').value)||0, d = parseFloat(document.getElementById('i-down').value)||0, m = parseInt(document.getElementById('i-months').value);
+        let rates = {2:0.15, 3:0.25, 4:0.35, 6:0.40, 8:0.50, 10:0.60, 12:0.70}, total = b + (b * (rates[m]||0)), mon = (total - d) / m;
+        document.getElementById('o-mon').innerText = "$" + (mon > 0 ? mon.toFixed(2) : 0);
+        document.getElementById('o-total').innerText = "$" + total.toFixed(2);
+        return { total, mon, b, d, m };
+    }
+
+    function saveSale() {
+        let n = document.getElementById('i-name').value, i = document.getElementById('i-item').value;
+        if(!n || !i) return;
+        let p = calc(), idx = inv.findIndex(x => x.name === i);
+        if(idx!==-1) inv[idx].qty--;
+        sales.unshift({ id:Date.now(), name:n, item:i, total:p.total.toFixed(2), buy:p.b, down:p.d, mon:p.mon.toFixed(2), months:p.m, paid:0, date:new Date().toLocaleString() });
+        updateDB(); document.getElementById('i-name').value = "";
+    }
+
+    function pay(id) {
+        if(prompt("MASTER KEY:") !== SECRET_KEY) return;
+        let idx = sales.findIndex(x => x.id === id);
+        if(idx !== -1) {
+            sales[idx].paid++;
+            const remCount = (sales[idx].months - sales[idx].paid);
+            const rep = { ...sales[idx], payDate: new Date().toLocaleString(), currentPayment: sales[idx].paid, remAmt: (remCount * parseFloat(sales[idx].mon)).toFixed(2) };
+            reports.unshift(rep);
+            printInvoice(rep);
+            if(sales[idx].paid >= sales[idx].months) { archive.unshift(sales[idx]); sales.splice(idx, 1); }
+            updateDB();
+        }
+    }
+
+    function printInvoice(data) {
+        const area = document.getElementById('print-area');
+        area.innerHTML = `<h3 style="text-align:center;">Installments POS</h3><hr><p>Customer: ${data.name}</p><p>Item: ${data.item}</p><p>Payment: ${data.currentPayment}/${data.months}</p><p>Paid: $${data.mon}</p><p>Remaining: $${data.remAmt || "0"}</p><hr><p>${data.payDate || data.date}</p><small style="display:block; text-align:center;">Powered By: Bizhar Rasheed</small>`;
+        window.print();
+    }
+
+    function showReports() {
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        document.getElementById('modal-title').innerText = l.mreports;
+        document.getElementById('modal-content').innerHTML = `<div class="table-wrap"><table><thead><tr><th>${l.th1}</th><th>${l.th_date}</th><th>${l.th_amt}</th></tr></thead>
+        <tbody>${reports.map(r => `<tr><td>${r.name}</td><td>${r.payDate}</td><td>$${r.mon}</td></tr>`).join('')}</tbody></table></div>`;
+        document.getElementById('modal-universal').style.display = 'flex';
+        toggleMenu();
+    }
+
+    function showInventory() {
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        document.getElementById('modal-title').innerText = l.madd;
+        document.getElementById('modal-content').innerHTML = `
+        <input type="text" id="add-n" placeholder="${l.inv_name}">
+        <input type="text" id="add-b" placeholder="${l.inv_barcode}">
+        <input type="number" id="add-q" placeholder="${l.inv_qty}"><button class="main-btn" onclick="addInv()">${l.inv_add}</button>
+        <div class="table-wrap" style="margin-top:15px;"><table><thead><tr><th>${l.inv_name}</th><th>${l.inv_qty}</th><th>X</th></tr></thead>
+        <tbody>${inv.map((x,idx)=>`<tr><td>${x.name}</td><td>${x.qty}</td><td><button onclick="delInv(${idx})" style="color:var(--danger); background:none; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div>`;
+        document.getElementById('modal-universal').style.display = 'flex';
+    }
+
+    function showAbout() {
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        document.getElementById('modal-title').innerText = l.mabout;
+        document.getElementById('modal-content').innerHTML = `
+            <div style="text-align:center; padding:20px;">
+                <div style="font-size: 50px; color: var(--neon-purple); margin-bottom: 20px;"><i class="fa-solid fa-user-shield"></i></div>
+                <p style="line-height:1.8;">${l.about_txt}</p>
+                <div style="margin-top:20px; font-weight:900;">
+                    <a href="https://bizhar-cloud.github.io/BizharRasheed/" target="_blank" class="dev-link">BIZHAR RASHEED</a>
+                </div>
+                <div style="margin-top:5px; opacity:0.7;">Copyright © 2026</div>
+            </div>`;
+        document.getElementById('modal-universal').style.display = 'flex';
+        toggleMenu();
+    }
+
+    function addInv() {
+        let n = document.getElementById('add-n').value, b = document.getElementById('add-b').value, q = parseInt(document.getElementById('add-q').value)||0;
+        if(n && q){ inv.push({name:n, barcode:b, qty:q}); updateDB(); showInventory(); }
+    }
+    function delInv(idx) { if(confirm("DELETE?")){ inv.splice(idx,1); updateDB(); showInventory(); } }
+    function closeModal() { document.getElementById('modal-universal').style.display = 'none'; stopScan(); }
+
     function applyLang() {
-        const l = langs[document.getElementById('lang-sel').value] || langs.ku;
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd; 
         document.body.dir = l.dir;
-        document.getElementById('m-header').innerText = l.mhead;
-        document.getElementById('t-form').innerHTML = `<i class="fa-solid fa-cart-plus"></i> ${l.tform}`;
+        document.getElementById('m-header').innerText = l.mhead; 
+        document.getElementById('t-form').innerHTML = `<i class="fa-solid fa-plus-circle"></i> ${l.tform}`;
         document.getElementById('l-name').innerText = l.lname; 
         document.getElementById('l-item').innerText = l.litem;
         document.getElementById('l-buy').innerText = l.lbuy; 
         document.getElementById('l-down').innerText = l.ldown;
-        document.getElementById('l-duration').innerText = l.lduration;
+        document.getElementById('l-duration').innerText = l.lduration; 
         document.getElementById('l-mon').innerText = l.lmon;
-        document.getElementById('l-total-box').innerText = l.ltotal;
+        document.getElementById('l-total-box').innerText = l.ltotal; 
         document.getElementById('b-save').innerText = l.bsave; 
-        document.getElementById('s1').innerText = l.s1;
+        document.getElementById('s1').innerText = l.s1; 
         document.getElementById('s4').innerText = l.s4; 
-        document.getElementById('th1').innerText = l.th1;
+        document.getElementById('th1').innerText = l.th1; 
         document.getElementById('th2').innerText = l.th2; 
-        document.getElementById('th3').innerText = l.th3;
+        document.getElementById('th3').innerText = l.th3; 
         document.getElementById('th_down').innerText = l.th_down; 
         document.getElementById('th4').innerText = l.th4; 
         document.getElementById('th5').innerText = l.th5; 
-        document.getElementById('m-pc').innerText = l.mpc; 
-        document.getElementById('m-dark').innerText = l.mdark; 
+        document.getElementById('m-archive').innerText = l.marchive; 
+        document.getElementById('m-trash').innerText = l.mtrash;
         document.getElementById('m-backup').innerText = l.mbackup; 
-        document.getElementById('m-add').innerText = l.madd; 
-        document.getElementById('m-title').innerText = l.mtitle;
+        document.getElementById('m-add').innerText = l.madd;
+        document.getElementById('m-reports').innerText = l.mreports; 
+        document.getElementById('m-about').innerText = l.mabout; 
+        document.getElementById('m-logout').innerText = l.mlogout;
+        document.getElementById('m-pc').innerText = l.mpc;
+        document.getElementById('m-dark').innerText = l.mdark;
         document.getElementById('btn-close').innerText = l.bclose;
-        document.getElementById('btn-add-confirm').innerText = l.bconf;
+        document.getElementById('search-input').placeholder = l.search;
+        document.getElementById('login-user').placeholder = l.log_u;
+        document.getElementById('login-pass').placeholder = l.log_p;
+        document.getElementById('log-btn').innerText = l.log_btn;
         render();
     }
 
-    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; render(); if(document.getElementById('modal-inv').style.display==='flex') renderInventoryTable(); } });
-
-    function startScan(type) {
-        document.getElementById('reader-container').style.display = 'block';
-        if(scanner) scanner.clear();
-        scanner = new Html5QrcodeScanner("reader", { fps: 25, qrbox: 250 });
-        scanner.render((txt) => {
-            if(type === 'sale') {
-                let item = inv.find(x => x.barcode === txt);
-                if(item) { document.getElementById('i-item').value = item.name; stopScan(); }
-            } else if(type === 'search') {
-                document.getElementById('search-input').value = txt; render(); stopScan();
-            } else if(type === 'add') {
-                document.getElementById('add-barcode').value = txt; stopScan();
-            }
-        });
-    }
-
-    function stopScan() { if(scanner) scanner.clear(); document.getElementById('reader-container').style.display = 'none'; }
-
-    function calc() {
-        let b = parseFloat(document.getElementById('i-buy').value)||0, d = parseFloat(document.getElementById('i-down').value)||0, m = parseInt(document.getElementById('i-months').value);
-        let rates = {6:0.4, 12:0.55, 16:0.75};
-        let total = b + (b * (rates[m]||0.4)), mon = (total - d) / m;
-        document.getElementById('o-mon').innerText = "$" + (mon > 0 ? mon.toFixed(1) : 0);
-        document.getElementById('o-total').innerText = "$" + total.toFixed(1);
-        return { total, mon, b, d, m };
-    }
+    function toggleMenu() { document.getElementById('menu-overlay').classList.toggle('show'); }
+    function toggleLayout() { document.getElementById('app-container').classList.toggle('pc-mode-active'); toggleMenu(); }
+    function toggleDark() { document.body.classList.toggle('dark-mode'); toggleMenu(); }
 
     function render() {
         document.getElementById('v1').innerText = inv.reduce((a,b)=>a+parseInt(b.qty),0);
         let pro = 0, q = document.getElementById('search-input').value.toLowerCase();
         sales.forEach(s => pro += (parseFloat(s.total) - parseFloat(s.buy)));
-        document.getElementById('v4').innerText = pro.toFixed(0) + "$";
-        
-        let sel = document.getElementById('i-item');
-        sel.innerHTML = '<option value="">...</option>';
+        document.getElementById('v4').innerText = "$" + pro.toFixed(0);
+        let sel = document.getElementById('i-item'); sel.innerHTML = '<option value="">--- ITEM ---</option>';
         inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name} (${x.qty})</option>`; });
-
-        let list = document.getElementById('sales-list');
-        list.innerHTML = '';
+        let list = document.getElementById('sales-list'); list.innerHTML = '';
         sales.filter(s => s.name.toLowerCase().includes(q) || s.item.toLowerCase().includes(q)).forEach(s => {
-            list.innerHTML += `<tr>
-                <td><b>${s.name}</b><br><small style="opacity:0.5">${s.date}</small></td><td>${s.item}</td><td>${s.total}$</td><td>${s.down}$</td><td><b style="color:var(--neon-blue)">${s.paid}</b>/${s.months}</td>
-                <td class="action-btns">
-                    <button onclick="pay(${s.id})" class="btn-sm" style="background:var(--success)"><i class="fa-solid fa-plus"></i></button>
-                    <button onclick="delS(${s.id})" class="btn-sm" style="background:var(--danger)"><i class="fa-solid fa-trash-can"></i></button>
-                </td></tr>`;
+            list.innerHTML += `<tr><td><b>${s.name}</b></td><td>${s.item}</td><td>$${s.total}</td><td>$${s.down}</td><td>${s.paid}/${s.months}</td>
+            <td><button onclick="pay(${s.id})" class="btn-sm" style="background:var(--success);"><i class="fa-solid fa-plus"></i></button>
+            <button onclick="softDelete(${s.id})" class="btn-sm" style="background:var(--danger);"><i class="fa-solid fa-trash"></i></button></td></tr>`;
         });
     }
 
-    function renderInventoryTable() {
-        const body = document.getElementById('inventory-list-body');
-        body.innerHTML = '';
-        inv.forEach((item, idx) => {
-            const status = item.qty <= 2 ? 'low-stock' : 'in-stock';
-            body.innerHTML += `<tr>
-                <td style="font-weight:700;">${item.name}</td>
-                <td style="font-family:monospace; font-size:12px;">${item.barcode || '--'}</td>
-                <td><span class="stock-badge ${status}">${item.qty}</span></td>
-                <td><i class="fa-solid fa-xmark" onclick="deleteInvItem(${idx})" style="color:var(--danger); cursor:pointer;"></i></td>
-            </tr>`;
+    function startScan(type) {
+        document.getElementById('reader-container').style.display = 'block';
+        if(scanner) scanner.clear();
+        scanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: 250 });
+        scanner.render((txt) => {
+            if(type === 'sale') { let itm = inv.find(x => x.barcode === txt); if(itm) { document.getElementById('i-item').value = itm.name; stopScan(); } }
+            else if(type === 'search') { document.getElementById('search-input').value = txt; render(); stopScan(); }
         });
     }
-
-    function saveSale() {
-        let n = document.getElementById('i-name').value, i = document.getElementById('i-item').value;
-        if(!n || !i) return alert("Hivye nave kriari u amiri diyar bka!");
-        let p = calc(), idx = inv.findIndex(x => x.name === i);
-        if(idx!==-1) inv[idx].qty--;
-        sales.unshift({ id:Date.now(), name:n, item:i, total:p.total.toFixed(2), buy:p.b, down:p.d, mon:p.mon.toFixed(2), months:p.m, paid:0, date:new Date().toLocaleDateString() });
-        db.ref('/').set({ i: inv, s: sales });
-        document.getElementById('i-name').value = "";
-    }
-
-    function addInv() {
-        let n = document.getElementById('add-name').value, b = document.getElementById('add-barcode').value, q = document.getElementById('add-qty').value;
-        if(n && q){ inv.push({name:n, barcode:b, qty:q}); db.ref('/').set({i:inv, s:sales}); document.getElementById('add-name').value=""; document.getElementById('add-barcode').value=""; }
-    }
-
-    function deleteInvItem(idx) { if(confirm("Delete item?")){ inv.splice(idx,1); db.ref('/').set({i:inv, s:sales}); } }
-    function pay(id) { let s=sales.find(x=>x.id===id); if(s && s.paid < s.months){ s.paid++; db.ref('/').set({i:inv, s:sales}); } }
-    function delS(id) { if(confirm("Sure?")){ sales=sales.filter(x=>x.id!==id); db.ref('/').set({i:inv, s:sales}); } }
-    function exportData() { let data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i:inv, s:sales})); let a=document.createElement('a'); a.href=data; a.download="BIZHAR_POS_BACKUP.json"; a.click(); }
-
-    applyLang();
+    function stopScan() { if(scanner) scanner.clear(); document.getElementById('reader-container').style.display = 'none'; }
+    function exportData() { let data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i:inv, s:sales, a:archive, t:trash, r:reports})); let a=document.createElement('a'); a.href=data; a.download="POS_BACKUP.json"; a.click(); }
+    function softDelete(id) { if(prompt("MASTER KEY:") === SECRET_KEY){ let idx = sales.findIndex(x => x.id === id); trash.unshift(sales[idx]); sales.splice(idx,1); updateDB(); } }
+    function showArchive() { document.getElementById('modal-title').innerText = "ARCHIVE"; document.getElementById('modal-content').innerHTML = `<div class="table-wrap"><table><tbody>${archive.map(x=>`<tr><td>${x.name}</td><td>$${x.total}</td></tr>`).join('')}</tbody></table></div>`; document.getElementById('modal-universal').style.display = 'flex'; toggleMenu(); }
+    function showRecycleBin() { document.getElementById('modal-title').innerText = "TRASH"; document.getElementById('modal-content').innerHTML = `<div class="table-wrap"><table><tbody>${trash.map((x,idx)=>`<tr><td>${x.name}</td><td><button onclick="restore(${idx})" class="main-btn" style="margin:0; padding:5px;">RESTORE</button></td></tr>`).join('')}</tbody></table></div>`; document.getElementById('modal-universal').style.display = 'flex'; toggleMenu(); }
+    function restore(idx) { sales.unshift(trash[idx]); trash.splice(idx,1); updateDB(); closeModal(); }
 </script>
 </body>
 </html>
