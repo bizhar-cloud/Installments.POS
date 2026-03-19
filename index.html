@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Installments POS</title>
     
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="POS">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg">
+    <link rel="icon" href="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg">
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -38,12 +44,7 @@
             position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow);
         }
 
-        .brand { 
-            font-weight: 900; font-size: 26px; 
-            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)); 
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-            text-shadow: 0 0 15px rgba(0,210,255,0.2);
-        }
+        .brand img { height: 50px; width: 50px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--neon-blue); box-shadow: 0 0 10px rgba(0,210,255,0.3); }
 
         .settings-btn { width: 45px; height: 45px; border-radius: 12px; background: var(--bg); color: var(--neon-blue); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1.5px solid var(--neon-blue); font-size: 20px; transition: 0.3s; }
 
@@ -88,6 +89,7 @@
 
 <div id="login-overlay">
     <div class="login-box">
+        <img src="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg" style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 15px;">
         <h2 id="log-t" style="color:var(--neon-blue); margin-bottom:20px; font-weight: 900;">Installments POS</h2>
         <input type="text" id="login-user" placeholder="USERNAME">
         <input type="password" id="login-pass" placeholder="PASSWORD">
@@ -97,7 +99,7 @@
 
 <header>
     <div style="width: 45px;"></div>
-    <div class="brand">Installments POS</div>
+    <div class="brand"><img src="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg" alt="Logo"></div>
     <button class="settings-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
 </header>
 
@@ -300,7 +302,7 @@
         document.getElementById('modal-title').innerText = l.mabout;
         document.getElementById('modal-content').innerHTML = `
             <div style="text-align:center; padding:20px;">
-                <div style="font-size: 50px; color: var(--neon-purple); margin-bottom: 20px;"><i class="fa-solid fa-user-shield"></i></div>
+                <img src="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg" style="width: 100px; height: 100px; border-radius: 25px; margin-bottom: 20px; border: 2px solid var(--neon-purple);">
                 <p style="line-height:1.8;">${l.about_txt}</p>
                 <div style="margin-top:20px; font-weight:900;">
                     <a href="https://bizhar-cloud.github.io/BizharRasheed/" target="_blank" class="dev-link">BIZHAR RASHEED</a>
