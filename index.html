@@ -33,7 +33,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Noto Sans Arabic', 'Roboto', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
 
-        /* Login Layer */
         #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 999999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
         .login-box { background: var(--card); padding: 40px; border-radius: 30px; border: 2px solid var(--neon-blue); width: 350px; text-align: center; box-shadow: 0 0 50px rgba(0,210,255,0.2); }
 
@@ -45,7 +44,6 @@
         .brand h2 { font-weight: 900; background: linear-gradient(135deg, #00d2ff, #bd00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .settings-btn { width: 45px; height: 45px; border-radius: 12px; background: var(--bg); color: var(--neon-blue); display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--neon-blue); cursor: pointer; }
 
-        /* Sidebar Menu */
         .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; }
         .menu-overlay.show { display: flex; }
         .dropdown-menu { background: var(--card); border-radius: 30px; width: 340px; padding: 25px; border: 2px solid var(--neon-blue); max-height: 90vh; overflow-y: auto; }
@@ -53,22 +51,11 @@
         .menu-item i { width: 25px; color: var(--neon-blue); text-align: center; }
         .menu-item:hover { background: var(--bg); border-right: 5px solid var(--neon-blue); }
 
-        /* Select Styling */
         #lang-sel { 
-            width: 100%; 
-            height: 55px; 
-            border: 2px solid var(--neon-blue); 
-            border-radius: 18px; 
-            margin-top: 15px; 
-            font-weight: bold; 
-            background: var(--card); 
-            color: var(--text); 
-            padding: 0 15px; 
-            text-align: right; 
-            appearance: none; 
+            width: 100%; height: 55px; border: 2px solid var(--neon-blue); border-radius: 18px; margin-top: 15px; 
+            font-weight: bold; background: var(--card); color: var(--text); padding: 0 15px; text-align: right; appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300d2ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: left 15px center;
+            background-repeat: no-repeat; background-position: left 15px center;
         }
         body[dir="ltr"] #lang-sel { text-align: left; background-position: right 15px center; }
 
@@ -92,6 +79,13 @@
         .stat-card { background: var(--card); padding: 20px; border-radius: 20px; border: 1.5px solid var(--border); text-align: center; position: relative; }
         .stat-card h3 { font-size: 24px; font-weight: 900; margin-top: 5px; }
         .stat-card small { color: #64748b; font-weight: 700; font-size: 11px; display: block; }
+
+        /* Dev Profile Styling */
+        .dev-profile-container { text-align: center; padding: 10px; }
+        .dev-img-frame { width: 100%; max-width: 350px; border-radius: 20px; border: 3px solid var(--neon-blue); box-shadow: 0 10px 30px rgba(0,210,255,0.3); margin-bottom: 20px; }
+        .dev-name-link { font-size: 30px; font-weight: 900; background: linear-gradient(to right, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; display: block; margin: 10px 0; }
+        .dev-tag { background: var(--bg); padding: 8px 15px; border-radius: 30px; border: 1.5px solid var(--border); display: inline-block; font-size: 14px; font-weight: 700; color: #64748b; }
+        .dev-bio { margin-top: 20px; padding: 20px; background: rgba(0,210,255,0.05); border-radius: 20px; border: 1px solid var(--neon-blue); font-weight: 600; line-height: 1.6; }
 
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 99999; backdrop-filter: blur(12px); }
         .modal-card { background: var(--card); border-radius: 35px; padding: 30px; border: 2px solid var(--neon-blue); width: 95%; max-width: 850px; max-height: 90vh; overflow-y: auto; }
@@ -203,14 +197,10 @@
                 <small id="s-annual">YEARLY FORECAST</small><h3 id="v-annual" style="color:#f59e0b">****</h3>
             </div>
         </div>
-        
         <input type="text" id="search-input" placeholder="..." oninput="render()" style="margin-bottom:20px; border: 2px solid var(--border);">
-
         <div class="table-wrap">
             <table>
-                <thead><tr>
-                    <th id="th1">CUSTOMER</th><th id="th2">ITEM</th><th id="th3">TOTAL</th><th id="th_down">DOWN</th><th id="th4">PAID</th><th id="th5">ACTION</th>
-                </tr></thead>
+                <thead><tr><th id="th1">CUSTOMER</th><th id="th2">ITEM</th><th id="th3">TOTAL</th><th id="th_down">DOWN</th><th id="th4">PAID</th><th id="th5">ACTION</th></tr></thead>
                 <tbody id="sales-list"></tbody>
             </table>
         </div>
@@ -238,20 +228,16 @@
     const SECRET_KEY = "07503644666";
 
     const translations = {
-        bd: { mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", litem: " ئامێر/کاڵا", lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", srem: "ماوە", sannual: "تەخمینا ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: " ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان...", inv_name: "ناڤێ ئامێری", inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیف", mtrash: "گلێش", mbackup: "سەیفکرنا ئێکسل", mrestore: "دووبارە زێدەکرن", mreports: "ڕاپۆرت", mabout: "گەشەپێدەر", mlogout: "چوونەدەر", mpc: "کۆمپیوتەر", mdark: "شەڤ", th_date: "رێکەفت", th_amt: "بڕ" },
-        sr: { mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", litem: "ئامێر", lbuy: "نرخی فرۆشتن", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", srem: "ماوە", sannual: "تەخمینی ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن", search: "گەڕان...", inv_name: "ناوی کاڵا", inv_qty: "ژمارە", inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپی ئێکسل", mrestore: "گێڕانەوەی داتا", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدەرەوە", mpc: "کۆمپیوتەر", mdark: "شەو", th_date: "بەروار", th_amt: "بڕ" },
-        ar: { mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", litem: "الجهاز", lbuy: "سعر البيع", ldown: "المقدمة", lduration: "المدة", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", srem: "المتبقي", sannual: "التوقعات السنوية", lnote: "ملاحظات", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "مقدمة", th4: "الأقساط", th5: "إجراء", madd: "المخزن", bclose: "إغلاق", search: "بحث...", inv_name: "المادة", inv_qty: "الكمية", inv_add: "إضافة", marchive: "الأرشيف", mtrash: "المحذوفات", mbackup: "نسخ إكسل", mrestore: "استعادة", mreports: "التقارير", mabout: "حول المطور", mlogout: "خروج", mpc: "کمبيوتر", mdark: "ليلي", th_date: "التاريخ", th_amt: "المبلغ" },
-        en: { mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", litem: "ITEM", lbuy: "PRICE", ldown: "DOWN", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", srem: "REMAIN", sannual: "ANNUAL FORECAST", lnote: "NOTES", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE", search: "Search...", inv_name: "Item Name", inv_qty: "Qty", inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Backup", mrestore: "Restore", mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mdark: "Dark Mode", th_date: "Date", th_amt: "Amount" }
+        bd: { mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", litem: " ئامێر/کاڵا", lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", srem: "ماوە", sannual: "تەخمینا ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: " ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان...", inv_name: "ناڤێ ئامێری", inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیف", mtrash: "گلێش", mbackup: "سەیفکرنا ئێکسل", mrestore: "دووبارە زێدەکرن", mreports: "ڕاپۆرت", mabout: "گەشەپێدەر", mlogout: "چوونەدەر", mpc: "کۆمپیوتەر", mdark: "شەڤ", dev_role: "پسپۆرێ IT و گەشەپێدەرێ سیستەمان", dev_msg: "ئەڤ سیستەمە هاتیە دروست کرن ژلایێ گەشەپێدەر بژار رشید" },
+        sr: { mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", litem: "ئامێر", lbuy: "نرخی فرۆشتن", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", srem: "ماوە", sannual: "تەخمینی ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن", search: "گەڕان...", inv_name: "ناوی کاڵا", inv_qty: "ژمارە", inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپی ئێکسل", mrestore: "گێڕانەوەی داتا", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدەرەوە", mpc: "کۆمپیوتەر", mdark: "شەو", dev_role: "پسپۆڕی IT و گەشەپێدەری سیستمەکان", dev_msg: "ئەم سیستمە لەلایەن گەشەپێدەر بژار ڕەشید دروست کراوە" },
+        ar: { mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", litem: "الجهاز", lbuy: "سعر البيع", ldown: "المقدمة", lduration: "المدة", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", srem: "المتبقي", sannual: "التوقعات السنوية", lnote: "ملاحظات", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "مقدمة", th4: "الأقساط", th5: "إجراء", madd: "المخزن", bclose: "إغلاق", search: "بحث...", inv_name: "المادة", inv_qty: "الكمية", inv_add: "إضافة", marchive: "الأرشيف", mtrash: "المحذوفات", mbackup: "نسخ إكسل", mrestore: "استعادة", mreports: "التقارير", mabout: "حول المطور", mlogout: "خروج", mpc: "کمبيوتر", mdark: "ليلي", dev_role: "أخصائي IT ومطور أنظمة", dev_msg: "تم تطوير هذا النظام من قبل المطور بژار رشيد" },
+        en: { mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", litem: "ITEM", lbuy: "PRICE", ldown: "DOWN", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", srem: "REMAIN", sannual: "ANNUAL FORECAST", lnote: "NOTES", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE", search: "Search...", inv_name: "Item Name", inv_qty: "Qty", inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Backup", mrestore: "Restore", mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mdark: "Dark Mode", dev_role: "IT Specialist & Developer", dev_msg: "This system was developed by Bizhar Rasheed" },
+        tr: { mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", litem: "ÜRÜN", lbuy: "SATIŞ FİYATI", ldown: "PEŞİNAT", lduration: "VADE", lmon: "TAKSİT", ltotal: "TOPLAM", bsave: "KAYDET", s1: "STOK", s4: "KÂR", srem: "KALAN", sannual: "YILLIK TAHMİN", lnote: "NOTLAR", th1: "MÜŞTERİ", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM", madd: "ENVANTER", bclose: "KAPAT", search: "Ara...", inv_name: "Ürün Adı", inv_qty: "Adet", inv_add: "Ekle", marchive: "Arşiv", mtrash: "Çöp Kutusu", mbackup: "Excel Yedek", mrestore: "Veri Yükle", mreports: "Raporlar", mabout: "Geliştirici", mlogout: "Çıkış Yap", mpc: "PC Modu", mdark: "Karanlık Mod", dev_role: "IT Uzmanı ve Sistem Geliştiricisi", dev_msg: "Bu sistem Geliştirici Bizhar Rasheed tarafından tasarlanmıştır" },
+        fa: { mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", litem: "کالا", lbuy: "قیمت فروش", ldown: "پیش‌پرداخت", lduration: "مدت اقساط", lmon: "قسط ماهانه", ltotal: "مجموع", bsave: "ذخیره", s1: "انبار", s4: "سود", srem: "مانده", sannual: "پیش‌بینی سالانه", lnote: "یادداشت", th1: "مشتری", th2: "کالا", th3: "مجموع", th_down: "پیش‌پرداخت", th4: "پرداختی", th5: "عملیات", madd: "موجودی", bclose: "بستن", search: "جستجو...", inv_name: "نام کالا", inv_qty: "تعداد", inv_add: "افزودن", marchive: "آرشیو", mtrash: "سطل زباله", mbackup: "خروجی اکسل", mrestore: "بازیابی داده", mreports: "گزارش‌ها", mabout: "توسعه‌دهنده", mlogout: "خروج", mpc: "حالت کامپیوتر", mdark: "حالت شب", dev_role: "متخصص IT و توسعه‌دهنده سیستم", dev_msg: "این سیستم توسط توسعه‌دهنده بژار رشید طراحی شده است" }
     };
 
     window.onload = () => { if(localStorage.getItem("bizhar_logged") === "true") document.getElementById('login-overlay').style.display = 'none'; applyLang(); };
-    
-    function checkLogin() { 
-        if(document.getElementById('login-user').value.toUpperCase() === "BIZHAR" && document.getElementById('login-pass').value === SECRET_KEY) { 
-            localStorage.setItem("bizhar_logged", "true"); document.getElementById('login-overlay').style.display = 'none'; 
-        } else alert("ACCESS DENIED!"); 
-    }
-
+    function checkLogin() { if(document.getElementById('login-user').value.toUpperCase() === "BIZHAR" && document.getElementById('login-pass').value === SECRET_KEY) { localStorage.setItem("bizhar_logged", "true"); document.getElementById('login-overlay').style.display = 'none'; } else alert("ACCESS DENIED!"); }
     function logout() { localStorage.removeItem("bizhar_logged"); location.reload(); }
     function checkInvPass() { if(prompt("MASTER KEY:") === SECRET_KEY) showInventory(); }
 
@@ -259,7 +245,6 @@
     function updateDB() { db.ref('/').set({ i: inv, s: sales, a: archive, t: trash, r: reports }); }
 
     function togglePrivacy() { privacyHidden = !privacyHidden; render(); }
-
     function calc() {
         let b = parseFloat(document.getElementById('i-buy').value)||0, d = parseFloat(document.getElementById('i-down').value)||0, m = parseInt(document.getElementById('i-months').value);
         let rates = {2:0.15, 3:0.25, 4:0.35, 6:0.40, 8:0.50, 10:0.60, 12:0.70, 16:0.85}, total = b + (b * (rates[m]||0)), mon = (total - d) / m;
@@ -310,7 +295,7 @@
         const l = translations[document.getElementById('lang-sel').value] || translations.bd;
         document.getElementById('modal-title').innerText = l.mreports;
         document.getElementById('modal-content').innerHTML = `
-        <div class="table-wrap"><table><thead><tr><th>${l.th1}</th><th>${l.th_date}</th><th>${l.th_amt}</th></tr></thead>
+        <div class="table-wrap"><table><thead><tr><th>${l.th1}</th><th>Date</th><th>Amount</th></tr></thead>
         <tbody>${reports.map(r => `<tr><td>${r.name}</td><td>${r.payDate}</td><td>$${r.mon}</td></tr>`).join('')}</tbody></table></div>`;
         document.getElementById('modal-universal').style.display = 'flex'; toggleMenu();
     }
@@ -319,10 +304,7 @@
         const l = translations[document.getElementById('lang-sel').value] || translations.bd;
         document.getElementById('modal-title').innerText = l.madd;
         document.getElementById('modal-content').innerHTML = `
-        <div class="card" style="padding:15px; margin-bottom:15px;">
-            <input type="text" id="add-n" placeholder="${l.inv_name}">
-            <input type="number" id="add-q" placeholder="${l.inv_qty}"><button class="main-btn" onclick="addInv()"><i class="fa-solid fa-plus"></i> ${l.inv_add}</button>
-        </div>
+        <div class="card" style="padding:15px; margin-bottom:15px;"><input type="text" id="add-n" placeholder="${l.inv_name}"><input type="number" id="add-q" placeholder="${l.inv_qty}"><button class="main-btn" onclick="addInv()"><i class="fa-solid fa-plus"></i> ${l.inv_add}</button></div>
         <div class="table-wrap"><table><thead><tr><th>${l.inv_name}</th><th>${l.inv_qty}</th><th>X</th></tr></thead>
         <tbody>${inv.map((x,idx)=>`<tr><td><b>${x.name}</b></td><td>${x.qty}</td><td><button onclick="delInv(${idx})" style="color:var(--danger); background:none; border:none;"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div>`;
         document.getElementById('modal-universal').style.display = 'flex';
@@ -335,7 +317,6 @@
         const l = translations[document.getElementById('lang-sel').value] || translations.bd; 
         const isLtr = ['en','tr'].includes(document.getElementById('lang-sel').value);
         document.body.dir = isLtr ? "ltr" : "rtl";
-        
         document.getElementById('m-header').innerText = l.mhead; 
         document.getElementById('t-form').innerHTML = `<i class="fa-solid fa-cart-plus"></i> ${l.tform}`;
         document.getElementById('l-name').innerText = l.lname; document.getElementById('l-item').innerText = l.litem;
@@ -365,36 +346,20 @@
         document.getElementById('v1').innerText = inv.reduce((a,b)=>a+parseInt(b.qty),0);
         let pro = 0, remTotal = 0, q = document.getElementById('search-input').value.toLowerCase();
         sales.forEach(s => { pro += (parseFloat(s.total) - parseFloat(s.buy)); remTotal += (parseFloat(s.mon) * (s.months - s.paid)); });
-        
         document.getElementById('v4').innerText = privacyHidden ? "****" : "$" + pro.toFixed(0);
         document.getElementById('v-annual').innerText = privacyHidden ? "****" : "$" + (pro * 1.6).toFixed(0);
         document.getElementById('v-rem').innerText = "$" + remTotal.toFixed(0);
-
         let sel = document.getElementById('i-item'); sel.innerHTML = '<option value="">--- ITEM ---</option>';
         inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name}</option>`; });
-        
         let list = document.getElementById('sales-list'); list.innerHTML = '';
         sales.filter(s => s.name.toLowerCase().includes(q) || s.item.toLowerCase().includes(q)).forEach(s => {
-            list.innerHTML += `<tr><td><b>${s.name}</b></td><td>${s.item}</td><td>$${s.total}</td><td>$${s.down}</td><td>${s.paid}/${s.months}</td>
-            <td><button onclick="pay(${s.id})" class="btn-sm" style="background:var(--success);"><i class="fa-solid fa-receipt"></i></button>
-            <button onclick="softDelete(${s.id})" class="btn-sm" style="background:var(--danger);"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+            list.innerHTML += `<tr><td><b>${s.name}</b></td><td>${s.item}</td><td>$${s.total}</td><td>$${s.down}</td><td>${s.paid}/${s.months}</td><td><button onclick="pay(${s.id})" class="btn-sm" style="background:var(--success);"><i class="fa-solid fa-receipt"></i></button><button onclick="softDelete(${s.id})" class="btn-sm" style="background:var(--danger);"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
         });
     }
 
-    function exportToExcel() {
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sales), "Sales");
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(inv), "Stock");
-        XLSX.writeFile(wb, "Installments_POS_Data.xlsx");
-    }
-
+    function exportToExcel() { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sales), "Sales"); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(inv), "Stock"); XLSX.writeFile(wb, "Installments_POS_Data.xlsx"); }
     function triggerRestore() { document.getElementById('restore-input').click(); }
-    function restoreData(event) {
-        const file = event.target.files[0]; if(!file || prompt("MASTER KEY:") !== SECRET_KEY) return;
-        const reader = new FileReader();
-        reader.onload = (e) => { const d = JSON.parse(e.target.result); inv=d.i||[]; sales=d.s||[]; archive=d.a||[]; trash=d.t||[]; reports=d.r||[]; updateDB(); location.reload(); };
-        reader.readAsText(file);
-    }
+    function restoreData(event) { const file = event.target.files[0]; if(!file || prompt("MASTER KEY:") !== SECRET_KEY) return; const reader = new FileReader(); reader.onload = (e) => { const d = JSON.parse(e.target.result); inv=d.i||[]; sales=d.s||[]; archive=d.a||[]; trash=d.t||[]; reports=d.r||[]; updateDB(); location.reload(); }; reader.readAsText(file); }
 
     function softDelete(id) { if(confirm("MOVE TO TRASH?") && prompt("KEY:")===SECRET_KEY){ let idx=sales.findIndex(x=>x.id===id); trash.unshift(sales[idx]); sales.splice(idx,1); updateDB(); } }
     function showArchive() { document.getElementById('modal-title').innerText="COMPLETED"; document.getElementById('modal-content').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Name</th><th>Total</th></tr></thead><tbody>${archive.map(x=>`<tr><td>${x.name}</td><td>$${x.total}</td></tr>`).join('')}</tbody></table></div>`; document.getElementById('modal-universal').style.display='flex'; toggleMenu(); }
@@ -403,12 +368,18 @@
     function closeModal() { document.getElementById('modal-universal').style.display='none'; }
 
     function showAbout() {
-        document.getElementById('modal-title').innerText = "DEVELOPER";
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        document.getElementById('modal-title').innerText = l.mabout;
         document.getElementById('modal-content').innerHTML = `
-            <div style="text-align:center;">
-                <img src="https://i.postimg.cc/nV1HLXWy/EFAC45A5-C196-48E5-913E-A27706778B90.jpg" style="width: 100%; max-width: 300px; border-radius: 25px; border: 3px solid var(--neon-blue);">
-                <h2 style="margin-top:20px; color:var(--neon-blue);">Bizhar Rasheed</h2>
-                <p>IT Specialist & Systems Developer</p>
+            <div class="dev-profile-container">
+                <div style="margin-bottom: 25px;">
+                    <img src="https://i.postimg.cc/nV1HLXWy/EFAC45A5-C196-48E5-913E-A27706778B90.jpg" class="dev-img-frame">
+                </div>
+                <a href="https://bizhar-cloud.github.io/BizharRasheed/" target="_blank" class="dev-name-link">Bizhar Rasheed</a>
+                <div class="dev-tag" style="margin-bottom: 15px;">${l.dev_role}</div>
+                <div class="dev-bio">
+                    ${l.dev_msg}
+                </div>
             </div>`;
         document.getElementById('modal-universal').style.display = 'flex'; toggleMenu();
     }
