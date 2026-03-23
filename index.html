@@ -13,6 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
@@ -32,7 +33,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Noto Sans Arabic', 'Roboto', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
 
-        /* Login */
         #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 999999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
         .login-box { background: var(--card); padding: 40px; border-radius: 30px; border: 2px solid var(--neon-blue); box-shadow: 0 0 50px rgba(0,210,255,0.2); width: 350px; text-align: center; }
 
@@ -52,7 +52,6 @@
 
         .settings-btn { width: 45px; height: 45px; border-radius: 12px; background: var(--bg); color: var(--neon-blue); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1.5px solid var(--neon-blue); font-size: 20px; }
 
-        /* Menu */
         .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; }
         .menu-overlay.show { display: flex; }
         .dropdown-menu { background: var(--card); border-radius: 30px; width: 340px; padding: 25px; border: 2px solid var(--neon-blue); max-height: 90vh; overflow-y: auto; }
@@ -116,7 +115,13 @@
         <button class="menu-item" onclick="showArchive()"><i class="fa-solid fa-box-archive"></i> <span id="m-archive">Archive</span></button>
         <button class="menu-item" onclick="showRecycleBin()"><i class="fa-solid fa-trash"></i> <span id="m-trash">Recycle Bin</span></button>
         <button class="menu-item" onclick="checkInvPass()"><i class="fa-solid fa-warehouse"></i> <span id="m-add">Inventory</span></button>
-        <button class="menu-item" onclick="exportData()"><i class="fa-solid fa-download"></i> <span id="m-backup">Backup</span></button>
+        
+        <div style="border-top: 1px solid var(--border); margin: 10px 0; padding-top: 10px;">
+            <button class="menu-item" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> <span id="m-backup">Backup (Excel)</span></button>
+            <button class="menu-item" onclick="triggerRestore()"><i class="fa-solid fa-upload"></i> <span id="m-restore">Restore Data</span></button>
+            <input type="file" id="restore-input" style="display:none" accept=".json" onchange="restoreData(event)">
+        </div>
+
         <button class="menu-item" onclick="showAbout()"><i class="fa-solid fa-info-circle"></i> <span id="m-about">About</span></button>
 
         <select id="lang-sel" onchange="applyLang()" style="height: 50px; border: 2px solid var(--neon-blue); margin-top: 10px;">
@@ -220,12 +225,12 @@
     const SECRET_KEY = "07503644666";
 
     const translations = {
-        bd: { mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", litem: "ئامێر", lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان...", inv_name: "ناڤێ ئامێری", inv_barcode: "بارکۆد", inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیف", mtrash: "گلێش", mbackup: "باکئەپ", mreports: "ڕاپۆرت", mabout: "دەربارەی سیستەمی", mlogout: "چوونەدەر", mpc: "شاشا کومپیتەری", mdark: "شەڤ", log_btn: "چوونە ژوور", log_u: "ناڤێ بکارهێنەری", log_p: "کۆد", about_txt: "ئەڤ سیستەمە هاتیە دروستکرن ژ لایێ <b>بژار ڕەشید</b> ڤە بۆ بڕێڤەبرنا کارێن قیست و فرۆشتنێ ب شێوازەکێ هوشمەند.", th_date: "رێکەفت", th_amt: "بڕ" },
-        sr: { mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", litem: "ئامێر", lbuy: "نرخی فرۆشتن", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن", search: "گەڕان...", inv_name: "ناوی کاڵا", inv_barcode: "بارکۆد", inv_qty: "ژمارە", inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپ", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدەرەوە", mpc: "شاشەی کۆمپیوتەر", mdark: "شەو", log_btn: "چوونەژوورەوە", log_u: "ناوی بەکارهێنەر", log_p: "کۆد", about_txt: "ئەم سیستمە لەلایەن <b>بژار ڕەشید</b> گەشەی پێدراوە.", th_date: "بەروار", th_amt: "بڕ" },
-        ar: { mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", litem: "الجهاز", lbuy: "سعر البيع", ldown: "المقدمة", lduration: "المدة", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "مقدمة", th4: "الأقساط", th5: "إجراء", madd: "المخزن", bclose: "إغلاق", search: "بحث...", inv_name: "المادة", inv_barcode: "بارکود", inv_qty: "الكمية", inv_add: "إضافة", marchive: "الأرشيف", mtrash: "المحذوفات", mbackup: "نسخ احتياطي", mreports: "التقارير", mabout: "حول المطور", mlogout: "تسجيل الخروج", mpc: "وضع الحاسوب", mdark: "الوضع الليلي", log_btn: "دخول", log_u: "اسم المستخدم", log_p: "كلمة المرور", about_txt: "تم تطوير النظام بواسطة <b>بژار رشید</b>.", th_date: "التاريخ", th_amt: "المبلغ" },
-        en: { mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", litem: "ITEM", lbuy: "SELLING PRICE", ldown: "DOWNPAY", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE", search: "Search...", inv_name: "Item Name", inv_barcode: "Barcode", inv_qty: "Qty", inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Backup", mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mdark: "Dark Mode", log_btn: "LOGIN", log_u: "USERNAME", log_p: "PASSWORD", about_txt: "Developed by <b>BIZHAR RASHEED</b>.", th_date: "Date", th_amt: "Amount" },
-        tr: { mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", litem: "ÜRÜN", lbuy: "FİYAT", ldown: "PEŞİNAT", lduration: "VADE", lmon: "TAKSİT", ltotal: "TOPLAM", bsave: "KAYDET", s1: "STOK", s4: "KÂR", th1: "AD", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM", madd: "ENVANTER", bclose: "KAPAT", search: "Ara...", inv_name: "Ürün Adı", inv_barcode: "Barkod", inv_qty: "Adet", inv_add: "Ekle", marchive: "Arşiv", mtrash: "Çöp Kutusu", mbackup: "Yedekle", mreports: "Raporlar", mabout: "Hakkında", mlogout: "Çıkış Yap", mpc: "Masaüstü", mdark: "Gece Modu", log_btn: "GİRİŞ", log_u: "KULLANICI", log_p: "ŞİFRE", about_txt: "Bu sistem <b>BİZHAR RAŞİD</b> tarafından geliştirilmiştir.", th_date: "Tarih", th_amt: "Miktar" },
-        fa: { mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", litem: "کالا", lbuy: "قیمت", ldown: "پیش‌پرداخت", lduration: "مدت", lmon: "قسط", ltotal: "مجموع", bsave: "ذخیره", s1: "انبار", s4: "سود", th1: "نام", th2: "کالا", th3: "مجموع", th_down: "پیش‌پرداخت", th4: "اقساط", th5: "عملیات", madd: "موجودی", bclose: "بستن", search: "جستجو...", inv_name: "نام کالا", inv_barcode: "بارکد", inv_qty: "تعداد", inv_add: "افزودن", marchive: "آرشیو", mtrash: "زباله", mbackup: "پشتیبان", mreports: "گزارش‌ها", mabout: "درباره ما", mlogout: "خروج", mpc: "حالت دسکتاپ", mdark: "حالت شب", log_btn: "ورود", log_u: "نام کاربری", log_p: "رمز عبور", about_txt: "این سیستم توسط <b>بژار رشید</b> طراحی شده است.", th_date: "تاریخ", th_amt: "مقدار" }
+        bd: { mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", litem: "ئامێر", lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان...", inv_name: "ناڤێ ئامێری", inv_barcode: "بارکۆد", inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیف", mtrash: "گلێش", mbackup: "سەیفکرنا ئێکسل", mrestore: "دووبارە زێدەکرن", mreports: "ڕاپۆرت", mabout: "دەربارەی سیستەمی", mlogout: "چوونەدەر", mpc: "شاشا کومپیتەری", mdark: "شەڤ", log_btn: "چوونە ژوور", log_u: "ناڤێ بکارهێنەری", log_p: "کۆد", about_txt: "ئەڤ سیستەمە هاتیە دروستکرن ژ لایێ <b>بژار ڕەشید</b> ڤە بۆ بڕێڤەبرنا کارێن قیست و فرۆشتنێ ب شێوازەکێ هوشمەند.", th_date: "رێکەفت", th_amt: "بڕ" },
+        sr: { mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", litem: "ئامێر", lbuy: "نرخی فرۆشتن", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن", search: "گەڕان...", inv_name: "ناوی کاڵا", inv_barcode: "بارکۆد", inv_qty: "ژمارە", inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپی ئێکسل", mrestore: "گێڕانەوەی داتا", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدەرەوە", mpc: "شاشەی کۆمپیوتەر", mdark: "شەو", log_btn: "چوونەژوورەوە", log_u: "ناوی بەکارهێنەر", log_p: "کۆد", about_txt: "ئەم سیستمە لەلایەن <b>بژار ڕەشید</b> گەشەی پێدراوە.", th_date: "بەروار", th_amt: "بڕ" },
+        ar: { mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", litem: "الجهاز", lbuy: "سعر البيع", ldown: "المقدمة", lduration: "المدة", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "مقدمة", th4: "الأقساط", th5: "إجراء", madd: "المخزن", bclose: "إغلاق", search: "بحث...", inv_name: "المادة", inv_barcode: "بارکود", inv_qty: "الكمية", inv_add: "إضافة", marchive: "الأرشيف", mtrash: "المحذوفات", mbackup: "نسخ إكسل", mrestore: "استعادة البيانات", mreports: "التقارير", mabout: "حول المطور", mlogout: "تسجيل الخروج", mpc: "وضع الحاسوب", mdark: "الوضع الليلي", log_btn: "دخول", log_u: "اسم المستخدم", log_p: "كلمة المرور", about_txt: "تم تطوير النظام بواسطة <b>بژار رشید</b>.", th_date: "التاريخ", th_amt: "المبلغ" },
+        en: { mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", litem: "ITEM", lbuy: "SELLING PRICE", ldown: "DOWNPAY", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE", search: "Search...", inv_name: "Item Name", inv_barcode: "Barcode", inv_qty: "Qty", inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Excel Backup", mrestore: "Restore Data", mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mdark: "Dark Mode", log_btn: "LOGIN", log_u: "USERNAME", log_p: "PASSWORD", about_txt: "Developed by <b>BIZHAR RASHEED</b>.", th_date: "Date", th_amt: "Amount" },
+        tr: { mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", litem: "ÜRÜN", lbuy: "FİYAT", ldown: "PEŞİNAT", lduration: "VADE", lmon: "TAKSİT", ltotal: "TOPLAM", bsave: "KAYDET", s1: "STOK", s4: "KÂR", th1: "AD", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM", madd: "ENVANTER", bclose: "KAPAT", search: "Ara...", inv_name: "Ürün Adı", inv_barcode: "Barkod", inv_qty: "Adet", inv_add: "Ekle", marchive: "Arşiv", mtrash: "Çöp Kutusu", mbackup: "Excel Yedek", mrestore: "Geri Yükle", mreports: "Raporlar", mabout: "Hakkında", mlogout: "Çıkış Yap", mpc: "Masaüstü", mdark: "Gece Modu", log_btn: "GİRİŞ", log_u: "KULLANICI", log_p: "ŞİFRE", about_txt: "Bu sistem <b>BİZHAR RAŞİD</b> tarafından geliştirilmiştir.", th_date: "Tarih", th_amt: "Miktar" },
+        fa: { mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", litem: "کالا", lbuy: "قیمت", ldown: "پیش‌پرداخت", lduration: "مدت", lmon: "قسط", ltotal: "مجموع", bsave: "ذخیره", s1: "انبار", s4: "سود", th1: "نام", th2: "کالا", th3: "مجموع", th_down: "پیش‌پرداخت", th4: "اقساط", th5: "عملیات", madd: "موجودی", bclose: "بستن", search: "جستجو...", inv_name: "نام کالا", inv_barcode: "بارکد", inv_qty: "تعداد", inv_add: "افزودن", marchive: "آرشیو", mtrash: "زباله", mbackup: "پشتیبان اکسل", mrestore: "بازیابی داده", mreports: "گزارش‌ها", mabout: "درباره ما", mlogout: "خروج", mpc: "حالت دسکتاپ", mdark: "حالت شب", log_btn: "ورود", log_u: "نام کاربری", log_p: "رمز عبور", about_txt: "این سیستم توسط <b>بژار رشید</b> طراحی شده است.", th_date: "تاریخ", th_amt: "مقدار" }
     };
 
     window.onload = () => { if(localStorage.getItem("bizhar_logged") === "true") document.getElementById('login-overlay').style.display = 'none'; applyLang(); };
@@ -369,6 +374,7 @@
         document.getElementById('m-archive').innerText = l.marchive; 
         document.getElementById('m-trash').innerText = l.mtrash;
         document.getElementById('m-backup').innerText = l.mbackup; 
+        document.getElementById('m-restore').innerText = l.mrestore; 
         document.getElementById('m-add').innerText = l.madd;
         document.getElementById('m-reports').innerText = l.mreports; 
         document.getElementById('m-about').innerText = l.mabout; 
@@ -412,7 +418,51 @@
         });
     }
     function stopScan() { if(scanner) scanner.clear(); document.getElementById('reader-container').style.display = 'none'; }
-    function exportData() { let data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i:inv, s:sales, a:archive, t:trash, r:reports})); let a=document.createElement('a'); a.href=data; a.download="POS_BACKUP.json"; a.click(); }
+
+    // EXPORT TO EXCEL
+    function exportToExcel() {
+        const wb = XLSX.utils.book_new();
+        
+        // Prepare Sheets
+        const salesData = sales.map(s => ({ Customer: s.name, Item: s.item, Total: s.total, Down: s.down, Monthly: s.mon, PaidCount: s.paid, Plan: s.months, Date: s.date }));
+        const invData = inv.map(i => ({ Name: i.name, Barcode: i.barcode, Stock: i.qty }));
+        const reportData = reports.map(r => ({ Name: r.name, Amount: r.mon, Date: r.payDate }));
+
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(salesData), "Active Sales");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(invData), "Inventory");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(reportData), "Payments Report");
+
+        XLSX.writeFile(wb, "Bizhar_POS_Backup.xlsx");
+
+        // Also save JSON for restore functionality
+        let data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i:inv, s:sales, a:archive, t:trash, r:reports}));
+        let a = document.createElement('a'); a.href=data; a.download="POS_FULL_RECOVERY.json"; a.click();
+    }
+
+    // RESTORE DATA
+    function triggerRestore() { document.getElementById('restore-input').click(); }
+    function restoreData(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        if(prompt("MASTER KEY TO OVERWRITE DATA:") !== SECRET_KEY) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                inv = data.i || [];
+                sales = data.s || [];
+                archive = data.a || [];
+                trash = data.t || [];
+                reports = data.r || [];
+                updateDB();
+                alert("SUCCESSFULLY RESTORED!");
+                location.reload();
+            } catch (err) { alert("INVALID FILE!"); }
+        };
+        reader.readAsText(file);
+    }
+
     function softDelete(id) { if(prompt("MASTER KEY:") === SECRET_KEY){ let idx = sales.findIndex(x => x.id === id); trash.unshift(sales[idx]); sales.splice(idx,1); updateDB(); } }
     function showArchive() { document.getElementById('modal-title').innerText = "ARCHIVE"; document.getElementById('modal-content').innerHTML = `<div class="table-wrap"><table><tbody>${archive.map(x=>`<tr><td>${x.name}</td><td>$${x.total}</td></tr>`).join('')}</tbody></table></div>`; document.getElementById('modal-universal').style.display = 'flex'; toggleMenu(); }
     function showRecycleBin() { document.getElementById('modal-title').innerText = "TRASH"; document.getElementById('modal-content').innerHTML = `<div class="table-wrap"><table><tbody>${trash.map((x,idx)=>`<tr><td>${x.name}</td><td><button onclick="restore(${idx})" class="main-btn" style="margin:0; padding:5px;">RESTORE</button></td></tr>`).join('')}</tbody></table></div>`; document.getElementById('modal-universal').style.display = 'flex'; toggleMenu(); }
