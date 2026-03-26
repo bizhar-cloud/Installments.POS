@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Installments POS - ELITE V8.5</title>
+    <title>Installments POS - ELITE V8.6</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -154,9 +154,26 @@
         <div class="card" style="border-top: 6px solid var(--primary);">
             <h3 id="t-form" style="font-weight: 900; color: var(--primary);"><i class="fa-solid fa-cart-plus"></i> NEW SALE</h3>
             
+            <label id="l-sale-type" style="font-weight: 700; margin-top: 15px; display: block;">SALE TYPE</label>
+            <select id="i-sale-type" onchange="toggleSaleMode()">
+                <option value="Installments">Installments (بقیست)</option>
+                <option value="Cash">Cash (کاش)</option>
+            </select>
+
             <label id="l-name" style="font-weight: 700; margin-top: 15px; display: block;">CUSTOMER NAME</label>
             <input type="text" id="i-name" placeholder="...">
-            
+
+            <label id="l-phone" style="font-weight: 700; margin-top: 15px; display: block;">CUSTOMER PHONE</label>
+            <input type="tel" id="i-phone" placeholder="0750 xxx xxxx">
+
+            <div id="witness-section">
+                <label id="l-witness" style="font-weight: 700; margin-top: 15px; display: block;">WITNESS NAME</label>
+                <input type="text" id="i-witness" placeholder="...">
+
+                <label id="l-witness-phone" style="font-weight: 700; margin-top: 15px; display: block;">WITNESS PHONE</label>
+                <input type="tel" id="i-witness-phone" placeholder="0750 xxx xxxx">
+            </div>
+
             <label id="l-item" style="margin-top:20px; display:block; font-weight: 700;">ITEM</label>
             <div style="display: flex; gap: 8px;">
                 <select id="i-item" style="flex: 1;" onchange="updateDetailsHint()"></select>
@@ -166,27 +183,40 @@
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:20px;">
                 <div><label id="l-buy" style="font-weight: 700;">SALES PRICE $</label><input type="number" id="i-buy" oninput="calc()" placeholder="0.00"></div>
-                <div><label id="l-down" style="font-weight: 700;">DOWN PAY $</label><input type="number" id="i-down" oninput="calc()" placeholder="0.00"></div>
+                <div id="down-pay-section">
+                    <label id="l-down" style="font-weight: 700;">DOWN PAY $</label>
+                    <input type="number" id="i-down" oninput="calc()" placeholder="0.00">
+                </div>
             </div>
 
-            <label id="l-duration" style="margin-top:20px; display:block; font-weight: 700;">PLAN</label>
-            <select id="i-months" onchange="calc()">
-                <option value="2">2 Months (15%)</option>
-                <option value="3">3 Months (25%)</option>
-                <option value="4">4 Months (35%)</option>
-                <option value="6">6 Months (40%)</option>
-                <option value="8">8 Months (50%)</option>
-                <option value="10">10 Months (60%)</option>
-                <option value="12">12 Months (70%)</option>
-                <option value="16">16 Months (85%)</option>
-            </select>
+            <div id="installments-details-section">
+                <label id="l-duration" style="margin-top:20px; display:block; font-weight: 700;">PLAN</label>
+                <select id="i-months" onchange="toggleOtherPlan(); calc();">
+                    <option value="2">2 Months (15%)</option>
+                    <option value="3">3 Months (25%)</option>
+                    <option value="4">4 Months (35%)</option>
+                    <option value="6">6 Months (40%)</option>
+                    <option value="8">8 Months (50%)</option>
+                    <option value="10">10 Months (60%)</option>
+                    <option value="12">12 Months (70%)</option>
+                    <option value="16">16 Months (85%)</option>
+                    <option value="Other">Other (دەستکاری قازانجی بکە)</option>
+                </select>
+
+                <div id="other-plan-section" style="display:none; margin-top:10px;">
+                    <label id="l-other-rate" style="font-weight:700;">CUSTOM RATE %</label>
+                    <input type="number" id="i-other-rate" oninput="calc()" placeholder="Ex: 20">
+                    <label id="l-other-months" style="font-weight:700; margin-top:10px; display:block;">CUSTOM MONTHS</label>
+                    <input type="number" id="i-other-months" oninput="calc()" placeholder="Ex: 5">
+                </div>
+            </div>
 
             <label id="l-note-title" style="margin-top:20px; display:block; font-weight: 700;">NOTES</label>
             <textarea id="i-note" rows="2"></textarea>
 
             <div style="display:flex; justify-content:space-between; margin-top:25px; background:var(--bg); padding:20px; border-radius:20px; border:2px dashed var(--neon-blue);">
                 <div style="text-align:center;"><small id="l-total-box" style="color:#64748b;">TOTAL</small><div id="o-total" style="font-weight:900; font-size:24px;">$0</div></div>
-                <div style="text-align:center;"><small id="l-mon" style="color:#64748b;">MONTHLY</small><div id="o-mon" style="font-weight:900; color:var(--primary); font-size:24px;">$0</div></div>
+                <div id="monthly-output-section" style="text-align:center;"><small id="l-mon" style="color:#64748b;">MONTHLY</small><div id="o-mon" style="font-weight:900; color:var(--primary); font-size:24px;">$0</div></div>
             </div>
             <button class="main-btn" onclick="saveSale()"><i class="fa-solid fa-floppy-disk"></i> <span id="b-save">SAVE</span></button>
         </div>
@@ -240,15 +270,15 @@
     let activeScanner = null;
 
     const translations = {
-        bd: { mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", litem: " ئامێر/کاڵا", lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", srem: "ماوە", sannual: "تەخمینا ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: " ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان...", inv_name: "ناڤێ ئامێری (Barcode)", inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیف", mtrash: "گلێش", mbackup: "سەیفکرنا ئێکسل", mrestore: "دووبارە زێدەکرن", mreports: "ڕاپۆرت", mabout: "گەشەپێدەر", mlogout: "چوونەدەر", mpc: "کۆمپیوتەر", mdark: "شەڤ", mlight: "ڕۆژ", dev_role: "IT Specialist & Developer", dev_msg: "ئەڤ سیستەمە ژ لایێ گەشەپێدەر بژار ڕەشید هاتیە دروستکرن" },
-        sr: { mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", litem: "ئامێر", lbuy: "نرخی فرۆشتن", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", srem: "ماوە", sannual: "تەخمینی ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن", search: "گەڕان...", inv_name: "ناوی کاڵا", inv_qty: "ژمارە", inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپی ئێکسل", mrestore: "گێڕانەوەی داتا", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدەرەوە", mpc: "کۆمپیوتەر", mdark: "شەو", mlight: "ڕۆژ", dev_role: "IT Specialist & Developer", dev_msg: "ئەم سیستمە لەلایەن گەشەپێدەر بژار ڕەشید دروست کراوە" },
-        ar: { mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", litem: "الجهاز", lbuy: "سعر البيع", ldown: "المقدمة", lduration: "المدة", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", srem: "المتبقي", sannual: "التوقعات السنوية", lnote: "ملاحظات", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "مقدمة", th4: "الأقساط", th5: "إجراء", madd: "المخزن", bclose: "إغلاق", search: "بحث...", inv_name: "المادة", inv_qty: "الكمية", inv_add: "إضافة", marchive: "الأرشيف", mtrash: "المحذوفات", mbackup: "نسخ إكسل", mrestore: "استعادة", mreports: "التقارير", mabout: "حول المطور", mlogout: "خروج", mpc: "کمبيوتر", mdark: "ليلي", mlight: "نهاري", dev_role: "IT Specialist & Developer", dev_msg: "تم تطوير هذا النظام من قبل المطور بژار رشيد" },
-        en: { mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", litem: "ITEM", lbuy: "PRICE", ldown: "DOWN", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", srem: "REMAIN", sannual: "ANNUAL FORECAST", lnote: "NOTES", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE", search: "Search...", inv_name: "Item Name", inv_qty: "Qty", inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Backup", mrestore: "Restore", mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mdark: "Dark Mode", mlight: "Light Mode", dev_role: "IT Specialist & Developer", dev_msg: "Developed by Bizhar Rasheed" },
-        tr: { mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", litem: "ÜRÜN", lbuy: "SATIŞ FİYATI", ldown: "PEŞİNAT", lduration: "VADE", lmon: "TAKSİT", ltotal: "TOPLAM", bsave: "KAYDET", s1: "STOK", s4: "KÂR", srem: "KALAN", sannual: "YILLIK TAHMİN", lnote: "NOTLAR", th1: "MÜŞTERİ", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM", madd: "ENVANTER", bclose: "KAPAT", search: "Ara...", inv_name: "Ürün Adı", inv_qty: "Adet", inv_add: "Ekle", marchive: "Arşiv", mtrash: "Çöp Kutusu", mbackup: "Excel Yedek", mrestore: "Veri Yükle", mreports: "Raporlar", mabout: "Geliştirici", mlogout: "Çıkış Yap", mpc: "PC Modu", mdark: "Karanlık", mlight: "Aydınlık", dev_role: "IT Uzmanı ve Sistem Geliştiricisi", dev_msg: "Bu sistem Geliştirici Bizhar Rasheed tarafından tasarlanmıştır" },
-        fa: { mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", litem: "کالا", lbuy: "قیمت فروش", ldown: "پیش‌پرداخت", lduration: "مدت اقساط", lmon: "قسط ماهانه", ltotal: "مجموع", bsave: "ذخیره", s1: "انبار", s4: "سود", srem: "مانده", sannual: "پیش‌بینی سالانه", lnote: "یادداشت", th1: "مشتری", th2: "کالا", th3: "مجموع", th_down: "پیش‌پرداخت", th4: "پرداختی", th5: "عملیات", madd: "موجودی", bclose: "بستن", search: "جستجو...", inv_name: "نام کالا", inv_qty: "تعداد", inv_add: "افزودن", marchive: "آرشیو", mtrash: "سطل زباله", mbackup: "خروجی اکسل", mrestore: "بازیابی داده", mreports: "گزارش‌ها", mabout: "توسعه‌دهنده", mlogout: "خروج", mpc: "حالت کامپیوتر", mdark: "حالت شب", mlight: "حالت روز", dev_role: "متخصص IT و توسعه‌دهنده سیستم", dev_msg: "این سیستم توسط توسعه‌دهنده بژار رشید طراحی شده است" }
+        bd: { mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", lphone: "موبایلا کڕیاری", lwitness: "ناڤێ دیدەڤانی", lwphone: "موبایلا دیدەڤانی", litem: " ئامێر/کاڵا", lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", srem: "ماوە", sannual: "تەخمینا ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: " ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان...", inv_name: "ناڤێ ئامێری (Barcode)", inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیف", mtrash: "گلێش", mbackup: "سەیفکرنا ئێکسل", mrestore: "دووبارە زێدەکرن", mreports: "ڕاپۆرت", mabout: "گەشەپێدەر", mlogout: "چوونەدەر", mpc: "کۆمپیوتەر", mdark: "شەڤ", mlight: "ڕۆژ", dev_role: "IT Specialist & Developer", dev_msg: "ئەڤ سیستەمە ژ لایێ گەشەپێدەر بژار ڕەشید هاتیە دروستکرن", other: "پشکێن دی", lsaletype: "جۆرێ فرۆشتنێ", custom_rate: "ڕێژەیا قازانجی %", custom_months: "هژمارا هەیڤان" },
+        sr: { mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", lphone: "موبایلی کڕیار", lwitness: "ناوی دیدەڤان", lwphone: "موبایلی دیدەڤان", litem: "ئامێر", lbuy: "نرخی فرۆشتن", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", srem: "ماوە", sannual: "تەخمینی ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن", search: "گەڕان...", inv_name: "ناوی کاڵا", inv_qty: "ژمارە", inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپی ئێکسل", mrestore: "گێڕانەوەی داتا", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدەرەوە", mpc: "کۆمپیوتەر", mdark: "شەو", mlight: "ڕۆژ", dev_role: "IT Specialist & Developer", dev_msg: "ئەم سیستمە لەلایەن گەشەپێدەر بژار ڕەشید دروست کراوە", other: "بەشەکانی تر", lsaletype: "جۆری فرۆشتن", custom_rate: "ڕێژەی قازانج %", custom_months: "ژمارەی مانگەکان" },
+        ar: { mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", lphone: "موبايل الزبون", lwitness: "اسم الشاهد", lwphone: "موبايل الشاهد", litem: "الجهاز", lbuy: "سعر البيع", ldown: "المقدمة", lduration: "المدة", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", srem: "المتبقي", sannual: "التوقعات السنوية", lnote: "ملاحظات", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "مقدمة", th4: "الأقساط", th5: "إجراء", madd: "المخزن", bclose: "إغلاق", search: "بحث...", inv_name: "المادة", inv_qty: "الكمية", inv_add: "إضافة", marchive: "الأرشيف", mtrash: "المحذوفات", mbackup: "نسخ إكسل", mrestore: "استعادة", mreports: "التقارير", mabout: "حول المطور", mlogout: "خروج", mpc: "کمبيوتر", mdark: "ليلي", mlight: "نهاري", dev_role: "IT Specialist & Developer", dev_msg: "تم تطوير هذا النظام من قبل المطور بژار رشيد", other: "أقسام أخرى", lsaletype: "نوع البيع", custom_rate: "نسبة الربح %", custom_months: "عدد الأشهر" },
+        en: { mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", lphone: "PHONE", lwitness: "WITNESS", lwphone: "WIT PHONE", litem: "ITEM", lbuy: "PRICE", ldown: "DOWN", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", srem: "REMAIN", sannual: "ANNUAL FORECAST", lnote: "NOTES", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE", search: "Search...", inv_name: "Item Name", inv_qty: "Qty", inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Backup", mrestore: "Restore", mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mdark: "Dark Mode", mlight: "Light Mode", dev_role: "IT Specialist & Developer", dev_msg: "Developed by Bizhar Rasheed", other: "Other Items", lsaletype: "Sale Type", custom_rate: "Custom Rate %", custom_months: "Custom Months" },
+        tr: { mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", lphone: "TELEFON", lwitness: "ŞAHİT", lwphone: "ŞAHİT TEL", litem: "ÜRÜN", lbuy: "SATIŞ FİYATI", ldown: "PEŞİNAT", lduration: "VADE", lmon: "TAKSİT", ltotal: "TOPLAM", bsave: "KAYDET", s1: "STOK", s4: "KÂR", srem: "KALAN", sannual: "YILLIK TAHMİN", lnote: "NOTLAR", th1: "MÜŞTERİ", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM", madd: "ENVANTER", bclose: "KAPAT", search: "Ara...", inv_name: "Ürün Adı", inv_qty: "Adet", inv_add: "Ekle", marchive: "Arşiv", mtrash: "Çöp Kutusu", mbackup: "Excel Yedek", mrestore: "Veri Yükle", mreports: "Raporlar", mabout: "Geliştirici", mlogout: "Çıkış Yap", mpc: "PC Modu", mdark: "Karanlık", mlight: "Aydınlık", dev_role: "IT Uzmanı ve Sistem Geliştiricisi", dev_msg: "Bu sistem Geliştirici Bizhar Rasheed tarafından tasarlanmıştır", other: "Diğer Bölümler", lsaletype: "Satış Türü", custom_rate: "Özel Kar %", custom_months: "Taksit Sayısı" },
+        fa: { mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", lphone: "تلفن مشتری", lwitness: "نام شاهد", lwphone: "تلفن شاهد", litem: "کالا", lbuy: "قیمت فروش", ldown: "پیش‌پرداخت", lduration: "مدت اقساط", lmon: "قسط ماهانه", ltotal: "مجموع", bsave: "ذخیره", s1: "انبار", s4: "سود", srem: "مانده", sannual: "پیش‌بینی سالانه", lnote: "یادداشت", th1: "مشتری", th2: "کالا", th3: "مجموع", th_down: "پیش‌پرداخت", th4: "پرداختی", th5: "عملیات", madd: "موجودی", bclose: "بستن", search: "جستجو...", inv_name: "نام کالا", inv_qty: "تعداد", inv_add: "افزودن", marchive: "آرشیو", mtrash: "سطل زباله", mbackup: "خروجی اکسل", mrestore: "بازیابی داده", mreports: "گزارش‌ها", mabout: "توسعه‌دهنده", mlogout: "خروج", mpc: "حالت کامپیوتر", mdark: "حالت شب", mlight: "حالت روز", dev_role: "متخصص IT و توسعه‌دهنده سیستم", dev_msg: "این سیستم توسط توسعه‌دهنده بژار رشید طراحی شده است", other: "بخش‌های دیگر", lsaletype: "نوع فروش", custom_rate: "نرخ سود %", custom_months: "تعداد ماه" }
     };
 
-    window.onload = () => { if(localStorage.getItem("bizhar_logged") === "true") document.getElementById('login-overlay').style.display = 'none'; applyLang(); };
+    window.onload = () => { if(localStorage.getItem("bizhar_logged") === "true") document.getElementById('login-overlay').style.display = 'none'; applyLang(); toggleSaleMode(); };
     function checkLogin() { if(document.getElementById('login-user').value.toUpperCase() === "BIZHAR" && document.getElementById('login-pass').value === SECRET_KEY) { localStorage.setItem("bizhar_logged", "true"); document.getElementById('login-overlay').style.display = 'none'; } else alert("ACCESS DENIED!"); }
     function logout() { localStorage.removeItem("bizhar_logged"); location.reload(); }
     function checkInvPass() { if(prompt("MASTER KEY:") === SECRET_KEY) showInventory(); }
@@ -267,16 +297,76 @@
         toggleMenu(); 
     }
 
+    function toggleSaleMode() {
+        const type = document.getElementById('i-sale-type').value;
+        const instSection = document.getElementById('installments-details-section');
+        const witnessSection = document.getElementById('witness-section');
+        const monthlySection = document.getElementById('monthly-output-section');
+        const downSection = document.getElementById('down-pay-section');
+        
+        if (type === 'Cash') {
+            instSection.style.display = 'none';
+            witnessSection.style.display = 'none';
+            monthlySection.style.visibility = 'hidden';
+            downSection.style.visibility = 'hidden';
+            document.getElementById('i-down').value = 0;
+        } else {
+            instSection.style.display = 'block';
+            witnessSection.style.display = 'block';
+            monthlySection.style.visibility = 'visible';
+            downSection.style.visibility = 'visible';
+        }
+        calc();
+    }
+
+    function toggleOtherPlan() {
+        const val = document.getElementById('i-months').value;
+        document.getElementById('other-plan-section').style.display = (val === 'Other') ? 'block' : 'none';
+    }
+
     function calc() {
-        let b = parseFloat(document.getElementById('i-buy').value)||0, d = parseFloat(document.getElementById('i-down').value)||0, m = parseInt(document.getElementById('i-months').value);
-        let rates = {2:0.15, 3:0.25, 4:0.35, 6:0.40, 8:0.50, 10:0.60, 12:0.70, 16:0.85}, total = b + (b * (rates[m]||0)), mon = (total - d) / m;
+        const type = document.getElementById('i-sale-type').value;
+        let b = parseFloat(document.getElementById('i-buy').value)||0;
+        let d = parseFloat(document.getElementById('i-down').value)||0;
+        let total = b;
+        let mon = 0;
+        let m = 0;
+
+        if (type === 'Installments') {
+            let selectedPlan = document.getElementById('i-months').value;
+            let rate = 0;
+            
+            if (selectedPlan === 'Other') {
+                rate = (parseFloat(document.getElementById('i-other-rate').value)||0) / 100;
+                m = parseInt(document.getElementById('i-other-months').value)||1;
+            } else {
+                let rates = {2:0.15, 3:0.25, 4:0.35, 6:0.40, 8:0.50, 10:0.60, 12:0.70, 16:0.85};
+                m = parseInt(selectedPlan);
+                rate = rates[m] || 0;
+            }
+            
+            total = b + (b * rate);
+            mon = (total - d) / m;
+        } else {
+            // Cash Mode
+            total = b;
+            mon = 0;
+            m = 1; 
+        }
+
         document.getElementById('o-mon').innerText = "$" + (mon > 0 ? mon.toFixed(2) : 0);
         document.getElementById('o-total').innerText = "$" + total.toFixed(2);
         return { total, mon, b, d, m };
     }
 
     function saveSale() {
-        let n = document.getElementById('i-name').value, iName = document.getElementById('i-item').value, nt = document.getElementById('i-note').value;
+        let n = document.getElementById('i-name').value;
+        let phone = document.getElementById('i-phone').value;
+        let wit = document.getElementById('i-witness').value;
+        let witPhone = document.getElementById('i-witness-phone').value;
+        let iName = document.getElementById('i-item').value, nt = document.getElementById('i-note').value;
+        let saleType = document.getElementById('i-sale-type').value;
+        
         if(!n || !iName) return;
         let p = calc(), idx = inv.findIndex(x => x.name === iName);
         let itemFullData = {};
@@ -289,6 +379,9 @@
         const saleData = { 
             id:Date.now(), 
             name:n, 
+            phone: phone,
+            witness: (saleType === 'Cash' ? 'N/A' : wit),
+            witnessPhone: (saleType === 'Cash' ? 'N/A' : witPhone),
             item:iName, 
             itemDetails: itemFullData,
             total:p.total.toFixed(2), 
@@ -296,13 +389,27 @@
             down:p.d, 
             mon:p.mon.toFixed(2), 
             months:p.m, 
-            paid:0, 
+            paid:(saleType === 'Cash' ? p.m : 0), 
             date: now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            note: nt
+            note: nt,
+            type: saleType
         };
         
-        sales.unshift(saleData);
-        updateDB(); document.getElementById('i-name').value = ""; document.getElementById('i-note').value = "";
+        if(saleType === 'Cash') {
+            archive.unshift(saleData);
+        } else {
+            sales.unshift(saleData);
+        }
+
+        updateDB(); 
+        document.getElementById('i-name').value = ""; 
+        document.getElementById('i-phone').value = ""; 
+        document.getElementById('i-witness').value = ""; 
+        document.getElementById('i-witness-phone').value = ""; 
+        document.getElementById('i-note').value = "";
+        document.getElementById('i-buy').value = "";
+        document.getElementById('i-down').value = "";
+        calc();
     }
 
     function pay(id) {
@@ -338,6 +445,8 @@
             detailsHtml = `Model: ${d.model} | ${d.storage}/${d.ram}GB | ${d.color} | ${d.condition}`;
         } else if(d.type === "Computer") {
             detailsHtml = `CPU: ${d.cpu} ${d.gen} | RAM: ${d.ram}GB | SSD: ${d.storage} | GPU: ${d.gpu} ${d.vram}`;
+        } else if(d.type === "Other") {
+            detailsHtml = `Info: ${d.otherInfo || '---'}`;
         }
 
         const qrContent = `POS-ELITE: ${data.name} | Item: ${data.item} | Paid: ${data.currentPayment}/${data.months} | Remaining: $${data.remAmt}`;
@@ -349,6 +458,8 @@
                 <p>${data.payDate}</p>
             </div>
             <div class="thermal-row"><span>Customer:</span><b>${data.name}</b></div>
+            <div class="thermal-row"><span>Phone:</span><b>${data.phone || '---'}</b></div>
+            <div class="thermal-row"><span>Witness:</span><b>${data.witness || '---'}</b></div>
             <div class="thermal-row"><span>Device:</span><b>${data.item}</b></div>
             <div style="font-size:8pt; margin-bottom:2mm; border-bottom:0.1mm solid #000; padding-bottom:1mm;">${detailsHtml}</div>
             
@@ -383,6 +494,7 @@
             <select id="inv-type" onchange="toggleInvFields()">
                 <option value="Mobile">Mobile (مۆبایل)</option>
                 <option value="Computer">Computer (کۆمپیوتەر)</option>
+                <option value="Other">${l.other}</option>
             </select>
             
             <div style="display: flex; gap: 8px;">
@@ -404,6 +516,10 @@
                     <option value="Core i7">Core i7</option><option value="Core i9">Core i9</option>
                     <option value="Core Ultra 5">Core Ultra 5</option><option value="Core Ultra 7">Core Ultra 7</option>
                     <option value="Core Ultra 9">Core Ultra 9</option>
+                    <option value="AMD Ryzen 3">AMD Ryzen 3</option><option value="AMD Ryzen 5">AMD Ryzen 5</option>
+                    <option value="AMD Ryzen 7">AMD Ryzen 7</option><option value="AMD Ryzen 9">AMD Ryzen 9</option>
+                    <option value="AMD Ryzen AI 5">AMD Ryzen AI 5</option><option value="AMD Ryzen AI 7">AMD Ryzen AI 7</option>
+                    <option value="AMD Ryzen AI 9">AMD Ryzen AI 9</option>
                 </select>
                 <select id="p-gen"><option value="U">U</option><option value="H">H</option><option value="HS">HS</option><option value="HX">HX</option></select>
                 <input type="number" id="p-ram" placeholder="RAM GB">
@@ -418,6 +534,10 @@
                 <select id="p-condition"><option value="New">New</option><option value="Used">Used</option></select>
             </div>
 
+            <div id="other-fields" style="display:none;">
+                <textarea id="o-info" placeholder="Item Details (زانیاریێن ئامێری)" rows="2"></textarea>
+            </div>
+
             <input type="number" id="add-q" placeholder="${l.inv_qty}">
             <button class="main-btn" onclick="addInv()"><i class="fa-solid fa-plus"></i> ${l.inv_add}</button>
         </div>
@@ -430,6 +550,7 @@
         const type = document.getElementById('inv-type').value;
         document.getElementById('mobile-fields').style.display = type === 'Mobile' ? 'grid' : 'none';
         document.getElementById('pc-fields').style.display = type === 'Computer' ? 'grid' : 'none';
+        document.getElementById('other-fields').style.display = type === 'Other' ? 'block' : 'none';
     }
 
     function addInv() { 
@@ -442,7 +563,7 @@
             deviceData.storage = document.getElementById('m-storage').value;
             deviceData.ram = document.getElementById('m-ram').value;
             deviceData.condition = document.getElementById('m-condition').value;
-        } else {
+        } else if(type === 'Computer') {
             deviceData.cpu = document.getElementById('p-cpu').value;
             deviceData.gen = document.getElementById('p-gen').value;
             deviceData.ram = document.getElementById('p-ram').value;
@@ -451,11 +572,12 @@
             deviceData.vram = document.getElementById('p-vram').value;
             deviceData.screen = document.getElementById('p-screen').value;
             deviceData.condition = document.getElementById('p-condition').value;
+        } else {
+            deviceData.otherInfo = document.getElementById('o-info').value;
         }
         inv.push(deviceData); updateDB(); showInventory();
     }
 
-    // SCANNERS
     function scanForInv() {
         const modal = document.getElementById('modal-universal');
         const content = document.getElementById('modal-content');
@@ -479,7 +601,6 @@
             if(text.includes("POS-ELITE:")) {
                 alert("Customer Receipt Found: " + text);
             } else {
-                // Find item by name (Barcode) in inventory
                 const itemFound = inv.find(x => x.name === text);
                 if(itemFound) {
                     document.getElementById('i-item').value = text;
@@ -497,7 +618,9 @@
         const item = inv.find(x => x.name === iName);
         const hint = document.getElementById('item-details-hint');
         if(item) {
-            hint.innerText = item.type === 'Mobile' ? `${item.model} | ${item.storage}GB` : `${item.cpu} | ${item.ram}GB RAM`;
+            if(item.type === 'Mobile') hint.innerText = `${item.model} | ${item.storage}GB`;
+            else if(item.type === 'Computer') hint.innerText = `${item.cpu} | ${item.ram}GB RAM`;
+            else hint.innerText = "Other Category Item";
         } else { hint.innerText = ""; }
     }
 
@@ -507,9 +630,16 @@
         document.body.dir = isLtr ? "ltr" : "rtl";
         document.getElementById('m-header').innerText = l.mhead; 
         document.getElementById('t-form').innerHTML = `<i class="fa-solid fa-cart-plus"></i> ${l.tform}`;
-        document.getElementById('l-name').innerText = l.lname; document.getElementById('l-item').innerText = l.litem;
+        document.getElementById('l-sale-type').innerText = l.lsaletype;
+        document.getElementById('l-name').innerText = l.lname; 
+        document.getElementById('l-phone').innerText = l.lphone;
+        document.getElementById('l-witness').innerText = l.lwitness;
+        document.getElementById('l-witness-phone').innerText = l.lwphone;
+        document.getElementById('l-item').innerText = l.litem;
         document.getElementById('l-buy').innerText = l.lbuy; document.getElementById('l-down').innerText = l.ldown;
         document.getElementById('l-duration').innerText = l.lduration; document.getElementById('l-mon').innerText = l.lmon;
+        document.getElementById('l-other-rate').innerText = l.custom_rate;
+        document.getElementById('l-other-months').innerText = l.custom_months;
         document.getElementById('l-total-box').innerText = l.ltotal; document.getElementById('b-save').innerText = l.bsave; 
         document.getElementById('s1').innerText = l.s1; document.getElementById('s4').innerHTML = `${l.s4} <i class="fa-solid fa-eye privacy-toggle" onclick="togglePrivacy()"></i>`;
         document.getElementById('s-rem').innerText = l.srem; document.getElementById('s-annual').innerText = l.sannual;
