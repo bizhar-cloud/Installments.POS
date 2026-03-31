@@ -15,6 +15,7 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
@@ -114,11 +115,14 @@
             #print-area { 
                 display: block !important; 
                 position: absolute; left: 0; top: 0; 
-                width: 76mm; padding: 4mm; 
+                width: 100%; padding: 4mm; 
                 background: white; color: black; 
                 font-family: 'Noto Sans Arabic', sans-serif;
                 font-size: 10pt; line-height: 1.4;
             }
+            .print-80mm { width: 76mm !important; margin: 0 auto; }
+            .print-58mm { width: 54mm !important; margin: 0 auto; }
+            
             .thermal-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 3mm; margin-bottom: 3mm; }
             .thermal-logo { width: 45mm; height: auto; margin-bottom: 2mm; filter: grayscale(1); }
             .thermal-row { display: flex; justify-content: space-between; margin-bottom: 2mm; border-bottom: 0.1mm solid #eee; }
@@ -126,6 +130,7 @@
             .thermal-footer { text-align: center; border-top: 1px dashed #000; padding-top: 3mm; margin-top: 4mm; font-size: 9pt; }
             .receipt-title { font-weight: 900; border: 1px solid #000; padding: 1.5mm 3mm; display: inline-block; margin-bottom: 3mm; font-size: 11pt; border-radius: 2mm; }
             #qr-code-final { margin: 4mm auto; display: block; }
+            #qr-code-final img { margin: 0 auto; }
             .thermal-item-box { background: #f9f9f9; padding: 2mm; border-radius: 1mm; margin: 2mm 0; }
         }
 
@@ -145,6 +150,28 @@
         .notif-item { background: var(--bg); padding: 15px; border-radius: 15px; border: 1.5px solid var(--border); margin-bottom: 10px; position: relative; }
         .notif-item b { color: var(--danger); display: block; }
         .notif-item span { font-size: 13px; font-weight: 600; }
+
+        .receipt-preview {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .print-settings {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            border: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -183,6 +210,8 @@
         <button class="menu-item" onclick="checkInvPass()"><i class="fa-solid fa-boxes-stacked"></i> <span id="m-add">Inventory</span></button>
         <hr style="border: 0.5px solid var(--border); margin: 15px 0;">
         <button class="menu-item" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> <span id="m-backup">Export Excel</span></button>
+        <button class="menu-item" onclick="exportJSON()"><i class="fa-solid fa-file-code"></i> <span>Backup (JSON)</span></button>
+        <button class="menu-item" onclick="exportPDF()"><i class="fa-solid fa-file-pdf"></i> <span>Export PDF</span></button>
         <button class="menu-item" onclick="triggerRestore()"><i class="fa-solid fa-cloud-arrow-up"></i> <span id="m-restore">Restore Data</span></button>
         <input type="file" id="restore-input" style="display:none" accept=".json" onchange="restoreData(event)">
         <button class="menu-item" onclick="showAbout()"><i class="fa-solid fa-user-gear"></i> <span id="m-about">Developer</span></button>
@@ -216,20 +245,20 @@
             <input type="text" id="i-name" placeholder="...">
 
             <label id="l-phone" style="font-weight: 700; margin-top: 15px; display: block;">CUSTOMER PHONE</label>
-            <input type="tel" id="i-phone" placeholder="0750 xxx xxxx">
+            <input type="tel" id="i-phone" placeholder="0750 xxx xxxx" pattern="[0-9]*">
 
             <div id="witness-section">
                 <label id="l-witness" style="font-weight: 700; margin-top: 15px; display: block;">WITNESS NAME</label>
                 <input type="text" id="i-witness" placeholder="...">
 
                 <label id="l-witness-phone" style="font-weight: 700; margin-top: 15px; display: block;">WITNESS PHONE</label>
-                <input type="tel" id="i-witness-phone" placeholder="0750 xxx xxxx">
+                <input type="tel" id="i-witness-phone" placeholder="0750 xxx xxxx" pattern="[0-9]*">
             </div>
 
             <label id="l-item" style="margin-top:20px; display:block; font-weight: 700;">ITEM</label>
             <div style="display: flex; gap: 8px;">
                 <select id="i-item" style="flex: 1;" onchange="updateDetailsHint()"></select>
-                <button onclick="scanForSale()" class="scan-action-btn" style="margin-top: 8px;"><i class="fa-solid fa-qrcode"></i></button>
+                <button onclick="scanForSale()" class="scan-action-btn" style="margin-top: 8px;"><i class="fa-solid fa-barcode-read"></i><i class="fa-solid fa-qrcode"></i></button>
             </div>
             <div id="item-details-hint" style="font-size: 11px; color: var(--primary); margin-top: 5px; font-weight: bold;"></div>
 
@@ -290,9 +319,9 @@
                 <small id="s-annual">YEARLY FORECAST</small><h3 id="v-annual" style="color:#f59e0b">****</h3>
             </div>
         </div>
-        <input type="text" id="search-input" placeholder="..." oninput="render()" style="margin-bottom:20px; border: 2px solid var(--border);">
+        <input type="text" id="search-input" placeholder="..." oninput="handleSearch()" style="margin-bottom:20px; border: 2px solid var(--border);">
         <div class="table-wrap">
-            <table>
+            <table id="main-table">
                 <thead><tr><th id="th1">CUSTOMER</th><th id="th2">ITEM</th><th id="th3">TOTAL</th><th id="th_down">DOWN</th><th id="th4">PAID</th><th id="th5">ACTION</th></tr></thead>
                 <tbody id="sales-list"></tbody>
             </table>
@@ -318,26 +347,28 @@
     const db = firebase.database();
     
     let inv = [], sales = [], archive = [], trash = [], reports = [], privacyHidden = true;
+    let isInventoryOpen = false; 
     const SECRET_KEY = "07503644666";
     let activeScanner = null;
 
     const translations = {
-        bd: { mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", lphone: "موبایلا کڕیاری", lwitness: "ناڤێ دیدەڤانی", lwphone: "موبایلا دیدەڤانی", litem: " ئامێر/کاڵا", lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", srem: "ماوە", sannual: "تەخمینا ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: " ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان...", inv_name: "ناڤێ ئامێری (Barcode)", inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیف", mtrash: "گلێش", mbackup: "سەیفکرنا ئێکسل", mrestore: "دووبارە زێدەکرن", mreports: "ڕاپۆرت", mabout: "گەشەپێدەر", mlogout: "چوونەدەر", mpc: "کۆمپیوتەر", mdark: "شەڤ", mlight: "ڕۆژ", dev_role: "IT Specialist & Developer", dev_msg: "ئەڤ سیستەمە ژ لایێ بژار ڕەشید هاتیە دروستکرن", other: "پشکێن دی", lsaletype: "جۆرێ فرۆشتنێ", custom_rate: "ڕێژەیا قازانجی %", custom_months: "هژمارا هەیڤان", rep_d: "ڕۆژانە", rep_m: "هەیڤانە", rep_y: "ساڵانە", rep_count: "هژمارا وەصلا", rep_total: "کۆما پارەی", click_visit: "بۆ دیتنا پۆرتبۆلیۆی کلیک بکە", rec_title: "وەصلا وەرگرتنێ", rec_cust: "کڕیار", rec_wit: "دیدەڤان", rec_rem: "ماوە", rec_msg: "سوپاس بۆ متمانەیا هەوە", notif_title: "ئاگەهداریێن قستان", notif_msg: "٣ ڕۆژ ماینە بۆ دانا قستێ" },
-        sr: { mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", lphone: "موبایلی کڕیار", lwitness: "ناوی دیدەڤان", lwphone: "موبایلی دیدەڤان", litem: "ئامێر", lbuy: "نرخی فرۆشتن", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", srem: "ماوە", sannual: "تەخمینی ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن", search: "گەڕان...", inv_name: "ناوی کاڵا", inv_qty: "ژمارە", inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپی ئێکسل", mrestore: "گێڕانەوەی داتا", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدەرەوە", mpc: "کۆمپیوتەر", mdark: "شەو", mlight: "ڕۆژ", dev_role: "IT Specialist & Developer", dev_msg: "ئەم سیستمە لەلایەن بژار ڕەشید دروست کراوە", other: "بەشەکانی تر", lsaletype: "جۆری فرۆشتن", custom_rate: "ڕێژەی قازانج %", custom_months: "ژمارەی مانگەکان", rep_d: "ڕۆژانە", rep_m: "مانگانە", rep_y: "ساڵانە", rep_count: "ژمارەی وەصڵ", rep_total: "کۆی پارە", click_visit: "بۆ بینینی پۆرتبۆلیۆ کلیک بکە", rec_title: "وەصڵی وەرگرتن", rec_cust: "کڕیار", rec_wit: "شایەت", rec_rem: "ماوە", rec_msg: "سوپاس بۆ متمانەکەتان", notif_title: "ئاگادارکەرەوەی قیستەکان", notif_msg: "٣ ڕۆژ ماوە بۆدانی قیست" },
-        ar: { mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", lphone: "موبايل الزبون", lwitness: "اسم الشاهد", lwphone: "موبايل الشاهد", litem: "الجهاز", lbuy: "سعر البيع", ldown: "المقدمة", lduration: "المدة", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", srem: "المتبقي", sannual: "التوقعات السنوية", lnote: "ملاحظات", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "مقدمة", th4: "الأقساط", th5: "إجراء", madd: "المخزن", bclose: "إغلاق", search: "بحث...", inv_name: "المادة", inv_qty: "الكمية", inv_add: "إضافة", marchive: "الأرشيف", mtrash: "المحذوفات", mbackup: "نسخ إكسل", mrestore: "استعادة", mreports: "التقارير", mabout: "حول المطور", mlogout: "خروج", mpc: "کمبيوتر", mdark: "ليلي", mlight: "نهاري", dev_role: "IT Specialist & Developer", dev_msg: "تم تطوير هذا النظام من قبل بژار رشيد", other: "أقسام أخرى", lsaletype: "نوع البيع", custom_rate: "نسبة الربح %", custom_months: "عدد الأشهر", rep_d: "يومي", rep_m: "شهري", rep_y: "سنوي", rep_count: "عدد الفواتير", rep_total: "إجمالي المبلغ", click_visit: "انقر لزيارة معرض الأعمال", rec_title: "وصل استلام", rec_cust: "الزبون", rec_wit: "الشاهد", rec_rem: "المتبقي", rec_msg: "شكراً لثقتكم بنا", notif_title: "تنبيهات الأقساط", notif_msg: "بقي 3 أيام لموعد القسط" },
-        en: { mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", lphone: "PHONE", lwitness: "WITNESS", lwphone: "WIT PHONE", litem: "ITEM", lbuy: "PRICE", ldown: "DOWN", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", srem: "REMAIN", sannual: "ANNUAL FORECAST", lnote: "NOTES", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE", search: "Search...", inv_name: "Item Name", inv_qty: "Qty", inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Backup", mrestore: "Restore", mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mdark: "Dark Mode", mlight: "Light Mode", dev_role: "IT Specialist & Developer", dev_msg: "Developed by Bizhar Rasheed", other: "Other Items", lsaletype: "Sale Type", custom_rate: "Custom Rate %", custom_months: "Custom Months", rep_d: "Daily", rep_m: "Monthly", rep_y: "Yearly", rep_count: "Receipts", rep_total: "Total Amount", click_visit: "Click to visit Portfolio", rec_title: "RECEIPT", rec_cust: "Customer", rec_wit: "Witness", rec_rem: "Remain", rec_msg: "Thank you for your trust", notif_title: "Installment Alerts", notif_msg: "3 days left for payment" },
-        tr: { mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", lphone: "TELEFON", lwitness: "ŞAHİT", lwphone: "ŞAHİT TEL", litem: "ÜRÜN", lbuy: "SATIŞ FİYATI", ldown: "PEŞİNAT", lduration: "VADE", lmon: "TAKSİT", ltotal: "TOPLAM", bsave: "KAYDET", s1: "STOK", s4: "KÂR", srem: "KALAN", sannual: "YILLIK TAHMİN", lnote: "NOTLAR", th1: "MÜŞTERİ", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM", madd: "ENVANTER", bclose: "KAPAT", search: "Ara...", inv_name: "Ürün Adı", inv_qty: "Adet", inv_add: "Ekle", marchive: "Arşiv", mtrash: "Çöp Kutusu", mbackup: "Excel Yedek", mrestore: "Veri Yükle", mreports: "Raporlar", mabout: "Geliştirici", mlogout: "Çıkış Yap", mpc: "PC Modu", mdark: "Karanlık", mlight: "Aydınlık", dev_role: "IT Uzmanı ve Sistem Geliştiricisi", dev_msg: "Bu sistem Bizhar Rasheed tarafından tasarlanmıştır", other: "Diğer Bölümler", lsaletype: "Satış Türü", custom_rate: "Özel Kar %", custom_months: "Taksit Sayısı", rep_d: "Günlük", rep_m: "Aylık", rep_y: "Yıllık", rep_count: "Fiş Sayısı", rep_total: "Toplam Tutar", click_visit: "Portfolyoyu ziyaret et", rec_title: "FİŞ / MAKBUZ", rec_cust: "Müşteri", rec_wit: "Şahit", rec_rem: "Kalan", rec_msg: "Bize güvendiğiniz için teşekkürler", notif_title: "Taksit Uyarıları", notif_msg: "Ödeme için son 3 gün" },
-        fa: { mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", lphone: "تلفن مشتری", lwitness: "نام شاهد", lwphone: "تلفن شاهد", litem: "کالا", lbuy: "قیمت فروش", ldown: "پیش‌پرداخت", lduration: "مدت اقساط", lmon: "قسط ماهانه", ltotal: "مجموع", bsave: "ذخیره", s1: "انبار", s4: "سود", srem: "مانده", sannual: "پیش‌بینی سالانه", lnote: "یادداشت", th1: "مشتری", th2: "کالا", th3: "مجموع", th_down: "پیش‌پرداخت", th4: "پرداختی", th5: "عملیات", madd: "موجودی", bclose: "بستن", search: "جستجو...", inv_name: "نام کالا", inv_qty: "تعداد", inv_add: "افزودن", marchive: "آرشیو", mtrash: "سطل زباله", mbackup: "خروجی اکسل", mrestore: "بازیابی داده", mreports: "گزارش‌ها", mabout: "توسعه‌دهنده", mlogout: "خروج", mpc: "حالت کامپیوتر", mdark: "حالت شب", mlight: "حالت روز", dev_role: "متخصص IT و توسعه‌دهنده سیستم", dev_msg: "این سیستم توسط بژار رشید طراحی شده است", other: "بخش‌های دیگر", lsaletype: "نوع فروش", custom_rate: "نرخ سود %", custom_months: "تعداد ماه", rep_d: "روزانه", rep_m: "ماهانه", rep_y: "سالانه", rep_count: "تعداد قبض", rep_total: "جمع کل", click_visit: "برای مشاهده رزومه کلیک کنید", rec_title: "رسید پرداخت", rec_cust: "مشتری", rec_wit: "شاهد", rec_rem: "باقیمانده", rec_msg: "از اعتماد شما متشکریم", notif_title: "هشدار اقساط", notif_msg: "3 روز مانده به موعد قسط" }
+        bd: { mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", lphone: "موبایلا کڕیاری", lwitness: "ناڤێ دیدەڤانی", lwphone: "موبایلا دیدەڤانی", litem: " ئامێر/کاڵا", lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", srem: "ماوە", sannual: "تەخمینا ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: " ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان ب ناڤ یان ID...", inv_name: "ناڤێ ئامێری (Barcode)", inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیف", mtrash: "گلێش", mbackup: "سەیفکرنا ئێکسل", mrestore: "دووبارە زێدەکرن", mreports: "ڕاپۆرت", mabout: "گەشەپێدەر", mlogout: "چوونەدەر", mpc: "کۆمپیوتەر", mdark: "شەڤ", mlight: "ڕۆژ", dev_role: "IT Specialist & Developer", dev_msg: "ئەڤ سیستەمە ژ لایێ بژار ڕەشید هاتیە دروستکرن", other: "پشکێن دی", lsaletype: "جۆرێ فرۆشتنێ", custom_rate: "ڕێژەیا قازانجی %", custom_months: "هژمارا هەیڤان", rep_d: "ڕۆژانە", rep_m: "هەیڤانە", rep_y: "ساڵانە", rep_count: "هژمارا وەصلا", rep_total: "کۆما پارەی", click_visit: "بۆ دیتنا پۆرتبۆلیۆی کلیک بکە", rec_title: "وەصلا وەرگرتنێ", rec_cust: "کڕیار", rec_wit: "دیدەڤان", rec_rem: "ماوە", rec_msg: "سوپاس بۆ متمانەیا هەوە", notif_title: "ئاگەهداریێن قستان", notif_msg: "٣ ڕۆژ ماینە بۆ دانا قستێ", inv_cost: "بهایێ کڕینێ", out_of_stock: "ئەڤ کەلوپەلە د مەخزەنی دا نەماینە!" },
+        sr: { mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", lphone: "موبایلی کڕیار", lwitness: "ناوی دیدەڤان", lwphone: "موبایلی دیدەڤان", litem: "ئامێر", lbuy: "نرخی فرۆشتن", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", srem: "ماوە", sannual: "ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن", search: "گەڕان بە ناو یان ID...", inv_name: "ناوی کاڵا", inv_qty: "ژمارە", inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپی ئێکسل", mrestore: "گێڕانەوەی داتا", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدەرەوە", mpc: "کۆمپیوتەر", mdark: "شەو", mlight: "ڕۆژ", dev_role: "IT Specialist & Developer", dev_msg: "ئەم سیستمە لەلایەن بژار ڕەشید دروست کراوە", other: "بەشەکانی تر", lsaletype: "جۆری فرۆشتن", custom_rate: "ڕێژەی قازانج %", custom_months: "مانگەکان", rep_d: "روزانه", rep_m: "مانگانە", rep_y: "ساڵانە", rep_count: "ژمارەی وەصڵ", rep_total: "کۆی پارە", click_visit: "بۆ بینینی پۆرتبۆلیۆ کلیک بکە", rec_title: "وەصڵی وەرگرتن", rec_cust: "کڕیار", rec_wit: "شایەت", rec_rem: "ماوە", rec_msg: "سوپاس بۆ متمانەکەتان", notif_title: "ئاگادارکەرەوەی قیستەکان", notif_msg: "٣ ڕۆژ ماوە بۆدانی قیست", inv_cost: "نرخی کڕین", out_of_stock: "ببوورە! ئەم کاڵایە لە کۆگا نەماوە" },
+        ar: { mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", lphone: "موبايل الزبون", lwitness: "اسم الشاهد", lwphone: "موبايل الشاهد", litem: "الجهاز", lbuy: "سعر البيع", ldown: "المقدمة", lduration: "المدة", lmon: "القسط", ltotal: "المجموع", bsave: "حفظ", s1: "المخزن", s4: "الأرباح", srem: "المتبقي", sannual: "سنوي", lnote: "ملاحظات", th1: "الزبون", th2: "الجهاز", th3: "المجموع", th_down: "مقدمة", th4: "الأقساط", th5: "إجراء", madd: "المخزن", bclose: "إغلاق", search: "بحث بالاسم او ID...", inv_name: "المادة", inv_qty: "الكمية", inv_add: "إضافة", marchive: "الأرشيف", mtrash: "المحذوفات", mbackup: "نسخ إكسل", mrestore: "استعادة", mreports: "التقارير", mabout: "حول المطور", mlogout: "خروج", mpc: "کمبيوتر", mdark: "ليلي", mlight: "نهاري", dev_role: "IT Specialist & Developer", dev_msg: "تم تطوير هذا النظام من قبل بژار رشيد", other: "أقسام أخرى", lsaletype: "نوع البيع", custom_rate: "الربح %", custom_months: "الأشهر", rep_d: "يومي", rep_m: "شهري", rep_y: "سنوي", rep_count: "الفواتير", rep_total: "إجمالي المبلغ", click_visit: "معرض الأعمال", rec_title: "وصل استلام", rec_cust: "الزبون", rec_wit: "الشاهد", rec_rem: "المتبقي", rec_msg: "شكراً لثقتكم بنا", notif_title: "تنبيهات الأقساط", notif_msg: "بقي 3 أيام لموعد القسط", inv_cost: "سعر الشراء", out_of_stock: "عذراً! المادة غير متوفرة" },
+        en: { mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", lphone: "PHONE", lwitness: "WITNESS", lwphone: "WIT PHONE", litem: "ITEM", lbuy: "PRICE", ldown: "DOWN", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE", s1: "STOCK", s4: "PROFIT", srem: "REMAIN", sannual: "ANNUAL", lnote: "NOTES", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE", search: "Search by Name or ID...", inv_name: "Item Name", inv_qty: "Qty", inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Backup", mrestore: "Restore", mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mdark: "Dark", mlight: "Light", dev_role: "IT Specialist & Developer", dev_msg: "Developed by Bizhar Rasheed", other: "Other Items", lsaletype: "Sale Type", custom_rate: "Rate %", custom_months: "Months", rep_d: "Daily", rep_m: "Monthly", rep_y: "Yearly", rep_count: "Receipts", rep_total: "Total", click_visit: "Portfolio", rec_title: "RECEIPT", rec_cust: "Customer", rec_wit: "Witness", rec_rem: "Remain", rec_msg: "Thank you for your trust", notif_title: "Installment Alerts", notif_msg: "3 days left for payment", inv_cost: "Cost Price", out_of_stock: "Sorry! Item out of stock" },
+        tr: { mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", lphone: "TELEFON", lwitness: "ŞAHİT", lwphone: "ŞAHİT TEL", litem: "ÜRÜN", lbuy: "FİYAT", ldown: "PEŞİNAT", lduration: "VADE", lmon: "TAKSİT", ltotal: "TOPLAM", bsave: "KAYDET", s1: "STOK", s4: "KÂR", srem: "KALAN", sannual: "YILLIK", lnote: "NOTLAR", th1: "MÜŞTERİ", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM", madd: "ENVANTER", bclose: "KAPAT", search: "İsim veya ID ile ara...", inv_name: "Ürün Adı", inv_qty: "Adet", inv_add: "Ekle", marchive: "Arşiv", mtrash: "Çöp Kutusu", mbackup: "Excel Yedek", mrestore: "Veri Yükle", mreports: "Raporlar", mabout: "Geliştirici", mlogout: "Çıkış Yap", mpc: "PC Modu", mdark: "Karanlık", mlight: "Aydınlık", dev_role: "IT Uzmanı", dev_msg: "Bizhar Rasheed tarafından tasarlanmıştır", other: "Diğer", lsaletype: "Satış Türü", custom_rate: "Kar %", custom_months: "Ay", rep_d: "Günlük", rep_m: "Aylık", rep_y: "Yıllık", rep_count: "Fiş", rep_total: "Toplam", click_visit: "Portfolyo", rec_title: "FİŞ", rec_cust: "Müşteri", rec_wit: "Şahit", rec_rem: "Kalan", rec_msg: "Teşekkürler", notif_title: "Vade Uyarıları", notif_msg: "Ödeme برای son 3 gün", inv_cost: "Maliyet", out_of_stock: "Stokta yok" },
+        fa: { mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", lphone: "تلفن مشتری", lwitness: "نام شاهد", lwphone: "تلفن شاهد", litem: "کالا", lbuy: "قیمت فروش", ldown: "پیش‌پرداخت", lduration: "مدت", lmon: "قسط", ltotal: "مجموع", bsave: "ذخیره", s1: "انبار", s4: "سود", srem: "مانده", sannual: "سالانه", lnote: "یادداشت", th1: "مشتری", th2: "کالا", th3: "مجموع", th_down: "پیش‌پرداخت", th4: "پرداختی", th5: "عملیات", madd: "موجودی", bclose: "بستن", search: "جستجو با نام یا ID...", inv_name: "نام کالا", inv_qty: "تعداد", inv_add: "افزودن", marchive: "آرشیو", mtrash: "سطل زباله", mbackup: "خروجی اکسل", mrestore: "بازیابی", mreports: "گزارش‌ها", mabout: "توسعه‌دهنده", mlogout: "خروج", mpc: "حالت PC", mdark: "شب", mlight: "روز", dev_role: "متخصص IT", dev_msg: "طراحی شده توسط بژار رشید", other: "دیگر", lsaletype: "نوع فروش", custom_rate: "سود %", custom_months: "ماه", rep_d: "روزانه", rep_m: "ماهانه", rep_y: "سالانه", rep_count: "قبض", rep_total: "جمع", click_visit: "رزومه", rec_title: "رسید", rec_cust: "مشتری", rec_wit: "شاهد", rec_rem: "باقیمانده", rec_msg: "متشکریم", notif_title: "هشدار اقساط", notif_msg: "3 روز مانده به قسط", inv_cost: "قیمت خرید", out_of_stock: "موجود نیست" }
     };
 
     window.onload = () => { if(localStorage.getItem("bizhar_logged") === "true") document.getElementById('login-overlay').style.display = 'none'; applyLang(); toggleSaleMode(); };
     function checkLogin() { if(document.getElementById('login-user').value.toUpperCase() === "BIZHAR" && document.getElementById('login-pass').value === SECRET_KEY) { localStorage.setItem("bizhar_logged", "true"); document.getElementById('login-overlay').style.display = 'none'; } else alert("ACCESS DENIED!"); }
     function logout() { localStorage.removeItem("bizhar_logged"); location.reload(); }
-    function checkInvPass() { if(prompt("MASTER KEY:") === SECRET_KEY) showInventory(); }
+    function checkInvPass() { if(prompt("MASTER KEY:") === SECRET_KEY) { isInventoryOpen = true; showInventory(); } }
 
-    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; archive=d.a||[]; trash=d.t||[]; reports=d.r||[]; render(); checkInstallmentsNotif(); } });
+    db.ref('/').on('value', snap => { const d = snap.val(); if(d){ inv=d.i||[]; sales=d.s||[]; archive=d.a||[]; trash=d.t||[]; reports=d.r||[]; render(); if(isInventoryOpen) showInventory(); checkInstallmentsNotif(); } });
     function updateDB() { db.ref('/').set({ i: inv, s: sales, a: archive, t: trash, r: reports }); }
 
+    function handleSearch() { render(); if(isInventoryOpen) showInventory(); }
     function togglePrivacy() { privacyHidden = !privacyHidden; render(); }
 
     function toggleDark() { 
@@ -391,6 +422,7 @@
             if (selectedPlan === 'Other') {
                 rate = (parseFloat(document.getElementById('i-other-rate').value)||0) / 100;
                 m = parseInt(document.getElementById('i-other-months').value)||1;
+                if(m <= 0 || isNaN(m)) m = 1;
             } else {
                 let rates = {2:0.15, 3:0.25, 4:0.35, 6:0.40, 8:0.50, 10:0.60, 12:0.70, 16:0.85};
                 m = parseInt(selectedPlan);
@@ -398,7 +430,7 @@
             }
             
             total = b + (b * rate);
-            mon = (total - d) / m;
+            mon = Math.round(((total - d) / m) * 100) / 100;
         } else {
             total = b;
             mon = 0;
@@ -415,52 +447,42 @@
         let phone = document.getElementById('i-phone').value;
         let wit = document.getElementById('i-witness').value;
         let witPhone = document.getElementById('i-witness-phone').value;
-        let iName = document.getElementById('i-item').value, nt = document.getElementById('i-note').value;
+        let iId = document.getElementById('i-item').value, nt = document.getElementById('i-note').value;
         let saleType = document.getElementById('i-sale-type').value;
         
-        if(!n || !iName) return;
-        let p = calc(), idx = inv.findIndex(x => x.name === iName);
-        let itemFullData = {};
-        if(idx!==-1) {
-            inv[idx].qty--;
-            itemFullData = {...inv[idx]};
+        if(!n || !iId) return;
+
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        let idx = inv.findIndex(x => x.id == iId);
+        
+        if(idx === -1 || inv[idx].qty <= 0) {
+            alert(l.out_of_stock || "Out of Stock!");
+            return;
         }
+
+        let p = calc();
+        let itemFullData = JSON.parse(JSON.stringify(inv[idx])); 
+        inv[idx].qty--;
         
         const now = new Date();
         const saleData = { 
             id:Date.now(), 
-            name:n, 
-            phone: phone,
+            name:n, phone: phone,
             witness: (saleType === 'Cash' ? 'N/A' : wit),
             witnessPhone: (saleType === 'Cash' ? 'N/A' : witPhone),
-            item:iName, 
-            itemDetails: itemFullData,
-            total:p.total.toFixed(2), 
-            buy:p.b, 
-            down:p.d, 
-            mon:p.mon.toFixed(2), 
-            months:p.m, 
-            paid:(saleType === 'Cash' ? p.m : 0), 
-            date: now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            lastPaymentDate: Date.now(), // Track for notifications
-            note: nt,
-            type: saleType
+            item: itemFullData.name, itemId: itemFullData.id, itemDetails: itemFullData, 
+            total:p.total.toFixed(2), buy:p.b, cost: itemFullData.cost || 0, 
+            down:p.d, mon:p.mon.toFixed(2), months:p.m, paid:0, 
+            date: now.toLocaleString(),
+            lastPaymentDate: Date.now(),
+            note: nt, type: saleType
         };
         
-        if(saleType === 'Cash') {
-            archive.unshift(saleData);
-        } else {
-            sales.unshift(saleData);
-        }
+        if(saleType === 'Cash') archive.unshift(saleData);
+        else sales.unshift(saleData);
 
         updateDB(); 
-        document.getElementById('i-name').value = ""; 
-        document.getElementById('i-phone').value = ""; 
-        document.getElementById('i-witness').value = ""; 
-        document.getElementById('i-witness-phone').value = ""; 
-        document.getElementById('i-note').value = "";
-        document.getElementById('i-buy').value = "";
-        document.getElementById('i-down').value = "";
+        ["i-name", "i-phone", "i-witness", "i-witness-phone", "i-note", "i-buy", "i-down"].forEach(id => document.getElementById(id).value = "");
         calc();
     }
 
@@ -468,193 +490,168 @@
         if(prompt("KEY:") !== SECRET_KEY) return;
         let idx = sales.findIndex(x => x.id === id);
         if(idx !== -1) {
-            sales[idx].paid++;
+            let count = parseInt(prompt("چەند قیستان ددەت؟ (How many months?)", "1")) || 1;
+            let available = sales[idx].months - sales[idx].paid;
+            
+            if(count > available) count = available;
+            if(count <= 0) return;
+
+            sales[idx].paid += count;
             const now = new Date();
-            sales[idx].lastPaymentDate = now.getTime(); // Update date
-            const payTime = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            sales[idx].lastPaymentDate = now.getTime();
+            const payTime = now.toLocaleString();
             
             const remCount = (sales[idx].months - sales[idx].paid);
-            const rep = { 
-                ...sales[idx], 
-                payDate: payTime, 
-                currentPayment: sales[idx].paid, 
-                remAmt: (remCount * parseFloat(sales[idx].mon)).toFixed(2),
-                remCount: remCount,
-                timestamp: Date.now()
-            };
+            const calculatedRemain = Math.max(0, (parseFloat(sales[idx].total) - parseFloat(sales[idx].down) - (parseFloat(sales[idx].mon) * sales[idx].paid))).toFixed(2);
+
+            for(let i=0; i<count; i++) {
+                const rep = { 
+                    ...sales[idx], payDate: payTime, currentPayment: (sales[idx].paid - count + i + 1), 
+                    remAmt: (parseFloat(calculatedRemain) + (parseFloat(sales[idx].mon) * (count - i - 1))).toFixed(2), 
+                    remCount: (remCount + count - i - 1), timestamp: Date.now()
+                };
+                reports.unshift(rep);
+                if(i === count - 1) showReceiptPreview(rep);
+            }
             
-            reports.unshift(rep);
-            printThermal(rep);
             if(sales[idx].paid >= sales[idx].months) { archive.unshift(sales[idx]); sales.splice(idx, 1); }
             updateDB();
         }
     }
 
-    // --- Notification Logic ---
+    function showReceiptPreview(rep) {
+        const lang = document.getElementById('lang-sel').value;
+        const l = translations[lang] || translations.bd;
+        const isRtl = !['en','tr'].includes(lang);
+        
+        document.getElementById('modal-title').innerText = "Print Preview";
+        let detailsHtml = "";
+        const d = rep.itemDetails;
+        if(d.type === "Mobile") detailsHtml = `${d.model} | ${d.storage}/${d.ram}GB`;
+        else if(d.type === "Computer") detailsHtml = `${d.cpu} | RAM: ${d.ram}GB`;
+        
+        document.getElementById('modal-content').innerHTML = `
+            <div class="receipt-preview" id="preview-box" style="direction: ${isRtl ? 'rtl' : 'ltr'};">
+                <div style="text-align:center;">
+                    <img src="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg" style="width:80px; margin-bottom:10px;">
+                    <h3>${l.rec_title}</h3><p>${rep.payDate}</p>
+                </div>
+                <hr style="margin:10px 0; border:0.5px dashed #000;">
+                <p><b>${l.rec_cust}:</b> ${rep.name}</p>
+                <p><b>${l.th2}:</b> ${rep.item} (${detailsHtml})</p>
+                <p><b>${l.ltotal}:</b> $${rep.total}</p>
+                <p><b>${l.th4}:</b> ${rep.currentPayment} / ${rep.months}</p>
+                <p style="font-size:1.2rem; margin-top:5px;"><b>${l.rec_rem}:</b> $${rep.remAmt}</p>
+                <div id="qr-preview" style="display:flex; justify-content:center; margin-top:15px;"></div>
+                <p style="text-align:center; font-size:0.8rem; margin-top:15px;">Powered by BIZHAR RASHEED</p>
+            </div>
+            <div class="print-settings">
+                <div><label style="font-size:12px; font-weight:bold;">PAPER</label><select id="print-size-sel"><option value="80mm">80mm</option><option value="58mm">58mm</option></select></div>
+                <div><label style="font-size:12px; font-weight:bold;">ORIENT</label><select id="print-size-sel"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+            </div>
+            <button class="main-btn" id="print-btn-exec"><i class="fa-solid fa-print"></i> PRINT</button>
+        `;
+        new QRCode(document.getElementById("qr-preview"), { text: `POS:${rep.id}`, width: 80, height: 80 });
+        document.getElementById('print-btn-exec').onclick = () => executePrint(rep);
+        document.getElementById('modal-universal').style.display = 'flex';
+    }
+
+    function executePrint(rep) {
+        const size = document.getElementById('print-size-sel').value;
+        const orient = document.getElementById('print-orient-sel').value;
+        printThermal(rep, size, orient);
+        closeModal();
+    }
+
     function checkInstallmentsNotif() {
         const now = Date.now();
-        const dueDays = 27;
-        const dueMillis = dueDays * 24 * 60 * 60 * 1000;
+        const dueMillis = 27 * 24 * 60 * 60 * 1000;
         let count = 0;
-
-        sales.forEach(s => {
-            if(s.type === 'Installments' && (now - s.lastPaymentDate) >= dueMillis) {
-                count++;
-            }
-        });
-
+        sales.forEach(s => { if(s.type === 'Installments' && (now - s.lastPaymentDate) >= dueMillis) count++; });
         const bell = document.getElementById('notif-bell');
         const badge = document.getElementById('notif-badge');
-        if(count > 0) {
-            bell.classList.add('active');
-            badge.style.display = 'flex';
-            badge.innerText = count;
-        } else {
-            bell.classList.remove('active');
-            badge.style.display = 'none';
-        }
+        if(count > 0) { bell.classList.add('active'); badge.style.display = 'flex'; badge.innerText = count; } 
+        else { bell.classList.remove('active'); badge.style.display = 'none'; }
     }
 
     function showNotifs() {
         const l = translations[document.getElementById('lang-sel').value] || translations.bd;
-        const now = Date.now();
-        const dueMillis = 27 * 24 * 60 * 60 * 1000;
-        
+        const now = Date.now(), dueMillis = 27 * 24 * 60 * 60 * 1000;
         let html = '';
         sales.forEach(s => {
             if(s.type === 'Installments' && (now - s.lastPaymentDate) >= dueMillis) {
-                html += `
-                <div class="notif-item">
-                    <b>${s.name}</b>
-                    <span>${s.item} - ${l.notif_msg}</span>
-                    <p style="font-size:10px; margin-top:5px;">Last pay: ${new Date(s.lastPaymentDate).toLocaleDateString()}</p>
-                </div>`;
+                html += `<div class="notif-item"><b>${s.name}</b><span>${s.item} - ${l.notif_msg}</span></div>`;
             }
         });
-
         document.getElementById('modal-title').innerText = l.notif_title;
         document.getElementById('modal-content').innerHTML = html || `<p style="text-align:center; padding:20px;">No Alerts.</p>`;
         document.getElementById('modal-universal').style.display = 'flex';
     }
 
-    function printThermal(data) {
+    function printThermal(data, size = '80mm', orient = 'portrait') {
         const area = document.getElementById('print-area');
         const lang = document.getElementById('lang-sel').value;
         const l = translations[lang] || translations.bd;
         const isRtl = !['en','tr'].includes(lang);
-        
         let detailsHtml = "";
         const d = data.itemDetails;
-        
-        if(d.type === "Mobile") {
-            detailsHtml = `${d.model} | ${d.storage}/${d.ram}GB | ${d.color} | ${d.condition}`;
-        } else if(d.type === "Computer") {
-            detailsHtml = `${d.cpu} ${d.gen} | RAM: ${d.ram}GB | SSD: ${d.storage} | GPU: ${d.gpu}`;
-        } else if(d.type === "Other") {
-            detailsHtml = `${d.otherInfo || '---'}`;
-        }
+        if(d.type === "Mobile") detailsHtml = `${d.model} | ${d.storage}GB | ${d.color}`;
+        else if(d.type === "Computer") detailsHtml = `${d.cpu} | RAM: ${d.ram}GB | SSD: ${d.storage}`;
+        else detailsHtml = `${d.otherInfo || '---'}`;
 
-        const qrContent = `POS: ${data.name} | Item: ${data.item} | Paid: ${data.currentPayment}/${data.months} | Rem: $${data.remAmt}`;
+        const qrContent = `POS-ELITE:${data.id}|${data.name}|${data.currentPayment}/${data.months}`;
+        const styleTag = document.createElement('style');
+        styleTag.innerHTML = `@media print { @page { size: ${orient}; } }`;
+        document.head.appendChild(styleTag);
 
         area.innerHTML = `
-            <div style="direction: ${isRtl ? 'rtl' : 'ltr'};">
+            <div class="${size === '80mm' ? 'print-80mm' : 'print-58mm'}" style="direction: ${isRtl ? 'rtl' : 'ltr'};">
                 <div class="thermal-header">
                     <img src="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg" class="thermal-logo">
-                    <div class="receipt-title">${l.rec_title}</div>
-                    <p style="font-size: 9pt;">${data.payDate}</p>
+                    <div class="receipt-title">${l.rec_title}</div><p>${data.payDate}</p>
                 </div>
-                
                 <div class="thermal-row"><span>${l.rec_cust}:</span><b>${data.name}</b></div>
-                <div class="thermal-row"><span>${l.lphone}:</span><b>${data.phone || '---'}</b></div>
-                <div class="thermal-row"><span>${l.rec_wit}:</span><b>${data.witness || '---'}</b></div>
-                
-                <div class="thermal-item-box">
-                    <div style="font-weight: 900; margin-bottom: 1mm;">${data.item}</div>
-                    <div style="font-size: 8.5pt; color: #333;">${detailsHtml}</div>
-                </div>
-                
+                <div class="thermal-item-box"><b>${data.item}</b><br><small>${detailsHtml}</small></div>
                 <div class="thermal-row"><span>${l.ltotal}:</span><b>$${data.total}</b></div>
-                <div class="thermal-row"><span>${l.lmon}:</span><b>$${data.mon}</b></div>
-                <div class="thermal-row" style="margin-top: 2mm; border-top: 1px solid #000; padding-top: 1mm;"><span>${l.th4}:</span><b>${data.currentPayment} / ${data.months}</b></div>
-                <div class="thermal-row" style="font-size: 11pt; color: #000;"><span>${l.rec_rem}:</span><b>$${data.remAmt}</b></div>
-                
-                <div id="qr-code-final"></div>
-
-                <div class="thermal-footer">
-                    <p style="margin-bottom: 1mm;">${l.lnote}: ${data.note || '---'}</p>
-                    <p style="font-weight: 900; font-size: 10pt;">${l.rec_msg}</p>
-                    <p style="margin-top: 2mm; border-top: 1px dashed #ccc; padding-top: 1mm;">Powered BY: BIZHAR RASHEED</p>
-                    <p>0750 364 4666</p>
-                </div>
+                <div class="thermal-row"><span>${l.th4}:</span><b>${data.currentPayment} / ${data.months}</b></div>
+                <div class="thermal-row" style="font-size:11pt;"><span>${l.rec_rem}:</span><b>$${data.remAmt}</b></div>
+                <div id="qr-code-final" style="display: flex; justify-content: center;"></div>
+                <div class="thermal-footer"><p>Powered BY: BIZHAR RASHEED</p></div>
             </div>`;
-
-        new QRCode(document.getElementById("qr-code-final"), {
-            text: qrContent,
-            width: 120,
-            height: 120,
-            correctLevel : QRCode.CorrectLevel.H
-        });
-
-        setTimeout(() => { window.print(); }, 600);
+        new QRCode(document.getElementById("qr-code-final"), { text: qrContent, width: 100, height: 100 });
+        setTimeout(() => { window.print(); styleTag.remove(); }, 500);
     }
 
     function showInventory() {
         const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        const q = document.getElementById('search-input').value.toLowerCase();
         document.getElementById('modal-title').innerText = l.madd;
+        let filteredInv = inv.filter(x => x.name.toLowerCase().includes(q));
+
         document.getElementById('modal-content').innerHTML = `
         <div class="card" style="padding:15px; margin-bottom:15px;">
             <select id="inv-type" onchange="toggleInvFields()">
-                <option value="Mobile">Mobile (مۆبایل)</option>
-                <option value="Computer">Computer (کۆمپیوتەر)</option>
-                <option value="Other">${l.other}</option>
+                <option value="Mobile">Mobile</option><option value="Computer">Computer</option><option value="Other">${l.other}</option>
             </select>
-            
             <div style="display: flex; gap: 8px;">
                 <input type="text" id="add-n" placeholder="${l.inv_name}" style="flex:1;">
-                <button onclick="scanForInv()" class="scan-action-btn" style="margin-top: 8px;"><i class="fa-solid fa-barcode"></i></button>
+                <button onclick="startGenericScanner('add-n')" class="scan-action-btn" style="margin-top: 8px;"><i class="fa-solid fa-barcode"></i></button>
             </div>
-            
+            <input type="number" id="add-cost" placeholder="${l.inv_cost}">
             <div id="mobile-fields" class="details-grid">
-                <input type="text" id="m-model" placeholder="Model">
-                <input type="text" id="m-color" placeholder="Color">
-                <input type="number" id="m-storage" placeholder="Storage GB">
-                <input type="number" id="m-ram" placeholder="RAM GB">
-                <select id="m-condition"><option value="New">New</option><option value="Used">Used</option></select>
+                <input type="text" id="m-model" placeholder="Model"><input type="text" id="m-color" placeholder="Color">
+                <input type="number" id="m-storage" placeholder="Storage"><input type="number" id="m-ram" placeholder="RAM">
             </div>
-
             <div id="pc-fields" class="details-grid" style="display:none;">
-                <select id="p-cpu">
-                    <option value="Core i3">Core i3</option><option value="Core i5">Core i5</option>
-                    <option value="Core i7">Core i7</option><option value="Core i9">Core i9</option>
-                    <option value="Core Ultra 5">Core Ultra 5</option><option value="Core Ultra 7">Core Ultra 7</option>
-                    <option value="Core Ultra 9">Core Ultra 9</option>
-                    <option value="AMD Ryzen 3">AMD Ryzen 3</option><option value="AMD Ryzen 5">AMD Ryzen 5</option>
-                    <option value="AMD Ryzen 7">AMD Ryzen 7</option><option value="AMD Ryzen 9">AMD Ryzen 9</option>
-                    <option value="AMD Ryzen AI 5">AMD Ryzen AI 5</option><option value="AMD Ryzen AI 7">AMD Ryzen AI 7</option>
-                    <option value="AMD Ryzen AI 9">AMD Ryzen AI 9</option>
-                </select>
-                <select id="p-gen"><option value="U">U</option><option value="H">H</option><option value="HS">HS</option><option value="HX">HX</option></select>
-                <input type="number" id="p-ram" placeholder="RAM GB">
-                <input type="text" id="p-ssd" placeholder="SSD Storage">
-                <select id="p-gpu"><option value="NVIDIA RTX">NVIDIA RTX</option><option value="AMD RADEON">AMD RADEON</option><option value="Intel Iris">Intel Iris</option></select>
-                <select id="p-vram">
-                    <option value="None">None</option><option value="2GB">2GB</option><option value="4GB">4GB</option><option value="6GB">6GB</option>
-                    <option value="8GB">8GB</option><option value="10GB">10GB</option><option value="12GB">12GB</option><option value="16GB">16GB</option>
-                    <option value="24GB">24GB</option><option value="32GB">32GB</option>
-                </select>
-                <input type="text" id="p-screen" placeholder="Screen Size">
-                <select id="p-condition"><option value="New">New</option><option value="Used">Used</option></select>
+                <input type="text" id="p-cpu" placeholder="CPU"><input type="number" id="p-ram" placeholder="RAM">
+                <input type="text" id="p-ssd" placeholder="SSD"><select id="p-gpu"><option value="RTX">RTX</option><option value="Integrated">Integrated</option></select>
             </div>
-
-            <div id="other-fields" style="display:none;">
-                <textarea id="o-info" placeholder="Item Details (زانیاریێن ئامێری)" rows="2"></textarea>
-            </div>
-
+            <div id="other-fields" style="display:none;"><textarea id="o-info" placeholder="Details" rows="2"></textarea></div>
             <input type="number" id="add-q" placeholder="${l.inv_qty}">
             <button class="main-btn" onclick="addInv()"><i class="fa-solid fa-plus"></i> ${l.inv_add}</button>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>${l.inv_name}</th><th>Type</th><th>Qty</th><th>X</th></tr></thead>
-        <tbody>${inv.map((x,idx)=>`<tr><td><b>${x.name}</b></td><td>${x.type}</td><td>${x.qty}</td><td><button onclick="delInv(${idx})" style="color:var(--danger); background:none; border:none;"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div>`;
+        <div class="table-wrap"><table><thead><tr><th>${l.inv_name}</th><th>Cost</th><th>Qty</th><th>X</th></tr></thead>
+        <tbody>${filteredInv.map((x)=>`<tr><td><b>${x.name}</b></td><td>$${x.cost||0}</td><td>${x.qty}</td><td><button onclick="delInv(${x.id})" style="color:var(--danger); background:none; border:none;"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div>`;
         document.getElementById('modal-universal').style.display = 'flex';
     }
 
@@ -667,73 +664,53 @@
 
     function addInv() { 
         let type = document.getElementById('inv-type').value, n = document.getElementById('add-n').value, q = parseInt(document.getElementById('add-q').value)||0; 
+        let cost = parseFloat(document.getElementById('add-cost').value)||0;
         if(!n || q <= 0) return;
-        let deviceData = { name: n, qty: q, type: type };
+        let deviceData = { id: Date.now(), name: n, qty: q, cost: cost, type: type };
         if(type === 'Mobile') {
-            deviceData.model = document.getElementById('m-model').value;
-            deviceData.color = document.getElementById('m-color').value;
-            deviceData.storage = document.getElementById('m-storage').value;
-            deviceData.ram = document.getElementById('m-ram').value;
-            deviceData.condition = document.getElementById('m-condition').value;
+            deviceData.model = document.getElementById('m-model').value; deviceData.color = document.getElementById('m-color').value;
+            deviceData.storage = document.getElementById('m-storage').value; deviceData.ram = document.getElementById('m-ram').value;
         } else if(type === 'Computer') {
-            deviceData.cpu = document.getElementById('p-cpu').value;
-            deviceData.gen = document.getElementById('p-gen').value;
-            deviceData.ram = document.getElementById('p-ram').value;
+            deviceData.cpu = document.getElementById('p-cpu').value; deviceData.ram = document.getElementById('p-ram').value;
             deviceData.storage = document.getElementById('p-ssd').value;
-            deviceData.gpu = document.getElementById('p-gpu').value;
-            deviceData.vram = document.getElementById('p-vram').value;
-            deviceData.screen = document.getElementById('p-screen').value;
-            deviceData.condition = document.getElementById('p-condition').value;
-        } else {
-            deviceData.otherInfo = document.getElementById('o-info').value;
-        }
+        } else { deviceData.otherInfo = document.getElementById('o-info').value; }
         inv.push(deviceData); updateDB(); showInventory();
     }
 
-    function scanForInv() {
-        const modal = document.getElementById('modal-universal');
+    function startGenericScanner(targetInputId) {
+        if (activeScanner) { activeScanner.clear().catch(() => {}); activeScanner = null; }
         const content = document.getElementById('modal-content');
-        content.innerHTML = `<div id="qr-reader-inv"></div>`;
-        let scanner = new Html5QrcodeScanner("qr-reader-inv", { fps: 10, qrbox: 250 });
-        scanner.render((text) => {
-            document.getElementById('add-n').value = text;
-            scanner.clear();
-            showInventory();
-        });
+        const oldHtml = content.innerHTML;
+        content.innerHTML = `<div id="reader-box" style="width:100%; border-radius:15px; overflow:hidden;"></div><button class="main-btn" id="close-scanner-btn" style="background:#475569;">Back</button>`;
+        activeScanner = new Html5QrcodeScanner("reader-box", { fps: 15, qrbox: 250 });
+        activeScanner.render((text) => {
+            document.getElementById(targetInputId).value = text;
+            if(targetInputId === 'i-item') updateDetailsHint();
+            stopAndResetScanner(targetInputId, oldHtml);
+        }, () => {});
+        document.getElementById('close-scanner-btn').onclick = () => stopAndResetScanner(targetInputId, oldHtml);
+    }
+
+    function stopAndResetScanner(id, oldHtml) {
+        if(activeScanner) { activeScanner.clear().then(() => { activeScanner = null; if(id === 'add-n') showInventory(); else closeModal(); }).catch(() => { activeScanner = null; if(id === 'add-n') showInventory(); else closeModal(); }); 
+        } else { if(id === 'add-n') showInventory(); else closeModal(); }
     }
 
     function scanForSale() {
-        const modal = document.getElementById('modal-universal');
-        const content = document.getElementById('modal-content');
-        document.getElementById('modal-title').innerText = "SCANNER / سکانەر";
-        content.innerHTML = `<div id="qr-reader-sale"></div>`;
-        modal.style.display = 'flex';
-        let scanner = new Html5QrcodeScanner("qr-reader-sale", { fps: 10, qrbox: 250 });
-        scanner.render((text) => {
-            if(text.includes("POS-ELITE:")) {
-                alert("Customer Receipt Found: " + text);
-            } else {
-                const itemFound = inv.find(x => x.name === text);
-                if(itemFound) {
-                    document.getElementById('i-item').value = text;
-                    updateDetailsHint();
-                } else {
-                    alert("Item not found in Stock!");
-                }
-            }
-            scanner.clear(); closeModal();
-        });
+        document.getElementById('modal-title').innerText = "SCAN";
+        document.getElementById('modal-universal').style.display = 'flex';
+        startGenericScanner('i-item');
     }
 
     function updateDetailsHint() {
-        const iName = document.getElementById('i-item').value;
-        const item = inv.find(x => x.name === iName);
+        const iId = document.getElementById('i-item').value;
+        const item = inv.find(x => x.id == iId);
         const hint = document.getElementById('item-details-hint');
         if(item) {
-            if(item.type === 'Mobile') hint.innerText = `${item.model} | ${item.storage}GB`;
-            else if(item.type === 'Computer') hint.innerText = `${item.cpu} | ${item.ram}GB RAM`;
-            else hint.innerText = "Other Category Item";
-        } else { hint.innerText = ""; }
+            if(item.type === 'Mobile') hint.innerText = `${item.model} | ${item.storage}GB | Cost: $${item.cost}`;
+            else if(item.type === 'Computer') hint.innerText = `${item.cpu} | ${item.ram}GB RAM | Cost: $${item.cost}`;
+            else hint.innerText = `Item Found | Cost: $${item.cost}`;
+        } else hint.innerText = "";
     }
 
     function applyLang() {
@@ -773,87 +750,116 @@
     function render() {
         document.getElementById('v1').innerText = inv.reduce((a,b)=>a+parseInt(b.qty),0);
         let pro = 0, remTotal = 0, q = document.getElementById('search-input').value.toLowerCase();
-        sales.forEach(s => { pro += (parseFloat(s.total) - parseFloat(s.buy)); remTotal += (parseFloat(s.mon) * (s.months - s.paid)); });
+        
+        const processSaleProfit = (s) => {
+            let totalVal = parseFloat(s.total) || 0;
+            let costVal = parseFloat(s.cost) || 0;
+            let downVal = parseFloat(s.down) || 0;
+            let monVal = parseFloat(s.mon) || 0;
+            let paidCount = parseInt(s.paid) || 0;
+            let monthsVal = parseInt(s.months) || 1;
+
+            if (totalVal > 0) {
+                let saleProfit = totalVal - costVal;
+                let currentCashIn = downVal + (monVal * paidCount);
+                let currentProfitShare = (currentCashIn / totalVal) * saleProfit;
+                pro += currentProfitShare;
+                remTotal += (monVal * (monthsVal - paidCount));
+            }
+        };
+
+        sales.forEach(processSaleProfit);
+        archive.forEach(s => { pro += (parseFloat(s.total) - parseFloat(s.cost || 0)); });
+
         document.getElementById('v4').innerText = privacyHidden ? "****" : "$" + pro.toFixed(0);
         document.getElementById('v-annual').innerText = privacyHidden ? "****" : "$" + (pro * 1.6).toFixed(0);
         document.getElementById('v-rem').innerText = "$" + remTotal.toFixed(0);
+        
         let sel = document.getElementById('i-item'); let curr = sel.value;
         sel.innerHTML = '<option value="">--- ITEM ---</option>';
-        inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.name}">${x.name}</option>`; });
+        inv.forEach(x => { if(x.qty>0) sel.innerHTML += `<option value="${x.id}">${x.name} ($${x.cost})</option>`; });
         sel.value = curr;
+        
         let list = document.getElementById('sales-list'); list.innerHTML = '';
-        sales.filter(s => s.name.toLowerCase().includes(q) || s.item.toLowerCase().includes(q)).forEach(s => {
-            list.innerHTML += `<tr><td><b>${s.name}</b></td><td>${s.item}</td><td>$${s.total}</td><td>$${s.down}</td><td>${s.paid}/${s.months}</td><td><button onclick="pay(${s.id})" class="btn-sm" style="background:var(--success);"><i class="fa-solid fa-receipt"></i></button><button onclick="softDelete(${s.id})" class="btn-sm" style="background:var(--danger);"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+        sales.filter(s => s.name.toLowerCase().includes(q) || s.item.toLowerCase().includes(q) || s.id.toString().includes(q)).forEach(s => {
+            list.innerHTML += `<tr><td><b>${s.name}</b><br><small style="color:var(--primary)">ID: ${s.id}</small></td><td>${s.item}</td><td>$${s.total}</td><td>$${s.down}</td><td>${s.paid}/${s.months}</td><td><button onclick="pay(${s.id})" class="btn-sm" style="background:var(--success);"><i class="fa-solid fa-receipt"></i></button><button onclick="softDelete(${s.id})" class="btn-sm" style="background:var(--danger);"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
         });
+    }
+
+    function exportPDF() {
+        const element = document.getElementById('main-table');
+        const opt = { margin: 0.5, filename: 'Sales.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } };
+        html2pdf().set(opt).from(element).save();
     }
 
     function showReports(type = 'daily') {
         const l = translations[document.getElementById('lang-sel').value] || translations.bd;
         document.getElementById('modal-title').innerText = l.mreports;
         if(document.getElementById('menu-overlay').classList.contains('show')) toggleMenu();
-
-        let filtered = [];
-        const today = new Date();
-        
-        if(type === 'daily') {
-            const dateStr = today.toLocaleDateString();
-            filtered = reports.filter(r => new Date(r.timestamp).toLocaleDateString() === dateStr);
-        } else if(type === 'monthly') {
-            const month = today.getMonth(), year = today.getFullYear();
-            filtered = reports.filter(r => {
-                const d = new Date(r.timestamp);
-                return d.getMonth() === month && d.getFullYear() === year;
-            });
-        } else if(type === 'yearly') {
-            const year = today.getFullYear();
-            filtered = reports.filter(r => new Date(r.timestamp).getFullYear() === year);
-        }
-
+        let filtered = []; const today = new Date();
+        if(type === 'daily') filtered = reports.filter(r => new Date(r.timestamp).toLocaleDateString() === today.toLocaleDateString());
+        else if(type === 'monthly') filtered = reports.filter(r => new Date(r.timestamp).getMonth() === today.getMonth());
+        else filtered = reports.filter(r => new Date(r.timestamp).getFullYear() === today.getFullYear());
         const totalAmt = filtered.reduce((acc, curr) => acc + parseFloat(curr.mon), 0);
-
         document.getElementById('modal-content').innerHTML = `
-        <div class="report-tabs">
-            <button class="tab-btn ${type === 'daily' ? 'active' : ''}" onclick="showReports('daily')">${l.rep_d}</button>
-            <button class="tab-btn ${type === 'monthly' ? 'active' : ''}" onclick="showReports('monthly')">${l.rep_m}</button>
-            <button class="tab-btn ${type === 'yearly' ? 'active' : ''}" onclick="showReports('yearly')">${l.rep_y}</button>
-        </div>
-        <div class="rep-sum-box">
-            <div class="rep-stat"><small>${l.rep_count}</small><h3>${filtered.length}</h3></div>
-            <div class="rep-stat"><small>${l.rep_total}</small><h3 style="color:var(--success)">$${totalAmt.toFixed(2)}</h3></div>
-        </div>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>${l.th1}</th><th>Date</th><th>Amount</th></tr></thead>
-                <tbody>${filtered.map(x=>`<tr><td>${x.name}</td><td>${x.payDate}</td><td>$${x.mon}</td></tr>`).join('')}</tbody>
-            </table>
-        </div>`;
+        <div class="report-tabs"><button class="tab-btn" onclick="showReports('daily')">${l.rep_d}</button><button class="tab-btn" onclick="showReports('monthly')">${l.rep_m}</button><button class="tab-btn" onclick="showReports('yearly')">${l.rep_y}</button></div>
+        <div class="rep-sum-box"><div class="rep-stat"><small>${l.rep_count}</small><h3>${filtered.length}</h3></div><div class="rep-stat"><small>${l.rep_total}</small><h3>$${totalAmt.toFixed(2)}</h3></div></div>
+        <div class="table-wrap"><table><tbody>${filtered.map(x=>`<tr><td>${x.name}</td><td>$${x.mon}</td></tr>`).join('')}</tbody></table></div>`;
         document.getElementById('modal-universal').style.display = 'flex';
     }
 
     function toggleLayout() { document.getElementById('app-container').classList.toggle('pc-mode-active'); toggleMenu(); }
     function toggleMenu() { document.getElementById('menu-overlay').classList.toggle('show'); }
-    function delInv(idx) { if(confirm("DELETE?")){inv.splice(idx,1); updateDB(); showInventory();} }
-    function softDelete(id) { if(confirm("MOVE TO TRASH?") && prompt("KEY:")===SECRET_KEY){ let idx=sales.findIndex(x=>x.id===id); trash.unshift(sales[idx]); sales.splice(idx,1); updateDB(); } }
-    function showArchive() { document.getElementById('modal-title').innerText="COMPLETED"; document.getElementById('modal-content').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Name</th><th>Total</th></tr></thead><tbody>${archive.map(x=>`<tr><td>${x.name}</td><td>$${x.total}</td></tr>`).join('')}</tbody></table></div>`; document.getElementById('modal-universal').style.display='flex'; toggleMenu(); }
-    function showRecycleBin() { document.getElementById('modal-title').innerText="TRASH"; document.getElementById('modal-content').innerHTML=`<div class="table-wrap"><table><tbody>${trash.map((x,idx)=>`<tr><td>${x.name}</td><td><button onclick="restore(${idx})" class="main-btn">RESTORE</button></td></tr>`).join('')}</tbody></table></div>`; document.getElementById('modal-universal').style.display='flex'; toggleMenu(); }
-    function restore(idx) { sales.unshift(trash[idx]); trash.splice(idx,1); updateDB(); closeModal(); }
-    function closeModal() { document.getElementById('modal-universal').style.display='none'; }
-    function exportToExcel() { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sales), "Sales"); XLSX.writeFile(wb, "Backup.xlsx"); }
+    function delInv(id) { if(confirm("DELETE?")){inv = inv.filter(x => x.id !== id); updateDB(); showInventory();} }
+
+    function softDelete(id) { 
+        if(confirm("MOVE TO TRASH?") && prompt("KEY:")===SECRET_KEY){ 
+            let idx = sales.findIndex(x => x.id === id);
+            if(idx !== -1) {
+                let saleItem = sales[idx];
+                let invIdx = inv.findIndex(x => x.id == saleItem.itemId);
+                if(invIdx !== -1) { inv[invIdx].qty++; } 
+                trash.unshift(saleItem); sales.splice(idx, 1); updateDB(); 
+            }
+        } 
+    }
+
+    function showArchive() {
+        const q = document.getElementById('search-input').value.toLowerCase();
+        let filtered = archive.filter(x => x.name.toLowerCase().includes(q) || x.item.toLowerCase().includes(q));
+        document.getElementById('modal-title').innerText="COMPLETED"; 
+        document.getElementById('modal-content').innerHTML=`<div class="table-wrap"><table><tbody>${filtered.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.item}</td><td>$${x.total}</td></tr>`).join('')}</tbody></table></div>`; 
+        document.getElementById('modal-universal').style.display='flex'; toggleMenu(); 
+    }
+
+    function showRecycleBin() { 
+        document.getElementById('modal-title').innerText="TRASH"; 
+        document.getElementById('modal-content').innerHTML=`<div class="table-wrap"><table><tbody>${trash.map((x,idx)=>`<tr><td>${x.name}</td><td><button onclick="restore(${idx})" class="main-btn">RESTORE</button></td></tr>`).join('')}</tbody></table></div>`; 
+        document.getElementById('modal-universal').style.display='flex'; toggleMenu(); 
+    }
+    
+    function restore(idx) { 
+        let restoredSale = trash[idx];
+        let invIdx = inv.findIndex(x => x.id == restoredSale.itemId);
+        if(invIdx !== -1) {
+            inv[invIdx].qty--; sales.unshift(restoredSale); trash.splice(idx, 1); updateDB(); closeModal(); 
+        } else alert("Item not found in inventory!");
+    }
+
+    function closeModal() { 
+        isInventoryOpen = false;
+        if(activeScanner) { activeScanner.clear().then(() => { activeScanner = null; document.getElementById('modal-universal').style.display='none'; }).catch(() => { activeScanner = null; document.getElementById('modal-universal').style.display='none'; });
+        } else document.getElementById('modal-universal').style.display='none';
+    }
+
+    function exportToExcel() { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sales), "Sales"); XLSX.writeFile(wb, "POS_Backup.xlsx"); }
+    function exportJSON() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i:inv, s:sales, a:archive, t:trash, r:reports})); const dlAnchorElem = document.createElement('a'); dlAnchorElem.setAttribute("href", dataStr); dlAnchorElem.setAttribute("download", "POS_Backup_Full.json"); dlAnchorElem.click(); }
     function triggerRestore() { document.getElementById('restore-input').click(); }
-    function restoreData(e) { const reader = new FileReader(); reader.onload = (ev) => { const d = JSON.parse(ev.target.result); inv=d.i||[]; sales=d.s||[]; updateDB(); location.reload(); }; reader.readAsText(e.target.files[0]); }
+    function restoreData(e) { const reader = new FileReader(); reader.onload = (ev) => { try { const d = JSON.parse(ev.target.result); inv=d.i||[]; sales=d.s||[]; archive=d.a||[]; trash=d.t||[]; reports=d.r||[]; updateDB(); alert("Success!"); location.reload(); } catch(e) { alert("Invalid File!"); } }; reader.readAsText(e.target.files[0]); }
     function showAbout() {
         const l = translations[document.getElementById('lang-sel').value] || translations.bd;
         document.getElementById('modal-title').innerText = l.mabout;
-        document.getElementById('modal-content').innerHTML = `
-        <div style="text-align:center; padding:20px;">
-            <img src="https://i.postimg.cc/nV1HLXWy/EFAC45A5-C196-48E5-913E-A27706778B90.jpg" style="width:120px; border-radius:50%; border:3px solid var(--neon-blue); margin-bottom:15px;">
-            <h2 style="color:var(--neon-blue)">Bizhar Rasheed</h2>
-            <p style="font-weight:700; margin-bottom:5px;">${l.dev_role}</p>
-            <p>${l.dev_msg}</p>
-            <a href="https://bizhar-cloud.github.io/BizharRasheed/" target="_blank" class="dev-link">
-                <i class="fa-solid fa-globe"></i> ${l.click_visit}
-            </a>
-        </div>`;
+        document.getElementById('modal-content').innerHTML = `<div style="text-align:center; padding:20px;"><img src="https://i.postimg.cc/nV1HLXWy/EFAC45A5-C196-48E5-913E-A27706778B90.jpg" style="width:120px; border-radius:50%; border:3px solid var(--neon-blue); margin-bottom:15px;"><h2 style="color:var(--neon-blue)">Bizhar Rasheed</h2><p>${l.dev_role}</p><p>${l.dev_msg}</p><a href="https://bizhar-cloud.github.io/BizharRasheed/" target="_blank" class="dev-link">${l.click_visit}</a></div>`;
         document.getElementById('modal-universal').style.display = 'flex'; toggleMenu();
     }
 </script>
