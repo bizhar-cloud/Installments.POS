@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Installments POS - ELITE V8.7</title>
+    <title>Installments POS</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,7 +26,7 @@
         :root {
             --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --primary: #2563eb; 
             --neon-blue: #00d2ff; --neon-purple: #bd00ff; --border: #cbd5e1; --success: #10b981; --danger: #ef4444;
-            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --warning: #f59e0b; --shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
 
         body.dark-mode {
@@ -66,6 +66,7 @@
         }
         .toast.success { border-color: var(--success); color: var(--success); }
         .toast.danger { border-color: var(--danger); color: var(--danger); }
+        .toast.warning { border-color: var(--warning); color: var(--warning); }
         @keyframes toast-in { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes toast-out { from { transform: translateY(0); opacity: 1; } to { transform: translateY(100px); opacity: 0; } }
 
@@ -115,6 +116,8 @@
         .main-btn { width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: 900; background: linear-gradient(45deg, var(--primary), var(--neon-blue)); color: white; margin-top: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s, opacity 0.2s; }
         .main-btn:hover:not(:disabled) { transform: translateY(-2px); opacity: 0.9; }
         .main-btn:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.6; }
+        .main-btn.secondary { background: linear-gradient(45deg, #475569, #64748b); }
+        .main-btn.danger { background: linear-gradient(45deg, var(--danger), #dc2626); }
         
         .table-wrap { background: var(--card); border-radius: 25px; overflow-x: auto; border: 1.5px solid var(--border); }
         table { width: 100%; border-collapse: collapse; min-width: 850px; }
@@ -249,6 +252,7 @@
             .modal-card { width: 95%; padding: 20px; border-radius: 20px; }
             th, td { padding: 12px 8px; font-size: 12px; }
             .btn-sm { width: 35px; height: 35px; }
+            .print-settings { grid-template-columns: 1fr; }
         }
 
         /* Loading spinner */
@@ -271,6 +275,49 @@
             justify-content: center;
             height: 300px;
             font-size: 16px;
+        }
+
+        /* Customer dropdown styling */
+        .customer-select { position: relative; }
+        .customer-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border: 2px solid var(--neon-blue);
+            border-radius: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+        .customer-list.show { display: block; }
+        .customer-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: 0.2s;
+        }
+        .customer-item:hover { background: var(--bg); }
+        .customer-item:last-child { border-bottom: none; }
+
+        /* Edit receipt modal */
+        .edit-receipt-form {
+            background: var(--bg);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        .edit-receipt-form label {
+            font-weight: 700;
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+        .edit-receipt-form input, .edit-receipt-form select {
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -315,6 +362,8 @@
             <button class="menu-item" onclick="showRecycleBin()"><i class="fa-solid fa-trash-can"></i> <span id="m-trash">Recycle Bin</span></button>
             <button class="menu-item" onclick="checkInvPass()"><i class="fa-solid fa-boxes-stacked"></i> <span id="m-add">Inventory</span></button>
             <button class="menu-item" onclick="showLabelMaker()"><i class="fa-solid fa-tags"></i> <span id="m-label">Label Maker</span></button>
+            <button class="menu-item" onclick="showCustomers()"><i class="fa-solid fa-users"></i> <span id="m-customers">Customers</span></button>
+            <button class="menu-item" onclick="showCurrencySettings()"><i class="fa-solid fa-coins"></i> <span id="m-currency">Currency</span></button>
             <hr style="border: 0.5px solid var(--border); margin: 15px 0;">
             <button class="menu-item" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> <span id="m-backup">Export Excel</span></button>
             <button class="menu-item" onclick="exportJSON()"><i class="fa-solid fa-file-code"></i> <span id="m-backup-json">Backup (JSON)</span></button>
@@ -352,7 +401,10 @@
             </select>
 
             <label id="l-name" style="font-weight: 700; margin-top: 15px; display: block;">CUSTOMER NAME</label>
-            <input type="text" id="i-name" placeholder="..." autocomplete="name">
+            <div class="customer-select">
+                <input type="text" id="i-name" placeholder="..." autocomplete="name" oninput="filterCustomers()" onfocus="showCustomerList()">
+                <div id="customer-dropdown" class="customer-list"></div>
+            </div>
 
             <label id="l-phone" style="font-weight: 700; margin-top: 15px; display: block;">CUSTOMER PHONE</label>
             <input type="tel" id="i-phone" placeholder="0750 xxx xxxx" pattern="[0-9]*" autocomplete="tel">
@@ -478,13 +530,14 @@
         alert("Failed to connect to database. Please check your internet connection.");
     }
     
-    let inv = [], sales = [], archive = [], trash = [], reports = [], privacyHidden = true;
+    let inv = [], sales = [], archive = [], trash = [], reports = [], customers = [], privacyHidden = true;
     let isInventoryOpen = false; 
     let currentDocFile = null; 
     let activeScanner = null;
     let isScanning = false;
     const SECRET_KEY = "07503644666";
     let currentUserRole = "Cashier";
+    let currentCurrency = { code: 'USD', rate: 1, symbol: '$' };
 
     // Toast Notification Function
     function showToast(message, type = 'success') {
@@ -530,7 +583,14 @@
             mvault: "سندوق", edit_sale: "دەستکاری", update: "نویکردنەوە", 
             confirm_del: "ئەرێ تو پشتراستی دێ برە د ناف گلێشی دا؟", success_save: "وەێل ب سەرکەفتی هاتە تۆمارکرن", 
             success_pay: "پارە ب سەرکەفتی هاتە وەرگرتن", success_inv: "کەلوپەل ل مەخزەنی هاتە زێدەکرن", 
-            success_restore: "داتا ب سەرکەفتی هاتە زێدەکرن", doc_label: "بەلگەیێ کڕیاری (ناسنامە)" 
+            success_restore: "داتا ب سەرکەفتی هاتە زێدەکرن", doc_label: "بەلگەیێ کڕیاری (ناسنامە)",
+            mcustomers: "کڕیاران", mcurrency: "دراو", edit_receipt: "دەستکاری وەسلێ", 
+            save_changes: "تۆمارکرنا گۆهرینان", print_preview: "پێشبینینا چاپکرنێ", 
+            receipt_saved: "وەسل هاتە تۆمارکرن", add_customer: "زێدەکرنا کڕیاری",
+            customer_saved: "کڕیار هاتە تۆمارکرن", customer_exists: "ئەڤ کڕیاری پێشتر هەیە",
+            currency_usd: "دۆلاری ئەمریکی", currency_iqd: "دیناری عێراقی", 
+            currency_irr: "تۆمانی ئێرانی", currency_try: "لیرەی تورکی",
+            edit_receipt_note: "دەستکاریێن تێدا بکە پاشان تۆمار بکە"
         },
         
         // 2. کوردی (سۆرانی) - Sorani Kurdish
@@ -563,7 +623,14 @@
             confirm_del: "ئایا دڵنیای دەتەوێت بیخەیتە ناو تەنەکەی خۆڵ؟", 
             success_save: "وەصڵەکە بە سەرکەوتوویی پاشەکەوت کرا", 
             success_pay: "پارەکە بە سەرکەوتوویی وەرگیرا", success_inv: "کاڵاکە بۆ کۆگا زیاد کرا", 
-            success_restore: "داتاکان بە سەرکەوتوویی گەڕێنرانەوە", doc_label: "بەڵگەی کڕیار (ناسنامە)" 
+            success_restore: "داتاکان بە سەرکەوتوویی گەڕێنرانەوە", doc_label: "بەڵگەی کڕیار (ناسنامە)",
+            mcustomers: "کڕیاران", mcurrency: "دراو", edit_receipt: "دەستکاری وەصڵ", 
+            save_changes: "پاشەکەوتکردنی گۆڕانکاریەکان", print_preview: "پێشبینینی چاپکردن", 
+            receipt_saved: "وەصڵ پاشەکەوت کرا", add_customer: "زیادکردنی کڕیار",
+            customer_saved: "کڕیار پاشەکەوت کرا", customer_exists: "ئەم کڕیارە پێشتر هەیە",
+            currency_usd: "دۆلاری ئەمریکی", currency_iqd: "دیناری عێراقی", 
+            currency_irr: "تۆمانی ئێرانی", currency_try: "لیرەی تورکی",
+            edit_receipt_note: "گۆڕانکاریەکان بکە پاشان پاشەکەوت بکە"
         },
         
         // 3. العربية - Arabic
@@ -595,7 +662,13 @@
             edit_sale: "تعديل", update: "تحديث", confirm_del: "هل أنت متأكد من النقل لسلة المهملات؟", 
             success_save: "تم حفظ الوصل بنجاح", success_pay: "تم استلام المبلغ بنجاح", 
             success_inv: "تمت إضافة المنتج للمخزن", success_restore: "تم استرجاع البيانات بنجاح", 
-            doc_label: "مستمسك الزبون" 
+            doc_label: "مستمسك الزبون", mcustomers: "العملاء", mcurrency: "العملة", 
+            edit_receipt: "تعديل الوصل", save_changes: "حفظ التغييرات", 
+            print_preview: "معاينة الطباعة", receipt_saved: "تم حفظ الوصل", 
+            add_customer: "إضافة عميل", customer_saved: "تم حفظ العميل", 
+            customer_exists: "هذا العميل موجود مسبقاً", currency_usd: "دولار أمريكي", 
+            currency_iqd: "دينار عراقي", currency_irr: "تومان إيراني", 
+            currency_try: "ليرة تركية", edit_receipt_note: "قم بالتعديل ثم احفظ"
         },
         
         // 4. English
@@ -628,7 +701,13 @@
             update: "Update", confirm_del: "Are you sure you want to move this to trash?", 
             success_save: "Sale saved successfully!", success_pay: "Payment received!", 
             success_inv: "Inventory updated!", success_restore: "Data restored successfully!", 
-            doc_label: "Customer ID Doc" 
+            doc_label: "Customer ID Doc", mcustomers: "Customers", mcurrency: "Currency",
+            edit_receipt: "Edit Receipt", save_changes: "Save Changes", 
+            print_preview: "Print Preview", receipt_saved: "Receipt saved", 
+            add_customer: "Add Customer", customer_saved: "Customer saved", 
+            customer_exists: "Customer already exists", currency_usd: "US Dollar", 
+            currency_iqd: "Iraqi Dinar", currency_irr: "Iranian Toman", 
+            currency_try: "Turkish Lira", edit_receipt_note: "Edit then save"
         },
         
         // 5. Türkçe - Turkish
@@ -661,7 +740,13 @@
             confirm_del: "Çöp kutusuna taşımak istediğinize emin misiniz?", 
             success_save: "Satış başarıyla kaydedildi!", success_pay: "Ödeme alındı!", 
             success_inv: "Envanter güncellendi!", success_restore: "Veriler başarıyla yüklendi!", 
-            doc_label: "Müşteri Kimlik Belgesi" 
+            doc_label: "Müşteri Kimlik Belgesi", mcustomers: "Müşteriler", mcurrency: "Para Birimi",
+            edit_receipt: "Makbuzu Düzenle", save_changes: "Değişiklikleri Kaydet", 
+            print_preview: "Baskı Önizleme", receipt_saved: "Makbuz kaydedildi", 
+            add_customer: "Müşteri Ekle", customer_saved: "Müşteri kaydedildi", 
+            customer_exists: "Müşteri zaten mevcut", currency_usd: "Amerikan Doları", 
+            currency_iqd: "Irak Dinarı", currency_irr: "İran Tümeni", 
+            currency_try: "Türk Lirası", edit_receipt_note: "Düzenleyip kaydedin"
         },
         
         // 6. فارسی - Persian/Farsi
@@ -694,7 +779,13 @@
             confirm_del: "آیا از انتقال به زباله‌دان مطمئن هستید؟", 
             success_save: "فروش با موفقیت ثبت شد", success_pay: "مبلغ دریافت شد!", 
             success_inv: "انبار بروزرسانی شد", success_restore: "داده‌ها بازیابی شدند", 
-            doc_label: "مدارک مشتری" 
+            doc_label: "مدارک مشتری", mcustomers: "مشتریان", mcurrency: "ارز",
+            edit_receipt: "ویرایش رسید", save_changes: "ذخیره تغییرات", 
+            print_preview: "پیش‌نمایش چاپ", receipt_saved: "رسید ذخیره شد", 
+            add_customer: "افزودن مشتری", customer_saved: "مشتری ذخیره شد", 
+            customer_exists: "این مشتری قبلاً وجود دارد", currency_usd: "دلار آمریکا", 
+            currency_iqd: "دینار عراق", currency_irr: "تومان ایران", 
+            currency_try: "لیر ترکیه", edit_receipt_note: "ویرایش کنید و ذخیره کنید"
         }
     };
 
@@ -705,12 +796,20 @@
             document.getElementById('login-overlay').style.display = 'none';
             applyPermissions();
         } 
+        loadCurrency();
         applyLang(); 
         toggleSaleMode();
         
         // Close modal on escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeModal();
+        });
+
+        // Close customer dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.customer-select')) {
+                document.getElementById('customer-dropdown').classList.remove('show');
+            }
         });
     };
     
@@ -783,9 +882,12 @@
                     archive = d.a || []; 
                     trash = d.t || []; 
                     reports = d.r || []; 
+                    customers = d.c || [];
+                    if(d.currency) currentCurrency = d.currency;
                     render(); 
                     if(isInventoryOpen) showInventory(); 
                     checkInstallmentsNotif(); 
+                    updateCustomerDropdown();
                 }
             } catch (e) {
                 console.error("Data processing error:", e);
@@ -803,7 +905,7 @@
             return;
         }
         
-        db.ref('/').set({ i: inv, s: sales, a: archive, t: trash, r: reports })
+        db.ref('/').set({ i: inv, s: sales, a: archive, t: trash, r: reports, c: customers, currency: currentCurrency })
         .then(() => { if(callback) callback(true); })
         .catch((error) => { 
             console.error("Update error:", error);
@@ -929,8 +1031,8 @@
             m = 1; 
         }
 
-        document.getElementById('o-mon').innerText = "$" + (mon > 0 ? mon.toFixed(2) : 0);
-        document.getElementById('o-total').innerText = "$" + total.toFixed(2);
+        document.getElementById('o-mon').innerText = currentCurrency.symbol + (mon > 0 ? mon.toFixed(2) : 0);
+        document.getElementById('o-total').innerText = currentCurrency.symbol + total.toFixed(2);
         return { 
             total: Number(total.toFixed(2)), 
             mon: Number(mon.toFixed(2)), 
@@ -938,6 +1040,177 @@
             d: Number(d.toFixed(2)), 
             m: m 
         };
+    }
+
+    // Customer Management Functions
+    function showCustomerList() {
+        const dropdown = document.getElementById('customer-dropdown');
+        filterCustomers();
+        dropdown.classList.add('show');
+    }
+
+    function filterCustomers() {
+        const input = document.getElementById('i-name');
+        const dropdown = document.getElementById('customer-dropdown');
+        const searchTerm = input.value.toLowerCase();
+        
+        const filtered = customers.filter(c => c.name.toLowerCase().includes(searchTerm));
+        
+        if (filtered.length === 0) {
+            const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+            dropdown.innerHTML = `<div class="customer-item" onclick="addNewCustomer()"><i class="fa-solid fa-plus"></i> ${l.add_customer || 'Add Customer'}</div>`;
+        } else {
+            dropdown.innerHTML = filtered.map(c => 
+                `<div class="customer-item" onclick="selectCustomer('${c.name}', '${c.phone}')">${c.name} - ${c.phone}</div>`
+            ).join('');
+        }
+    }
+
+    function selectCustomer(name, phone) {
+        document.getElementById('i-name').value = name;
+        document.getElementById('i-phone').value = phone;
+        document.getElementById('customer-dropdown').classList.remove('show');
+    }
+
+    function addNewCustomer() {
+        const name = document.getElementById('i-name').value.trim();
+        const phone = document.getElementById('i-phone').value.trim();
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        
+        if (!name || !phone) {
+            showToast("Enter name and phone first!", "warning");
+            return;
+        }
+        
+        if (customers.find(c => c.phone === phone)) {
+            showToast(l.customer_exists || "Customer exists!", "warning");
+            return;
+        }
+        
+        customers.push({ name, phone, id: Date.now() });
+        updateDB(() => {
+            showToast(l.customer_saved || "Customer saved!", "success");
+            document.getElementById('customer-dropdown').classList.remove('show');
+        });
+    }
+
+    function updateCustomerDropdown() {
+        // This is called when data loads from Firebase
+        filterCustomers();
+    }
+
+    function showCustomers() {
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        document.getElementById('modal-title').innerText = l.mcustomers;
+        
+        let html = `
+        <div class="card" style="margin-bottom:15px;">
+            <input type="text" id="new-cust-name" placeholder="${l.lname}">
+            <input type="tel" id="new-cust-phone" placeholder="${l.lphone}" style="margin-top:10px;">
+            <button class="main-btn" onclick="saveNewCustomer()"><i class="fa-solid fa-plus"></i> ${l.add_customer}</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>${l.lname}</th><th>${l.lphone}</th><th>X</th></tr></thead>
+                <tbody>
+                    ${customers.map(c => `
+                        <tr>
+                            <td>${c.name}</td>
+                            <td>${c.phone}</td>
+                            <td><button onclick="deleteCustomer(${c.id})" class="btn-sm" style="background:var(--danger);"><i class="fa-solid fa-trash"></i></button></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>`;
+        
+        document.getElementById('modal-content').innerHTML = html;
+        document.getElementById('modal-universal').style.display = 'flex';
+        toggleMenu();
+    }
+
+    function saveNewCustomer() {
+        const name = document.getElementById('new-cust-name').value.trim();
+        const phone = document.getElementById('new-cust-phone').value.trim();
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        
+        if (!name || !phone) {
+            showToast("Fill all fields!", "warning");
+            return;
+        }
+        
+        if (customers.find(c => c.phone === phone)) {
+            showToast(l.customer_exists, "warning");
+            return;
+        }
+        
+        customers.push({ name, phone, id: Date.now() });
+        updateDB(() => {
+            showToast(l.customer_saved, "success");
+            showCustomers();
+        });
+    }
+
+    function deleteCustomer(id) {
+        if(confirm("Delete customer?")) {
+            customers = customers.filter(c => c.id !== id);
+            updateDB(() => {
+                showToast("Deleted!", "success");
+                showCustomers();
+            });
+        }
+    }
+
+    // Currency Functions
+    function loadCurrency() {
+        const saved = localStorage.getItem('pos_currency');
+        if(saved) currentCurrency = JSON.parse(saved);
+    }
+
+    function showCurrencySettings() {
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        document.getElementById('modal-title').innerText = l.mcurrency;
+        
+        document.getElementById('modal-content').innerHTML = `
+        <div class="card">
+            <label style="font-weight:700;">Select Currency</label>
+            <select id="currency-select" onchange="changeCurrency()">
+                <option value="USD" ${currentCurrency.code === 'USD' ? 'selected' : ''}>${l.currency_usd} (USD) - $</option>
+                <option value="IQD" ${currentCurrency.code === 'IQD' ? 'selected' : ''}>${l.currency_iqd} (IQD) - د.ع</option>
+                <option value="IRR" ${currentCurrency.code === 'IRR' ? 'selected' : ''}>${l.currency_irr} (IRR) - تومان</option>
+                <option value="TRY" ${currentCurrency.code === 'TRY' ? 'selected' : ''}>${l.currency_try} (TRY) - ₺</option>
+            </select>
+            <label style="font-weight:700; margin-top:15px; display:block;">Exchange Rate (to USD)</label>
+            <input type="number" id="currency-rate" value="${currentCurrency.rate}" step="0.01" placeholder="1.0">
+            <button class="main-btn" onclick="saveCurrency()"><i class="fa-solid fa-save"></i> Save</button>
+        </div>`;
+        
+        document.getElementById('modal-universal').style.display = 'flex';
+        toggleMenu();
+    }
+
+    function changeCurrency() {
+        const code = document.getElementById('currency-select').value;
+        const symbols = { USD: '$', IQD: 'د.ع', IRR: 'تومان', TRY: '₺' };
+        const rates = { USD: 1, IQD: 1450, IRR: 50000, TRY: 30 };
+        
+        document.getElementById('currency-rate').value = rates[code];
+    }
+
+    function saveCurrency() {
+        const code = document.getElementById('currency-select').value;
+        const rate = parseFloat(document.getElementById('currency-rate').value) || 1;
+        const symbols = { USD: '$', IQD: 'د.ع', IRR: 'تومان', TRY: '₺' };
+        
+        currentCurrency = { code, rate, symbol: symbols[code] };
+        localStorage.setItem('pos_currency', JSON.stringify(currentCurrency));
+        
+        updateDB(() => {
+            showToast("Currency updated!", "success");
+            closeModal();
+            render();
+            calc();
+        });
     }
 
     async function saveSale() {
@@ -970,6 +1243,11 @@
         if(idx === -1 || inv[idx].qty <= 0) { 
             showToast(l.out_of_stock || "Out of Stock!", "danger"); 
             return; 
+        }
+
+        // Add customer if new
+        if (!customers.find(c => c.phone === phone)) {
+            customers.push({ name: n, phone, id: Date.now() });
         }
 
         const saveBtn = document.getElementById('save-sale-btn');
@@ -1021,7 +1299,8 @@
             timestamp: now.getTime(),
             note: nt, 
             type: saleType,
-            paymentsHistory: []
+            paymentsHistory: [],
+            currency: currentCurrency.code
         };
         
         if(saleType === 'Cash') archive.unshift(saleData);
@@ -1177,7 +1456,7 @@
                 if(success) {
                     showToast(l.success_pay, "success");
                     if(tempReports.length > 0) {
-                        showReceiptPreview(tempReports[tempReports.length - 1]);
+                        showReceiptEditor(tempReports[tempReports.length - 1]);
                     }
                 } else { 
                     sales = oldSales; 
@@ -1187,6 +1466,161 @@
                 }
             });
         }
+    }
+
+    // NEW: Receipt Editor Function
+    function showReceiptEditor(rep) {
+        const lang = document.getElementById('lang-sel').value;
+        const l = translations[lang] || translations.bd;
+        const isRtl = !['en','tr'].includes(lang);
+        
+        document.getElementById('modal-title').innerText = l.edit_receipt || "Edit Receipt";
+        
+        let detailsHtml = "";
+        const d = rep.itemDetails;
+        if(d) {
+            if(d.type === "Mobile") detailsHtml = `${d.model || ''} | ${d.storage || ''}/${d.ram || ''}GB`;
+            else if(d.type === "Computer") detailsHtml = `${d.cpu || ''} | RAM: ${d.ram || ''}GB`;
+            else detailsHtml = d.otherInfo || '---';
+        }
+
+        document.getElementById('modal-content').innerHTML = `
+            <p style="margin-bottom:15px; color:var(--primary); font-weight:700;">${l.edit_receipt_note || 'Edit then save'}</p>
+            
+            <div class="edit-receipt-form">
+                <label>Customer Name</label>
+                <input type="text" id="edit-rec-name" value="${rep.name}">
+                
+                <label>Item</label>
+                <input type="text" id="edit-rec-item" value="${rep.item}">
+                
+                <label>Details</label>
+                <input type="text" id="edit-rec-details" value="${detailsHtml}">
+                
+                <label>Total Amount</label>
+                <input type="number" id="edit-rec-total" value="${rep.total}">
+                
+                <label>Paid Amount</label>
+                <input type="number" id="edit-rec-paid" value="${rep.mon}">
+                
+                <label>Remaining</label>
+                <input type="number" id="edit-rec-rem" value="${rep.remAmt}">
+                
+                <label>Payment Date</label>
+                <input type="text" id="edit-rec-date" value="${rep.payDate}">
+            </div>
+            
+            <div class="receipt-preview" id="preview-box" style="direction: ${isRtl ? 'rtl' : 'ltr'};">
+                <div style="text-align:center;">
+                    <img src="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg" style="width:80px; margin-bottom:10px;" alt="Logo">
+                    <h3>${l.rec_title}</h3><p id="preview-date">${rep.payDate}</p>
+                </div>
+                <hr style="margin:10px 0; border:0.5px dashed #000;">
+                <p><b>${l.rec_cust}:</b> <span id="preview-name">${rep.name}</span></p>
+                <p><b>${l.th2}:</b> <span id="preview-item">${rep.item}</span> (<span id="preview-details">${detailsHtml}</span>)</p>
+                <p><b>${l.ltotal}:</b> <span id="preview-total">${currentCurrency.symbol}${rep.total}</span></p>
+                <p><b>${l.th4}:</b> ${rep.type === 'Debt' ? 'Debt Pay' : rep.currentPayment + ' / ' + rep.months}</p>
+                <p style="font-size:1.2rem; margin-top:5px;"><b>${l.rec_rem}:</b> <span id="preview-rem">${currentCurrency.symbol}${rep.remAmt}</span></p>
+                <div id="qr-preview" style="display:flex; justify-content:center; margin-top:15px;"></div>
+                <p style="text-align:center; font-size:0.8rem; margin-top:15px;">Powered by BIZHAR RASHEED</p>
+            </div>
+            
+            <div class="print-settings">
+                <div><label style="font-size:12px; font-weight:bold;">PAPER</label>
+                    <select id="print-size-sel">
+                        <option value="80mm">80mm</option>
+                        <option value="58mm">58mm</option>
+                    </select>
+                </div>
+                <div><label style="font-size:12px; font-weight:bold;">ORIENT</label>
+                    <select id="print-orient-sel">
+                        <option value="portrait">Portrait</option>
+                        <option value="landscape">Landscape</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="main-btn" onclick="saveEditedReceipt()"><i class="fa-solid fa-save"></i> ${l.save_changes || 'Save Changes'}</button>
+            <button class="main-btn secondary" onclick="previewChanges()" style="margin-top:10px;"><i class="fa-solid fa-eye"></i> ${l.print_preview || 'Preview'}</button>
+        `;
+        
+        // Generate QR code
+        try {
+            new QRCode(document.getElementById("qr-preview"), { 
+                text: `POS:${rep.id}`, 
+                width: 80, 
+                height: 80 
+            });
+        } catch(e) {
+            console.error("QR generation failed:", e);
+        }
+        
+        // Add live update listeners
+        ['edit-rec-name', 'edit-rec-item', 'edit-rec-details', 'edit-rec-total', 'edit-rec-rem', 'edit-rec-date'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePreview);
+        });
+        
+        document.getElementById('modal-universal').style.display = 'flex';
+        
+        // Store current report for saving
+        window.currentEditingReceipt = rep;
+    }
+
+    function updatePreview() {
+        document.getElementById('preview-name').innerText = document.getElementById('edit-rec-name').value;
+        document.getElementById('preview-item').innerText = document.getElementById('edit-rec-item').value;
+        document.getElementById('preview-details').innerText = document.getElementById('edit-rec-details').value;
+        document.getElementById('preview-total').innerText = currentCurrency.symbol + document.getElementById('edit-rec-total').value;
+        document.getElementById('preview-rem').innerText = currentCurrency.symbol + document.getElementById('edit-rec-rem').value;
+        document.getElementById('preview-date').innerText = document.getElementById('edit-rec-date').value;
+    }
+
+    function previewChanges() {
+        updatePreview();
+    }
+
+    function saveEditedReceipt() {
+        const l = translations[document.getElementById('lang-sel').value] || translations.bd;
+        const rep = window.currentEditingReceipt;
+        
+        // Update the report data
+        rep.name = document.getElementById('edit-rec-name').value;
+        rep.item = document.getElementById('edit-rec-item').value;
+        rep.total = parseFloat(document.getElementById('edit-rec-total').value);
+        rep.mon = parseFloat(document.getElementById('edit-rec-paid').value);
+        rep.remAmt = parseFloat(document.getElementById('edit-rec-rem').value);
+        rep.payDate = document.getElementById('edit-rec-date').value;
+        
+        // Update item details if exists
+        if(rep.itemDetails) {
+            const detailsText = document.getElementById('edit-rec-details').value;
+            // Parse details back to object (simplified)
+            if(rep.itemDetails.type === 'Mobile') {
+                const parts = detailsText.split('|');
+                if(parts[0]) rep.itemDetails.model = parts[0].trim();
+            } else if(rep.itemDetails.type === 'Computer') {
+                const parts = detailsText.split('|');
+                if(parts[0]) rep.itemDetails.cpu = parts[0].trim();
+            } else {
+                rep.itemDetails.otherInfo = detailsText;
+            }
+        }
+        
+        // Also update in sales/archive if exists
+        const saleIdx = sales.findIndex(s => s.id === rep.id);
+        const archIdx = archive.findIndex(s => s.id === rep.id);
+        
+        if(saleIdx !== -1) {
+            sales[saleIdx].name = rep.name;
+        } else if(archIdx !== -1) {
+            archive[archIdx].name = rep.name;
+        }
+        
+        updateDB(() => {
+            showToast(l.receipt_saved || "Receipt saved!", "success");
+            executePrint(rep);
+            closeModal();
+        });
     }
 
     function showLedger(id) {
@@ -1199,8 +1633,8 @@
         let html = `<div class="card" style="margin-bottom:15px; border-right: 5px solid var(--primary);">
             <b>${sale.name}</b><br><small>${sale.item} (${sale.type})</small>
             <div style="display:flex; justify-content:space-between; margin-top:10px;">
-                <span>Total: $${sale.total}</span>
-                <span>Down: $${sale.down}</span>
+                <span>Total: ${currentCurrency.symbol}${sale.total}</span>
+                <span>Down: ${currentCurrency.symbol}${sale.down}</span>
             </div>
             ${sale.customerDoc ? `<div style="margin-top:15px; text-align:center;"><p style="font-size:11px; font-weight:900;">CUSTOMER DOCUMENT</p><img src="${sale.customerDoc}" style="width:100%; max-height:200px; object-fit:contain; border-radius:10px; border:1px solid var(--border);" alt="Document"></div>` : ''}
         </div>`;
@@ -1217,7 +1651,7 @@
                         <small><i class="fa-solid fa-calendar-day"></i> ${p.date}</small><br>
                         <small><i class="fa-solid fa-user-check"></i> ${p.collector || 'Admin'}</small>
                     </div>
-                    <div style="font-weight:900; color:var(--success); font-size:1.1rem;">$${p.amount}</div>
+                    <div style="font-weight:900; color:var(--success); font-size:1.1rem;">${currentCurrency.symbol}${p.amount}</div>
                 </div>`;
             });
             html += `</div>`;
@@ -1228,61 +1662,8 @@
     }
 
     function showReceiptPreview(rep) {
-        const lang = document.getElementById('lang-sel').value;
-        const l = translations[lang] || translations.bd;
-        const isRtl = !['en','tr'].includes(lang);
-        
-        document.getElementById('modal-title').innerText = "Print Preview";
-        let detailsHtml = "";
-        const d = rep.itemDetails;
-        if(d) {
-            if(d.type === "Mobile") detailsHtml = `${d.model || ''} | ${d.storage || ''}/${d.ram || ''}GB`;
-            else if(d.type === "Computer") detailsHtml = `${d.cpu || ''} | RAM: ${d.ram || ''}GB`;
-            else detailsHtml = d.otherInfo || '---';
-        }
-        
-        document.getElementById('modal-content').innerHTML = `
-            <div class="receipt-preview" id="preview-box" style="direction: ${isRtl ? 'rtl' : 'ltr'};">
-                <div style="text-align:center;">
-                    <img src="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg" style="width:80px; margin-bottom:10px;" alt="Logo">
-                    <h3>${l.rec_title}</h3><p>${rep.payDate}</p>
-                </div>
-                <hr style="margin:10px 0; border:0.5px dashed #000;">
-                <p><b>${l.rec_cust}:</b> ${rep.name}</p>
-                <p><b>${l.th2}:</b> ${rep.item} (${detailsHtml})</p>
-                <p><b>${l.ltotal}:</b> $${rep.total}</p>
-                <p><b>${l.th4}:</b> ${rep.type === 'Debt' ? 'Debt Pay' : rep.currentPayment + ' / ' + rep.months}</p>
-                <p style="font-size:1.2rem; margin-top:5px;"><b>${l.rec_rem}:</b> $${rep.remAmt}</p>
-                <div id="qr-preview" style="display:flex; justify-content:center; margin-top:15px;"></div>
-                <p style="text-align:center; font-size:0.8rem; margin-top:15px;">Powered by BIZHAR RASHEED</p>
-            </div>
-            <div class="print-settings">
-                <div><label style="font-size:12px; font-weight:bold;">PAPER</label><select id="print-size-sel"><option value="80mm">80mm</option><option value="58mm">58mm</option></select></div>
-                <div><label style="font-size:12px; font-weight:bold;">ORIENT</label><select id="print-orient-sel"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
-            </div>
-            <button class="main-btn" id="print-btn-exec"><i class="fa-solid fa-print"></i> PRINT</button>
-        `;
-        
-        // Generate QR code with error handling
-        try {
-            new QRCode(document.getElementById("qr-preview"), { 
-                text: `POS:${rep.id}`, 
-                width: 80, 
-                height: 80 
-            });
-        } catch(e) {
-            console.error("QR generation failed:", e);
-        }
-        
-        document.getElementById('print-btn-exec').onclick = () => executePrint(rep);
-        document.getElementById('modal-universal').style.display = 'flex';
-    }
-
-    function executePrint(rep) {
-        const size = document.getElementById('print-size-sel').value;
-        const orient = document.getElementById('print-orient-sel').value;
-        printThermal(rep, size, orient);
-        closeModal();
+        // This is now replaced by showReceiptEditor for editing capability
+        showReceiptEditor(rep);
     }
 
     function checkInstallmentsNotif() {
@@ -1347,9 +1728,9 @@
                 </div>
                 <div class="thermal-row"><span>${l.rec_cust}:</span><b>${data.name}</b></div>
                 <div class="thermal-item-box"><b>${data.item}</b><br><small>${detailsHtml}</small></div>
-                <div class="thermal-row"><span>${l.ltotal}:</span><b>$${data.total}</b></div>
+                <div class="thermal-row"><span>${l.ltotal}:</span><b>${currentCurrency.symbol}${data.total}</b></div>
                 <div class="thermal-row"><span>${l.th4}:</span><b>${data.type === 'Debt' ? 'Debt' : data.currentPayment + ' / ' + data.months}</b></div>
-                <div class="thermal-row" style="font-size:11pt;"><span>${l.rec_rem}:</span><b>$${data.remAmt}</b></div>
+                <div class="thermal-row" style="font-size:11pt;"><span>${l.rec_rem}:</span><b>${currentCurrency.symbol}${data.remAmt}</b></div>
                 <div id="qr-code-final" style="display: flex; justify-content: center;"></div>
                 <div class="thermal-footer"><p>Powered BY: BIZHAR RASHEED</p></div>
             </div>`;
@@ -1399,7 +1780,7 @@
             <button class="main-btn" onclick="addInv()"><i class="fa-solid fa-plus"></i> ${l.inv_add}</button>
         </div>
         <div class="table-wrap"><table><thead><tr><th>${l.inv_name}</th><th>Cost</th><th>Qty</th><th>X</th></tr></thead>
-        <tbody>${filteredInv.map((x)=>`<tr><td><b>${x.name}</b></td><td>$${parseFloat(x.cost||0).toFixed(2)}</td><td>${x.qty}</td><td><button onclick="delInv(${x.id})" style="color:var(--danger); background:none; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div>`;
+        <tbody>${filteredInv.map((x)=>`<tr><td><b>${x.name}</b></td><td>${currentCurrency.symbol}${parseFloat(x.cost||0).toFixed(2)}</td><td>${x.qty}</td><td><button onclick="delInv(${x.id})" style="color:var(--danger); background:none; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div>`;
         
         document.getElementById('modal-universal').style.display = 'flex';
     }
@@ -1590,9 +1971,9 @@
         const hint = document.getElementById('item-details-hint');
         if(item) {
             document.getElementById('i-item').value = item.id;
-            if(item.type === 'Mobile') hint.innerText = `${item.model || ''} | ${item.storage || ''}GB | Cost: $${item.cost || 0}`;
-            else if(item.type === 'Computer') hint.innerText = `${item.cpu || ''} | ${item.ram || ''}GB RAM | Cost: $${item.cost || 0}`;
-            else hint.innerText = `Item Found | Cost: $${item.cost || 0}`;
+            if(item.type === 'Mobile') hint.innerText = `${item.model || ''} | ${item.storage || ''}GB | Cost: ${currentCurrency.symbol}${item.cost || 0}`;
+            else if(item.type === 'Computer') hint.innerText = `${item.cpu || ''} | ${item.ram || ''}GB RAM | Cost: ${currentCurrency.symbol}${item.cost || 0}`;
+            else hint.innerText = `Item Found | Cost: ${currentCurrency.symbol}${item.cost || 0}`;
         } else hint.innerText = "";
     }
 
@@ -1616,6 +1997,8 @@
             'm-reports': l.mreports,
             'm-closing': l.mclosing,
             'm-vault': l.mvault,
+            'm-customers': l.mcustomers || "Customers",
+            'm-currency': l.mcurrency || "Currency",
             'm-about': l.mabout,
             'm-logout': l.mlogout,
             'm-pc': l.mpc,
@@ -1712,9 +2095,9 @@
             pro += (parseFloat(s.total) - parseFloat(s.cost || 0)); 
         });
 
-        if(v4) v4.innerText = privacyHidden ? "****" : "$" + Number(pro.toFixed(0));
-        if(vAnnual) vAnnual.innerText = privacyHidden ? "****" : "$" + Number((pro * 1.6).toFixed(0));
-        if(vRem) vRem.innerText = "$" + Number(remTotal.toFixed(0));
+        if(v4) v4.innerText = privacyHidden ? "****" : currentCurrency.symbol + Number(pro.toFixed(0));
+        if(vAnnual) vAnnual.innerText = privacyHidden ? "****" : currentCurrency.symbol + Number((pro * 1.6).toFixed(0));
+        if(vRem) vRem.innerText = currentCurrency.symbol + Number(remTotal.toFixed(0));
         
         let sel = document.getElementById('i-item');
         if(sel) {
@@ -1737,9 +2120,9 @@
                 list.innerHTML += `<tr>
                     <td><b>${s.name}</b><br><small style="color:${s.type==='Debt'?'var(--danger)':'var(--primary)'}">${s.type}</small></td>
                     <td>${s.item}</td>
-                    <td>$${s.total}</td>
-                    <td>$${s.down}</td>
-                    <td>${s.type==='Debt'?'$'+s.mon:s.paid+'/'+s.months}</td>
+                    <td>${currentCurrency.symbol}${s.total}</td>
+                    <td>${currentCurrency.symbol}${s.down}</td>
+                    <td>${s.type==='Debt'?currentCurrency.symbol+s.mon:s.paid+'/'+s.months}</td>
                     <td>
                         <button onclick="pay(${s.id})" class="btn-sm" style="background:var(--success);"><i class="fa-solid fa-receipt"></i></button>
                         <button onclick="showLedger(${s.id})" class="btn-sm" style="background:var(--primary);"><i class="fa-solid fa-clock-rotate-left"></i></button>
@@ -1803,12 +2186,12 @@
         </div>
         <div class="rep-sum-box">
             <div class="rep-stat"><small>${l.rep_count}</small><h3>${filtered.length}</h3></div>
-            <div class="rep-stat"><small>${l.rep_total}</small><h3>$${totalAmt.toFixed(2)}</h3></div>
+            <div class="rep-stat"><small>${l.rep_total}</small><h3>${currentCurrency.symbol}${totalAmt.toFixed(2)}</h3></div>
         </div>
         <div class="table-wrap">
             <table>
                 <thead><tr><th>Customer</th><th>Amount</th><th>Date</th></tr></thead>
-                <tbody>${filtered.map(x=>`<tr><td>${x.name}</td><td>$${parseFloat(x.mon).toFixed(2)}</td><td style="font-size:10px;">${new Date(x.timestamp).toLocaleDateString()}</td></tr>`).join('')}</tbody>
+                <tbody>${filtered.map(x=>`<tr><td>${x.name}</td><td>${currentCurrency.symbol}${parseFloat(x.mon).toFixed(2)}</td><td style="font-size:10px;">${new Date(x.timestamp).toLocaleDateString()}</td></tr>`).join('')}</tbody>
             </table>
         </div>`;
         
@@ -1837,10 +2220,10 @@
             <div class="card receipt-preview" id="closing-preview" style="background:var(--bg); border:2px dashed var(--neon-blue);">
                 <div style="text-align:center;"><h3 style="color:var(--neon-blue)">DAILY CLOSING</h3><p>${nowFormatted}</p></div>
                 <hr style="margin:15px 0; border:0.5px dashed #000;">
-                <div class="thermal-row"><span>New Sales (Downpay):</span><b>$${dailyDownPayments.toFixed(2)} (${downPayCount})</b></div>
-                <div class="thermal-row"><span>Installments Recv:</span><b>$${installmentTotal.toFixed(2)} (${dailyInstallments.length})</b></div>
+                <div class="thermal-row"><span>New Sales (Downpay):</span><b>${currentCurrency.symbol}${dailyDownPayments.toFixed(2)} (${downPayCount})</b></div>
+                <div class="thermal-row"><span>Installments Recv:</span><b>${currentCurrency.symbol}${installmentTotal.toFixed(2)} (${dailyInstallments.length})</b></div>
                 <hr style="margin:15px 0; border:0.5px dashed #000;">
-                <div class="thermal-row" style="font-size:1.4rem;"><span>CASH IN BOX:</span><b style="color:var(--success);">$${closingTotal.toFixed(2)}</b></div>
+                <div class="thermal-row" style="font-size:1.4rem;"><span>CASH IN BOX:</span><b style="color:var(--success);">${currentCurrency.symbol}${closingTotal.toFixed(2)}</b></div>
             </div>
             <button class="main-btn" onclick="printClosing()"><i class="fa-solid fa-print"></i> PRINT CLOSING</button>
         `;
@@ -1859,11 +2242,11 @@
             <div class="card" style="text-align:center; padding:30px; border:2px solid var(--success);">
                 <i class="fa-solid fa-vault" style="font-size:3rem; color:var(--success); margin-bottom:15px;"></i>
                 <p style="color:#64748b; font-weight:700;">TOTAL CASH ON HAND</p>
-                <h1 style="font-size:3.5rem; font-weight:900; color:var(--text);">$${cashInDrawer.toFixed(2)}</h1>
+                <h1 style="font-size:3.5rem; font-weight:900; color:var(--text);">${currentCurrency.symbol}${cashInDrawer.toFixed(2)}</h1>
                 <hr style="margin:20px 0; border:0.5px dashed var(--border);">
                 <div class="details-grid" style="text-align:left;">
-                    <div class="rep-stat"><small>From Down Payments</small><h3>$${totalDown.toFixed(2)}</h3></div>
-                    <div class="rep-stat"><small>From Installments</small><h3>$${totalReceived.toFixed(2)}</h3></div>
+                    <div class="rep-stat"><small>From Down Payments</small><h3>${currentCurrency.symbol}${totalDown.toFixed(2)}</h3></div>
+                    <div class="rep-stat"><small>From Installments</small><h3>${currentCurrency.symbol}${totalReceived.toFixed(2)}</h3></div>
                 </div>
             </div>
         `;
@@ -1963,7 +2346,7 @@
         <div class="table-wrap">
             <table>
                 <thead><tr><th>NAME</th><th>ITEM</th><th>TOTAL</th><th>ACTION</th></tr></thead>
-                <tbody>${filtered.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.item}</td><td>$${parseFloat(x.total).toFixed(2)}</td><td>
+                <tbody>${filtered.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.item}</td><td>${currentCurrency.symbol}${parseFloat(x.total).toFixed(2)}</td><td>
                 <button onclick="showLedger(${x.id})" class="btn-sm" style="background:var(--primary);"><i class="fa-solid fa-clock-rotate-left"></i></button>
                 ${currentUserRole === "Admin" ? `<button onclick="editSale(${x.id})" class="btn-sm" style="background:#f59e0b;"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
                 </td></tr>`).join('')}</tbody>
@@ -2059,7 +2442,7 @@
     
     function exportJSON() { 
         try {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i:inv, s:sales, a:archive, t:trash, r:reports})); 
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({i:inv, s:sales, a:archive, t:trash, r:reports, c:customers})); 
             const dlAnchorElem = document.createElement('a'); 
             dlAnchorElem.setAttribute("href", dataStr); 
             dlAnchorElem.setAttribute("download", "POS_Backup_Full.json"); 
@@ -2090,6 +2473,7 @@
                 archive = d.a || []; 
                 trash = d.t || []; 
                 reports = d.r || []; 
+                customers = d.c || [];
                 
                 updateDB(() => {
                     const l = translations[document.getElementById('lang-sel').value] || translations.bd;
