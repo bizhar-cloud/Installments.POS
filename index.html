@@ -159,8 +159,10 @@
             <button class="menu-item" onclick="showArchive()"><i class="fa-solid fa-folder-open"></i> <span id="m-archive">Archive</span></button>
             <button class="menu-item" onclick="showRecycleBin()"><i class="fa-solid fa-trash-can"></i> <span id="m-trash">Recycle Bin</span></button>
             <button class="menu-item" onclick="checkInvPass()"><i class="fa-solid fa-boxes-stacked"></i> <span id="m-add">Inventory</span></button>
+            <button class="menu-item" onclick="showStocktake()"><i class="fa-solid fa-clipboard-check"></i> <span id="m-stocktake">Stocktaking (جەردکرن)</span></button>
             <button class="menu-item" onclick="showLabelMaker()"><i class="fa-solid fa-tags"></i> <span id="m-label">Label Maker</span></button>
             <button class="menu-item" onclick="showCustomers()"><i class="fa-solid fa-users"></i> <span id="m-customers">Customers</span></button>
+            <button class="menu-item" onclick="showAuditLog()"><i class="fa-solid fa-list-check"></i> <span id="m-audit">Audit Log (تۆماری چالاکیان)</span></button>
             <button class="menu-item" onclick="showCurrencySettings()"><i class="fa-solid fa-coins"></i> <span id="m-currency">Currency</span></button>
             <button class="menu-item" onclick="showSecuritySettings()"><i class="fa-solid fa-shield-halved"></i> <span id="m-security">Security / Password</span></button>
             <hr style="border: 0.5px solid var(--border); margin: 15px 0;">
@@ -241,8 +243,21 @@
             </div>
             <div id="item-details-hint" style="font-size: 11px; color: var(--primary); margin-top: 5px; font-weight: bold;"></div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:20px;">
-                <div><label id="l-buy" style="font-weight: 700;">SALES PRICE $</label><input type="number" id="i-buy" oninput="calc()" placeholder="0.00" min="0" step="0.01"></div>
+            <label id="l-imei" style="font-weight: 700; margin-top: 15px; display: block;">IMEI / SERIAL NUMBER</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="i-imei" placeholder="..." style="flex: 1;" autocomplete="off">
+                <button onclick="startGenericScanner('i-imei')" class="scan-action-btn" style="margin-top: 8px;"><i class="fa-solid fa-barcode"></i></button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:20px;">
+                <div>
+                    <label id="l-buy" style="font-weight: 700;">PRICE $</label>
+                    <input type="number" id="i-buy" oninput="calc()" placeholder="0.00" min="0" step="0.01">
+                </div>
+                <div>
+                    <label id="l-discount" style="font-weight: 700;">DISCOUNT $</label>
+                    <input type="number" id="i-discount" oninput="calc()" placeholder="0.00" min="0" step="0.01">
+                </div>
                 <div id="down-pay-section">
                     <label id="l-down" style="font-weight: 700;">DOWN PAY $</label>
                     <input type="number" id="i-down" oninput="calc()" placeholder="0.00" min="0" step="0.01">
