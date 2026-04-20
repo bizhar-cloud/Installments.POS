@@ -21,13 +21,14 @@ try {
     console.error("Firebase init failed:", e);
 }
 
-let inv = [], sales = [], archive = [], trash = [], reports = [], customers = [], expenses = [], suppliers = [];
+let inv = [], sales = [], archive = [], trash = [], reports = [], customers = [], expenses = [], suppliers = [], logs = [];
 let privacyHidden = true;
 let isInventoryOpen = false;
 let currentDocFile = null;
 let activeScanner = null;
 let isScanning = false;
 let currentUserRole = "Cashier";
+let currentUsername = "User";
 let currentCurrency = { code: 'USD', rate: 1, symbol: '$' };
 
 let securitySettings = {
@@ -85,7 +86,12 @@ const translations = {
         print_qr: "چاپکرن", net_profit: "قازانجێ سافی", pay_method: "شێوازێ پارەدانێ",
         m_expenses: "خەرجی", m_suppliers: "دابینکار (کۆمپانیا)", cash_in_box: "کۆما پارەیێ سندوقێ",
         th_desc: "وەسف", th_amt: "بڕێ پارەی", th_date: "بەروار", th_del: "سڕینەوە",
-        btn_restore: "گەڕاندنەوە"
+        btn_restore: "گەڕاندنەوە",
+        discount: "داشکاندن (خصم)", imei: "IMEI / ژمارا زنجیرەیی", blacklist: "لیستا ڕەش", 
+        m_stocktake: "جەردکرنا مەخزەنی", low_stock: "ل مەخزەنی کێم بوویە", 
+        err_blacklisted: "ئەڤ کڕیارە د لیستا ڕەش دایە، نابت ب قەرز ببەت!",
+        m_audit: "تۆماری چالاکیان", m_statement: "کەشفی حساب", btn_a4: "چاپا A4", 
+        contract_title: "گرێبەستا قستان", seller: "فرۆشیار", buyer: "کڕیار", guarantor: "کەفیل"
     },
     sr: {
         login_sub: "سیستەمی فرۆشتن و قیستەکان", tab_si: "چوونەژوورەوە", tab_su: "خۆتۆمارکردن",
@@ -132,7 +138,10 @@ const translations = {
         print_qr: "چاپکردن", net_profit: "قازانجی پوخت", pay_method: "شێوازی پارەدان",
         m_expenses: "خەرجییەکان", m_suppliers: "دابینکاران (کۆمپانیا)", cash_in_box: "کۆی پارەی ناو سندوق",
         th_desc: "وەسف", th_amt: "بڕ", th_date: "بەروار", th_del: "سڕینەوە",
-        btn_restore: "گەڕاندنەوە"
+        btn_restore: "گەڕاندنەوە", discount: "داشکاندن (خصم)", imei: "IMEI / زنجیرەیی", blacklist: "لیستی ڕەش", 
+        m_stocktake: "جەردکردنی کۆگا", low_stock: "لە کۆگا کەم بووەتەوە", err_blacklisted: "ئەم کڕیارە لە لیستی ڕەشدایە!",
+        m_audit: "تۆماری چالاکیەکان", m_statement: "کەشفی حساب", btn_a4: "چاپی A4", 
+        contract_title: "گرێبەستی قیست", seller: "فرۆشیار", buyer: "کڕیار", guarantor: "کەفیل"
     },
     ar: {
         login_sub: "نظام المبيعات والأقساط", tab_si: "تسجيل الدخول", tab_su: "إنشاء حساب",
@@ -179,7 +188,10 @@ const translations = {
         print_qr: "طباعة", net_profit: "صافي الربح", pay_method: "طريقة الدفع",
         m_expenses: "المصروفات", m_suppliers: "الموردين", cash_in_box: "النقد في الصندوق",
         th_desc: "الوصف", th_amt: "المبلغ", th_date: "التاريخ", th_del: "حذف",
-        btn_restore: "استعادة"
+        btn_restore: "استعادة", discount: "الخصم", imei: "السيريال / IMEI", blacklist: "القائمة السوداء", 
+        m_stocktake: "جرد المخزن", low_stock: "نفاد الكمية قريباً", err_blacklisted: "العميل في القائمة السوداء!",
+        m_audit: "سجل النشاطات", m_statement: "كشف حساب", btn_a4: "طباعة عقد A4", 
+        contract_title: "عقد بيع بالتقسيط", seller: "البائع", buyer: "المشتري", guarantor: "الضامن"
     },
     en: {
         login_sub: "Sales & Installment System", tab_si: "Sign In", tab_su: "Sign Up",
@@ -227,7 +239,10 @@ const translations = {
         print_qr: "Print QR", net_profit: "NET PROFIT", pay_method: "Payment Method",
         m_expenses: "Expenses", m_suppliers: "Suppliers", cash_in_box: "TOTAL CASH IN BOX",
         th_desc: "Description", th_amt: "Amount", th_date: "Date", th_del: "Delete",
-        btn_restore: "RESTORE"
+        btn_restore: "RESTORE", discount: "Discount", imei: "IMEI / Serial", blacklist: "Blacklist", 
+        m_stocktake: "Stocktaking", low_stock: "Low in Stock", err_blacklisted: "Customer is blacklisted!",
+        m_audit: "Audit Log", m_statement: "Statement", btn_a4: "Print A4", 
+        contract_title: "Installment Contract", seller: "Seller", buyer: "Buyer", guarantor: "Guarantor"
     },
     tr: {
         login_sub: "Satış ve Taksit Sistemi", tab_si: "Giriş Yap", tab_su: "Kayıt Ol",
@@ -275,7 +290,10 @@ const translations = {
         print_qr: "Yazdır", net_profit: "NET KÂR", pay_method: "Ödeme Yöntemi",
         m_expenses: "Giderler", m_suppliers: "Tedarikçiler", cash_in_box: "KASADAKİ TOPLAM PARA",
         th_desc: "Açıklama", th_amt: "Tutar", th_date: "Tarih", th_del: "Sil",
-        btn_restore: "GERİ YÜKLE"
+        btn_restore: "GERİ YÜKLE", discount: "İndirim", imei: "IMEI / Seri No", blacklist: "Kara Liste", 
+        m_stocktake: "Stok Sayımı", low_stock: "Stokta Az", err_blacklisted: "Müşteri kara listede!",
+        m_audit: "İşlem Günlüğü", m_statement: "Hesap Özeti", btn_a4: "A4 Yazdır", 
+        contract_title: "Taksit Sözleşmesi", seller: "Satıcı", buyer: "Alıcı", guarantor: "Kefil"
     },
     fa: {
         login_sub: "سیستم فروش و اقساط", tab_si: "ورود", tab_su: "ثبت نام",
@@ -323,7 +341,10 @@ const translations = {
         print_qr: "چاپ", net_profit: "سود خالص", pay_method: "روش پرداخت",
         m_expenses: "هزینه‌ها", m_suppliers: "تامین‌کنندگان", cash_in_box: "کل موجودی صندوق",
         th_desc: "توضیحات", th_amt: "مبلغ", th_date: "تاریخ", th_del: "حذف",
-        btn_restore: "بازیابی"
+        btn_restore: "بازیابی", discount: "تخفیف", imei: "شماره سریال / IMEI", blacklist: "لیست سیاه", 
+        m_stocktake: "انبارگردانی", low_stock: "موجودی کم", err_blacklisted: "این مشتری در لیست سیاه است!",
+        m_audit: "گزارش فعالیت", m_statement: "صورتحساب", btn_a4: "چاپ A4", 
+        contract_title: "قرارداد اقساطی", seller: "فروشنده", buyer: "خریدار", guarantor: "ضامن"
     }
 };
 
@@ -355,6 +376,19 @@ function showToast(message, type = 'success') {
     toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
     container.appendChild(toast);
     setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+}
+
+function logAction(actionName, details) {
+    let id = Date.now();
+    let logData = {
+        id: id,
+        user: currentUsername + " (" + currentUserRole + ")",
+        action: actionName,
+        details: details,
+        time: new Date().toLocaleString(),
+        timestamp: id
+    };
+    db.ref('/logs/' + id).set(logData);
 }
 
 function changeLoginLanguage() {
@@ -489,6 +523,7 @@ function handleSignIn() {
             db.ref('users/' + uid).once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     currentUserRole = snapshot.val().role;
+                    currentUsername = snapshot.val().username || user;
                     loginSuccess();
                 } else {
                     showToast("زانیارییەکانی ئەم بەکارهێنەرە نەدۆزرایەوە!", 'danger');
@@ -505,6 +540,7 @@ function loginSuccess() {
     localStorage.setItem("bizhar_logged", "true");
     document.getElementById('login-wrapper').style.display = 'none';
     applyPermissions();
+    logAction("LOGIN", "User logged into the system.");
     requestRender();
     showToast(l.succ_si, "success");
 }
@@ -555,6 +591,7 @@ window.onload = () => {
             db.ref('users/' + user.uid).once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     currentUserRole = snapshot.val().role || "Cashier";
+                    currentUsername = snapshot.val().username || "User";
                     document.getElementById('login-wrapper').style.display = 'none';
                     applyPermissions();
                     requestRender();
@@ -573,6 +610,7 @@ window.onload = () => {
         syncNode('c', customers);
         syncNode('e', expenses);
         syncNode('sup', suppliers);
+        syncNode('logs', logs, sortDesc);
 
         db.ref('currency').on('value', snap => { if(snap.val()) { currentCurrency = snap.val(); requestRender(); }});
         db.ref('sec').on('value', snap => { if(snap.val()) { securitySettings = snap.val(); requestRender(); }});
@@ -602,6 +640,7 @@ function requireAuth(actionType, callback) {
             callback();
         } else {
             showToast("Access Denied! Incorrect Password", "danger");
+            logAction("FAILED AUTH", "Attempted protected action: " + actionType);
         }
     } else {
         callback();
@@ -621,6 +660,7 @@ function applyPermissions() {
 }
 
 function logout() {
+    logAction("LOGOUT", "User logged out.");
     firebase.auth().signOut().then(() => {
         localStorage.removeItem("bizhar_logged");
         location.reload();
@@ -636,7 +676,7 @@ function checkInvPass() {
 
 function deleteImage(url) {
     if (url && url.includes('firebasestorage')) {
-        try { storage.refFromURL(url).delete().catch(e => console.log("Image delete issue handled silently")); } catch(e){}
+        try { storage.refFromURL(url).delete().catch(e => console.log("Image delete handled silently")); } catch(e){}
     }
 }
 
@@ -727,14 +767,17 @@ function toggleOtherPlan() {
 function calc() {
     const type = document.getElementById('i-sale-type').value;
     let b = Math.abs(parseFloat(document.getElementById('i-buy').value)) || 0;
+    let discount = Math.abs(parseFloat(document.getElementById('i-discount').value)) || 0;
     let d = Math.abs(parseFloat(document.getElementById('i-down').value)) || 0;
 
-    if (type !== 'Installments' && d > b) {
-        d = b;
-        document.getElementById('i-down').value = b;
+    let priceAfterDiscount = Math.max(0, b - discount);
+
+    if (type !== 'Installments' && d > priceAfterDiscount) {
+        d = priceAfterDiscount;
+        document.getElementById('i-down').value = priceAfterDiscount;
     }
 
-    let total = b, mon = 0, m = 1;
+    let total = priceAfterDiscount, mon = 0, m = 1;
 
     if (type === 'Installments') {
         let plan = document.getElementById('i-months').value;
@@ -747,22 +790,22 @@ function calc() {
             m = parseInt(plan) || 1;
             rate = rates[m] || 0;
         }
-        let rem = Math.max(0, b - d);
-        total = Math.round((b + (rem * rate)) * 100) / 100;
+        let rem = Math.max(0, priceAfterDiscount - d);
+        total = Math.round((priceAfterDiscount + (rem * rate)) * 100) / 100;
         mon = Math.round(((total - d) / m) * 100) / 100;
     } else if (type === 'Debt') {
-        total = b;
-        mon = Math.max(0, b - d);
+        total = priceAfterDiscount;
+        mon = Math.max(0, priceAfterDiscount - d);
         m = 1;
     } else {
-        total = b;
+        total = priceAfterDiscount;
         mon = 0;
         m = 1;
     }
 
     document.getElementById('o-mon').innerText = currentCurrency.symbol + (mon > 0 ? mon.toFixed(2) : 0);
     document.getElementById('o-total').innerText = currentCurrency.symbol + total.toFixed(2);
-    return { total: Number(total.toFixed(2)), mon: Number(mon.toFixed(2)), b: Number(b.toFixed(2)), d: Number(d.toFixed(2)), m: m };
+    return { total: Number(total.toFixed(2)), mon: Number(mon.toFixed(2)), b: Number(b.toFixed(2)), discount: Number(discount.toFixed(2)), d: Number(d.toFixed(2)), m: m };
 }
 
 function showCustomerList() {
@@ -778,9 +821,15 @@ function filterCustomers() {
     
     const filtered = customers.filter(c => c.name.toLowerCase().includes(term));
     if (filtered.length === 0) {
-        dropdown.innerHTML = `<div class="customer-item" onclick="addNewCustomer()"><i class="fa-solid fa-plus"></i> ${l.add_customer}</div>`;
+        dropdown.innerHTML = `
+        <div class="customer-item" onclick="addNewCustomer()">
+            <i class="fa-solid fa-plus"></i> ${l.add_customer}
+        </div>`;
     } else {
-        dropdown.innerHTML = filtered.map(c => `<div class="customer-item" onclick="selectCustomer('${escapeHTML(c.name)}', '${escapeHTML(c.phone)}')">${escapeHTML(c.name)} - ${escapeHTML(c.phone)}</div>`).join('');
+        dropdown.innerHTML = filtered.map(c => `
+        <div class="customer-item" onclick="selectCustomer('${escapeHTML(c.name)}', '${escapeHTML(c.phone)}')">
+            <span style="color:${c.blacklist ? 'var(--danger)' : 'inherit'}">${escapeHTML(c.name)} - ${escapeHTML(c.phone)} ${c.blacklist ? '(Blacklist)' : ''}</span>
+        </div>`).join('');
     }
 }
 
@@ -799,10 +848,11 @@ function addNewCustomer() {
     
     let custId = Date.now();
     let updates = {};
-    updates['/c/' + custId] = { name, phone, id: custId };
+    updates['/c/' + custId] = { name, phone, id: custId, blacklist: false };
     
     db.ref().update(updates).then(() => {
         showToast(l.customer_saved, "success");
+        logAction("ADD CUSTOMER", "Added new customer: " + name);
         document.getElementById('customer-dropdown').classList.remove('show');
     });
 }
@@ -822,14 +872,128 @@ function showCustomers() {
     </div>
     <div class="table-wrap">
         <table>
-            <thead><tr><th>${l.lname}</th><th>${l.lphone}</th><th>${l.th_del || 'X'}</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>${l.lname}</th>
+                    <th>${l.lphone}</th>
+                    <th>${l.blacklist || 'Blacklist'}</th>
+                    <th>${l.th5}</th>
+                </tr>
+            </thead>
             <tbody>
-                ${customers.map(c => `<tr><td>${escapeHTML(c.name)}</td><td>${escapeHTML(c.phone)}</td><td><button onclick="deleteCustomer(${c.id})" class="btn-sm" style="background:var(--danger);"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}
+                ${customers.map(c => `
+                <tr>
+                    <td style="color:${c.blacklist ? 'var(--danger)' : 'var(--text)'}; font-weight:bold;">${escapeHTML(c.name)}</td>
+                    <td>${escapeHTML(c.phone)}</td>
+                    <td>
+                        <button onclick="toggleBlacklist(${c.id}, ${c.blacklist || false})" class="btn-sm" style="background:${c.blacklist ? 'var(--danger)' : '#475569'}; width:auto; padding:0 15px;">
+                            ${c.blacklist ? '<i class="fa-solid fa-ban"></i>' : '<i class="fa-solid fa-check"></i>'}
+                        </button>
+                    </td>
+                    <td>
+                        <button onclick="showCustomerStatement('${escapeHTML(c.phone)}')" class="btn-sm" style="background:var(--primary); width:auto; padding:0 10px;">
+                            <i class="fa-solid fa-file-invoice"></i> ${l.m_statement}
+                        </button>
+                        <button onclick="deleteCustomer(${c.id})" class="btn-sm" style="background:var(--danger);">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`).join('')}
             </tbody>
         </table>
     </div>`;
     document.getElementById('modal-universal').style.display = 'flex';
     toggleMenu();
+}
+
+function showCustomerStatement(phone) {
+    const l = translations[document.getElementById('lang-sel').value];
+    document.getElementById('modal-title').innerText = l.m_statement || "Customer Statement";
+    
+    let cCust = customers.find(c => c.phone === phone);
+    let cSales = sales.filter(s => s.phone === phone);
+    let cArch = archive.filter(s => s.phone === phone);
+    let all = [...cSales, ...cArch];
+    
+    if (!cCust) return;
+    
+    let totalBought = 0, totalPaid = 0;
+    let statementHtml = `
+        <div class="statement-header">
+            <h3>${escapeHTML(cCust.name)}</h3>
+            <p>${escapeHTML(cCust.phone)}</p>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Rem</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    all.forEach(s => {
+        totalBought += parseFloat(s.total);
+        let sPaid = 0;
+        if(s.type === 'Debt') {
+            sPaid = parseFloat(s.total) - parseFloat(s.mon);
+        } else if (s.type === 'Cash') {
+            sPaid = parseFloat(s.total);
+        } else {
+            sPaid = parseFloat(s.down) + (parseFloat(s.mon) * parseInt(s.paid || 0));
+        }
+        
+        totalPaid += sPaid;
+        let sRem = parseFloat(s.total) - sPaid;
+        
+        statementHtml += `
+            <tr>
+                <td><small>${new Date(s.timestamp).toLocaleDateString()}</small></td>
+                <td>${escapeHTML(s.item)}</td>
+                <td>${s.type}</td>
+                <td>${currentCurrency.symbol}${s.total}</td>
+                <td style="color:var(--success);">${currentCurrency.symbol}${sPaid.toFixed(2)}</td>
+                <td style="color:var(--danger);">${currentCurrency.symbol}${sRem.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+    
+    let totalRem = totalBought - totalPaid;
+    statementHtml += `</tbody></table></div>`;
+    
+    let summaryHtml = `
+    <div style="display:flex; justify-content:space-around; margin-top:20px; background:var(--bg); padding:15px; border-radius:15px; border:2px solid var(--primary);">
+        <div style="text-align:center;">
+            <b>Total Bought</b><br>
+            <span style="font-size:1.2rem;">${currentCurrency.symbol}${totalBought.toFixed(2)}</span>
+        </div>
+        <div style="text-align:center; color:var(--success);">
+            <b>Total Paid</b><br>
+            <span style="font-size:1.2rem;">${currentCurrency.symbol}${totalPaid.toFixed(2)}</span>
+        </div>
+        <div style="text-align:center; color:var(--danger);">
+            <b>Remaining</b><br>
+            <span style="font-size:1.2rem;">${currentCurrency.symbol}${totalRem.toFixed(2)}</span>
+        </div>
+    </div>`;
+    
+    document.getElementById('modal-content').innerHTML = statementHtml + summaryHtml;
+}
+
+function toggleBlacklist(id, currentStatus) {
+    if (confirm("Are you sure you want to change the blacklist status?")) {
+        db.ref('/c/' + id + '/blacklist').set(!currentStatus).then(() => {
+            logAction("BLACKLIST TOGGLE", "Changed blacklist status for customer ID: " + id);
+            showToast("Customer status updated!", "success"); 
+            showCustomers(); 
+        });
+    }
 }
 
 function saveNewCustomer() {
@@ -841,7 +1005,8 @@ function saveNewCustomer() {
     if (customers.find(c => c.phone === phone)) { showToast(l.customer_exists, "warning"); return; }
     
     let custId = Date.now();
-    db.ref().update({ ['/c/' + custId]: { name, phone, id: custId } }).then(() => {
+    db.ref().update({ ['/c/' + custId]: { name, phone, id: custId, blacklist: false } }).then(() => {
+        logAction("ADD CUSTOMER", "Added new customer: " + name);
         showToast(l.customer_saved, "success");
         showCustomers();
     });
@@ -849,11 +1014,40 @@ function saveNewCustomer() {
 
 function deleteCustomer(id) {
     if (confirm("Delete customer?")) {
-        db.ref('/c/' + id).remove().then(() => {
-            showToast("Deleted!", "success");
-            showCustomers();
+        db.ref('/c/' + id).remove().then(() => { 
+            logAction("DELETE CUSTOMER", "Deleted customer ID: " + id); 
+            showToast("Deleted!", "success"); 
+            showCustomers(); 
         });
     }
+}
+
+function showAuditLog() {
+    requireAuth('inv_add', () => { 
+        const l = translations[document.getElementById('lang-sel').value];
+        document.getElementById('modal-title').innerText = l.m_audit || "Audit Log";
+        
+        let html = `<div style="background:var(--bg); border-radius:15px; padding:15px; max-height:60vh; overflow-y:auto;">`;
+        if(logs.length === 0) {
+            html += `<p style="text-align:center;">No activity recorded yet.</p>`;
+        } else {
+            logs.forEach(log => {
+                html += `
+                <div class="audit-item">
+                    <div>
+                        <b style="color:var(--primary);">${log.action}</b> 
+                        <span class="audit-user">${escapeHTML(log.user)}</span><br>
+                        <small>${escapeHTML(log.details)}</small>
+                    </div>
+                    <div class="audit-time">${log.time}</div>
+                </div>`;
+            });
+        }
+        html += `</div>`;
+        document.getElementById('modal-content').innerHTML = html;
+        document.getElementById('modal-universal').style.display = 'flex';
+        toggleMenu();
+    });
 }
 
 function loadCurrency() {
@@ -870,7 +1064,7 @@ function showCurrencySettings() {
         <select id="currency-select" onchange="changeCurrency()">
             <option value="USD" ${currentCurrency.code === 'USD' ? 'selected' : ''}>${l.currency_usd} (USD) - $</option>
             <option value="IQD" ${currentCurrency.code === 'IQD' ? 'selected' : ''}>${l.currency_iqd} (IQD) - د.ع</option>
-            <option value="IRR" ${currentCurrency.code === 'IRR' ? 'selected' : ''}>${l.currency_try} (IRR) - تومان</option>
+            <option value="IRR" ${currentCurrency.code === 'IRR' ? 'selected' : ''}>${l.currency_irr || 'تومان'} (IRR) - تومان</option>
             <option value="TRY" ${currentCurrency.code === 'TRY' ? 'selected' : ''}>${l.currency_try} (TRY) - ₺</option>
         </select>
         <label style="font-weight:700; margin-top:15px; display:block;">Exchange Rate (to USD)</label>
@@ -896,6 +1090,7 @@ function saveCurrency() {
     localStorage.setItem('pos_currency', JSON.stringify(currentCurrency));
     
     db.ref('/currency').set(currentCurrency).then(() => {
+        logAction("CURRENCY CHANGED", "Currency set to " + code);
         showToast("Currency updated!", "success");
         closeModal();
     });
@@ -939,6 +1134,7 @@ function saveSecuritySettings() {
     });
     
     db.ref('/sec').set({ masterPass: newPass, protectedSections: newProtected }).then(() => {
+        logAction("SECURITY SETTINGS", "Updated security and passwords");
         showToast("Security Settings Saved!", "success");
         closeModal();
     });
@@ -962,9 +1158,26 @@ function showExpenses() {
     </div>
     <div class="table-wrap">
         <table>
-            <thead><tr><th>${l.th_desc}</th><th>${l.th_amt}</th><th>${l.th_date}</th><th>${l.th_del}</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>${l.th_desc}</th>
+                    <th>${l.th_amt}</th>
+                    <th>${l.th_date}</th>
+                    <th>${l.th_del}</th>
+                </tr>
+            </thead>
             <tbody>
-                ${expenses.map(x => `<tr><td>${escapeHTML(x.desc)}</td><td style="color:var(--danger); font-weight:bold;">${currentCurrency.symbol}${x.amount}</td><td>${x.date}</td><td><button onclick="deleteExpense(${x.id})" class="btn-sm" style="background:var(--danger);"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}
+                ${expenses.map(x => `
+                <tr>
+                    <td>${escapeHTML(x.desc)}</td>
+                    <td style="color:var(--danger); font-weight:bold;">${currentCurrency.symbol}${x.amount}</td>
+                    <td>${x.date}</td>
+                    <td>
+                        <button onclick="deleteExpense(${x.id})" class="btn-sm" style="background:var(--danger);">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`).join('')}
             </tbody>
         </table>
     </div>`;
@@ -975,12 +1188,15 @@ function showExpenses() {
 function addExpense() {
     let desc = escapeHTML(document.getElementById('exp-desc').value.trim());
     let amount = parseFloat(document.getElementById('exp-amount').value);
+    
     if (!desc || !amount) {
-        showToast("تکایە خانەکان بە دروستی پڕ بکەوە", "danger");
+        showToast("Error", "danger");
         return;
     }
+    
     let id = Date.now();
     db.ref().update({ [`/e/${id}`]: { id: id, desc: desc, amount: amount, date: new Date().toLocaleDateString() } }).then(() => {
+        logAction("ADD EXPENSE", "Amount: " + amount + " - " + desc);
         showToast("Success", "success");
         showExpenses();
     });
@@ -989,6 +1205,7 @@ function addExpense() {
 function deleteExpense(id) {
     if (confirm("Delete?")) {
         db.ref('/e/' + id).remove().then(() => {
+            logAction("DELETE EXPENSE", "ID: " + id);
             showToast("Deleted!", "success");
             showExpenses();
         });
@@ -998,6 +1215,7 @@ function deleteExpense(id) {
 function showSuppliers() {
     const l = translations[document.getElementById('lang-sel').value];
     document.getElementById('modal-title').innerText = l.m_suppliers;
+    
     document.getElementById('modal-content').innerHTML = `
     <div class="card" style="margin-bottom:15px;">
         <input type="text" id="sup-name" placeholder="${l.lname}...">
@@ -1008,9 +1226,24 @@ function showSuppliers() {
     </div>
     <div class="table-wrap">
         <table>
-            <thead><tr><th>${l.lname}</th><th>${l.lphone}</th><th>${l.th_del}</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>${l.lname}</th>
+                    <th>${l.lphone}</th>
+                    <th>${l.th_del}</th>
+                </tr>
+            </thead>
             <tbody>
-                ${suppliers.map(x => `<tr><td>${escapeHTML(x.name)}</td><td>${escapeHTML(x.phone)}</td><td><button onclick="deleteSupplier(${x.id})" class="btn-sm" style="background:var(--danger);"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}
+                ${suppliers.map(x => `
+                <tr>
+                    <td>${escapeHTML(x.name)}</td>
+                    <td>${escapeHTML(x.phone)}</td>
+                    <td>
+                        <button onclick="deleteSupplier(${x.id})" class="btn-sm" style="background:var(--danger);">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`).join('')}
             </tbody>
         </table>
     </div>`;
@@ -1021,12 +1254,15 @@ function showSuppliers() {
 function addSupplier() {
     let name = escapeHTML(document.getElementById('sup-name').value.trim());
     let phone = escapeHTML(document.getElementById('sup-phone').value.trim());
+    
     if (!name) {
         showToast("Error", "danger");
         return;
     }
+    
     let id = Date.now();
     db.ref().update({ [`/sup/${id}`]: { id: id, name: name, phone: phone } }).then(() => {
+        logAction("ADD SUPPLIER", "Name: " + name);
         showToast("Success", "success");
         showSuppliers();
     });
@@ -1035,6 +1271,7 @@ function addSupplier() {
 function deleteSupplier(id) {
     if (confirm("Delete?")) {
         db.ref('/sup/' + id).remove().then(() => {
+            logAction("DELETE SUPPLIER", "ID: " + id);
             showToast("Deleted!", "success");
             showSuppliers();
         });
@@ -1050,7 +1287,14 @@ async function saveSale() {
     let nt = escapeHTML(document.getElementById('i-note').value);
     let saleType = document.getElementById('i-sale-type').value;
     let paymentMethod = document.getElementById('i-payment-method').value;
+    let imeiVal = escapeHTML(document.getElementById('i-imei').value.trim());
     const l = translations[document.getElementById('lang-sel').value];
+
+    let existingCustomer = customers.find(c => c.phone === phone);
+    if (existingCustomer && existingCustomer.blacklist && saleType !== 'Cash') {
+        showToast(l.err_blacklisted || "Customer is blacklisted!", "danger");
+        return;
+    }
 
     if (!n || !iId) {
         showToast(l.err_empty, "danger");
@@ -1108,8 +1352,10 @@ async function saveSale() {
         item: itemFullData.name,
         itemId: itemFullData.id,
         itemDetails: itemFullData,
+        imei: imeiVal,
         total: p.total,
         buy: p.b,
+        discount: p.discount,
         cost: Number(parseFloat(itemFullData.cost || 0).toFixed(2)),
         down: p.d,
         mon: p.mon,
@@ -1145,17 +1391,20 @@ async function saveSale() {
             }
 
             if (!customers.find(c => c.phone === phone)) {
-                updates['/c/' + saleId] = { name: n, phone, id: saleId };
+                updates['/c/' + saleId] = { name: n, phone, id: saleId, blacklist: false };
             }
 
             db.ref().update(updates).then(() => {
+                logAction("NEW SALE", "Customer: " + n + " | Item: " + itemFullData.name + " | Type: " + saleType);
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalBtnContent;
                 showToast(l.success_save, "success");
-                ["i-name", "i-phone", "i-witness", "i-witness-phone", "i-note", "i-buy", "i-down", "i-other-rate", "i-other-months"].forEach(id => {
+                
+                ["i-name", "i-phone", "i-witness", "i-witness-phone", "i-note", "i-buy", "i-down", "i-other-rate", "i-other-months", "i-imei", "i-discount"].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.value = "";
                 });
+                
                 const docPreview = document.getElementById('doc-preview');
                 if (docPreview) {
                     docPreview.style.display = 'none';
@@ -1185,12 +1434,23 @@ function editSale(id) {
             <div class="card">
                 <label style="font-weight:700;">${l.lname}</label>
                 <input type="text" id="edit-name" value="${escapeHTML(s.name)}">
+                
                 <label style="font-weight:700; margin-top:15px; display:block;">${l.lphone}</label>
                 <input type="tel" id="edit-phone" value="${escapeHTML(s.phone)}">
-                ${s.type === 'Installments' ? `<label style="font-weight:700; margin-top:15px; display:block;">${l.lwitness}</label><input type="text" id="edit-witness" value="${escapeHTML(s.witness)}"><label style="font-weight:700; margin-top:15px; display:block;">${l.lwphone}</label><input type="tel" id="edit-witphone" value="${escapeHTML(s.witnessPhone)}">` : ''}
+                
+                ${s.type === 'Installments' ? `
+                    <label style="font-weight:700; margin-top:15px; display:block;">${l.lwitness}</label>
+                    <input type="text" id="edit-witness" value="${escapeHTML(s.witness)}">
+                    <label style="font-weight:700; margin-top:15px; display:block;">${l.lwphone}</label>
+                    <input type="tel" id="edit-witphone" value="${escapeHTML(s.witnessPhone)}">
+                ` : ''}
+                
                 <label style="font-weight:700; margin-top:15px; display:block;">${l.lnote}</label>
                 <textarea id="edit-note" rows="2">${escapeHTML(s.note || "")}</textarea>
-                <button class="main-btn" onclick="updateSale(${s.id})"><i class="fa-solid fa-check-double"></i> ${l.update}</button>
+                
+                <button class="main-btn" onclick="updateSale(${s.id})">
+                    <i class="fa-solid fa-check-double"></i> ${l.update}
+                </button>
             </div>`;
         document.getElementById('modal-universal').style.display = 'flex';
     });
@@ -1215,6 +1475,7 @@ function updateSale(id) {
     }
     
     db.ref().update(updates).then(() => {
+        logAction("EDIT SALE", "Edited sale ID: " + id);
         showToast("Updated!", "success");
         closeModal();
     });
@@ -1259,6 +1520,7 @@ function returnSale(id) {
             else { updates[`/a/${id}`] = null; }
             
             db.ref().update(updates).then(() => {
+                logAction("RETURN SALE", "Returned item: " + saleItem.item + " for " + saleItem.name);
                 showToast("کاڵا گەڕێنرایەوە بۆ مەخزەن و پارە خرایە خەرجییەکان", "success");
             });
         }
@@ -1329,6 +1591,7 @@ function pay(id) {
             }
             
             db.ref().update(updates).then(() => {
+                logAction("RECEIVED PAYMENT", "Received " + amountToPay + " from " + saleObj.name);
                 const l = translations[document.getElementById('lang-sel').value];
                 showToast(l.success_pay, "success");
                 if (tempReports.length > 0) showReceiptEditor(tempReports[tempReports.length - 1]);
@@ -1379,11 +1642,27 @@ function showReceiptEditor(rep) {
             <p style="text-align:center; font-size:0.8rem; margin-top:15px;">Powered by BIZHAR RASHEED</p>
         </div>
         <div class="print-settings">
-            <div><label style="font-size:12px; font-weight:bold;">PAPER</label><select id="print-size-sel"><option value="80mm">80mm</option><option value="58mm">58mm</option></select></div>
-            <div><label style="font-size:12px; font-weight:bold;">ORIENT</label><select id="print-orient-sel"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+            <div>
+                <label style="font-size:12px; font-weight:bold;">PAPER</label>
+                <select id="print-size-sel">
+                    <option value="80mm">80mm</option>
+                    <option value="58mm">58mm</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:12px; font-weight:bold;">ORIENT</label>
+                <select id="print-orient-sel">
+                    <option value="portrait">Portrait</option>
+                    <option value="landscape">Landscape</option>
+                </select>
+            </div>
         </div>
-        <button class="main-btn" onclick="saveEditedReceipt()"><i class="fa-solid fa-save"></i> ${l.save_changes}</button>
-        <button class="main-btn secondary" onclick="previewChanges()" style="margin-top:10px;"><i class="fa-solid fa-eye"></i> ${l.print_preview}</button>
+        <button class="main-btn" onclick="saveEditedReceipt()">
+            <i class="fa-solid fa-save"></i> ${l.save_changes}
+        </button>
+        <button class="main-btn secondary" onclick="previewChanges()" style="margin-top:10px;">
+            <i class="fa-solid fa-eye"></i> ${l.print_preview}
+        </button>
     `;
     
     try {
@@ -1477,11 +1756,20 @@ function showLedger(id) {
     <div class="card" style="margin-bottom:15px; border-right: 5px solid var(--primary);">
         <b>${escapeHTML(sale.name)}</b><br>
         <small>${escapeHTML(sale.item)} (${sale.type}) - Paid via: ${sale.paymentMethod || 'Cash'}</small>
+        ${sale.imei ? `<br><small style="color:var(--neon-blue);">IMEI/Serial: ${escapeHTML(sale.imei)}</small>` : ''}
+        
         <div style="display:flex; justify-content:space-between; margin-top:10px;">
             <span>Total: ${currentCurrency.symbol}${sale.total}</span>
             <span>Down: ${currentCurrency.symbol}${sale.down}</span>
         </div>
+        
         ${sale.customerDoc ? `<div style="margin-top:15px; text-align:center;"><p style="font-size:11px; font-weight:900;">CUSTOMER DOCUMENT</p><img src="${sale.customerDoc}" style="width:100%; max-height:200px; object-fit:contain; border-radius:10px; border:1px solid var(--border);" alt="Document"></div>` : ''}
+        
+        ${sale.type === 'Installments' ? `
+            <button class="main-btn" onclick="printA4Contract(${sale.id})" style="background:linear-gradient(45deg, #1e293b, #334155); margin-top:15px;">
+                <i class="fa-solid fa-file-contract"></i> ${l.btn_a4 || 'Print A4 Contract'}
+            </button>
+        ` : ''}
     </div>`;
     
     if (history.length === 0) {
@@ -1512,12 +1800,108 @@ function showLedger(id) {
     document.getElementById('modal-universal').style.display = 'flex';
 }
 
+function printA4Contract(saleId) {
+    const sale = sales.find(x => x.id === saleId) || archive.find(x => x.id === saleId);
+    if (!sale) return;
+    
+    const lang = document.getElementById('lang-sel').value;
+    const l = translations[lang];
+    const isRtl = !['en','tr'].includes(lang);
+    const area = document.getElementById('print-area');
+    
+    let termsHtml = ``;
+    if(isRtl) {
+        termsHtml = `
+            <ul>
+                <li>کڕیار بەرپرسیارە ژ دانا قیستان د دەمێ خۆ دا بێی گیرۆبوون.</li>
+                <li>دەمێ کو کڕیار دوو هەیڤان ل دویڤ ئێک قیست نەدەت، مافێ فرۆشیاری یە ڕێکارێن یاسایی بگریتەبەر.</li>
+                <li>کەفیل ب تەمامی بەرپرسیارە بەرامبەر ڤێ کۆژمێ پارەی ئەگەر کڕیار نەدەت.</li>
+                <li>ئەڤ ئامێرە ل سەر ناڤێ کۆمپانیایێ یە هەتا قیستێ دوماهیێ دهێتە دان.</li>
+            </ul>`;
+    } else {
+        termsHtml = `
+            <ul>
+                <li>The buyer is responsible for paying installments on time without delay.</li>
+                <li>If the buyer misses two consecutive payments, the seller has the right to take legal action.</li>
+                <li>The guarantor is fully responsible for the outstanding amount if the buyer defaults.</li>
+                <li>The item remains the property of the seller until the final installment is paid.</li>
+            </ul>`;
+    }
+
+    area.innerHTML = `
+        <div class="a4-print" style="direction: ${isRtl ? 'rtl' : 'ltr'};">
+            <img src="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg" class="a4-print-logo" alt="Logo">
+            <h2>${l.contract_title || 'INSTALLMENT CONTRACT'}</h2>
+            
+            <div class="a4-header-details">
+                <div><b>Date:</b> ${sale.date.split(',')[0]}</div>
+                <div><b>Contract ID:</b> ${sale.id}</div>
+            </div>
+            
+            <table>
+                <tr>
+                    <th>${l.seller || 'Seller'}</th>
+                    <td>BIZHAR POS</td>
+                    <th>${l.buyer || 'Buyer'}</th>
+                    <td>${escapeHTML(sale.name)}</td>
+                </tr>
+                <tr>
+                    <th>${l.lphone || 'Phone'}</th>
+                    <td>0750 000 0000</td>
+                    <th>${l.lphone || 'Phone'}</th>
+                    <td>${escapeHTML(sale.phone)}</td>
+                </tr>
+                <tr>
+                    <th>${l.guarantor || 'Guarantor'}</th>
+                    <td>${escapeHTML(sale.witness)}</td>
+                    <th>${l.lwphone || 'Wit. Phone'}</th>
+                    <td>${escapeHTML(sale.witnessPhone)}</td>
+                </tr>
+            </table>
+
+            <h3>Item Details</h3>
+            <table>
+                <tr>
+                    <th>${l.th2 || 'Item'}</th>
+                    <th>IMEI/Serial</th>
+                    <th>${l.ltotal || 'Total'}</th>
+                    <th>${l.ldown || 'Down'}</th>
+                    <th>${l.lmon || 'Monthly'} / ${l.lduration || 'Months'}</th>
+                </tr>
+                <tr>
+                    <td>${escapeHTML(sale.item)}</td>
+                    <td>${escapeHTML(sale.imei) || 'N/A'}</td>
+                    <td>${currentCurrency.symbol}${sale.total}</td>
+                    <td>${currentCurrency.symbol}${sale.down}</td>
+                    <td>${currentCurrency.symbol}${sale.mon} (${sale.months} Months)</td>
+                </tr>
+            </table>
+
+            <div class="a4-terms">
+                <h3>Terms & Conditions</h3>
+                ${termsHtml}
+            </div>
+
+            <div class="contract-signatures">
+                <div>${l.seller || 'Seller Signature'}</div>
+                <div>${l.buyer || 'Buyer Signature'}</div>
+                <div>${l.guarantor || 'Guarantor Signature'}</div>
+            </div>
+        </div>`;
+        
+    setTimeout(() => { window.print(); }, 800);
+}
+
 function checkInstallmentsNotif() {
     const now = Date.now(), dueMillis = 27 * 24 * 60 * 60 * 1000;
     let count = 0;
     
     sales.forEach(s => {
         if (s.type !== 'Cash' && (now - s.lastPaymentDate) >= dueMillis) count++;
+    });
+    
+    inv.forEach(item => {
+        if (item.qty <= 3) count++;
     });
     
     const bell = document.getElementById('notif-bell');
@@ -1540,11 +1924,25 @@ function showNotifs() {
     
     sales.forEach(s => {
         if (s.type !== 'Cash' && (now - s.lastPaymentDate) >= dueMillis) {
-            html += `<div class="notif-item"><b>${escapeHTML(s.name)}</b><span>${escapeHTML(s.item)} (${s.type}) - ${l.notif_msg}</span></div>`;
+            html += `
+            <div class="notif-item">
+                <b>${escapeHTML(s.name)}</b>
+                <span>${escapeHTML(s.item)} (${s.type}) - ${l.notif_msg}</span>
+            </div>`;
         }
     });
     
-    document.getElementById('modal-title').innerText = l.notif_title;
+    inv.forEach(item => {
+        if (item.qty <= 3) {
+            html += `
+            <div class="notif-item" style="border-right: 4px solid var(--warning);">
+                <b style="color:var(--warning);"><i class="fa-solid fa-boxes-stacked"></i> ${escapeHTML(item.name)}</b>
+                <span>${l.low_stock || 'Low stock'}: Only ${item.qty} left!</span>
+            </div>`;
+        }
+    });
+    
+    document.getElementById('modal-title').innerText = l.notif_title || "Notifications & Alerts";
     document.getElementById('modal-content').innerHTML = html || `<p style="text-align:center; padding:20px;">No Alerts.</p>`;
     document.getElementById('modal-universal').style.display = 'flex';
 }
@@ -1611,6 +2009,7 @@ function showInventory() {
         </div>
         <input type="text" id="add-barcode" placeholder="بارکۆد یان SKU (ئارەزوومەندانە)" style="margin-top:8px;">
         <input type="number" id="add-cost" placeholder="${l.inv_cost}" min="0" step="0.01">
+        
         <div id="mobile-fields" class="details-grid">
             <input type="text" id="m-model" placeholder="Model">
             <input type="text" id="m-color" placeholder="Color">
@@ -1621,19 +2020,31 @@ function showInventory() {
             <input type="text" id="p-cpu" placeholder="CPU">
             <input type="number" id="p-ram" placeholder="RAM" min="0">
             <input type="text" id="p-ssd" placeholder="SSD">
-            <select id="p-gpu"><option value="RTX">RTX</option><option value="Integrated">Integrated</option></select>
+            <select id="p-gpu">
+                <option value="RTX">RTX</option>
+                <option value="Integrated">Integrated</option>
+            </select>
         </div>
         <div id="other-fields" style="display:none;">
             <textarea id="o-info" placeholder="Details" rows="2"></textarea>
         </div>
+        
         <input type="number" id="add-q" placeholder="${l.inv_qty}" min="1">
         <button class="main-btn" onclick="addInv()"><i class="fa-solid fa-plus"></i> ${l.inv_add}</button>
     </div>
     <div class="table-wrap">
         <table>
-            <thead><tr><th>${l.inv_name} / Barcode</th><th>Cost</th><th>Qty</th><th>${l.th_del || 'X'}</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>${l.inv_name} / Barcode</th>
+                    <th>Cost</th>
+                    <th>Qty</th>
+                    <th>${l.th_del || 'X'}</th>
+                </tr>
+            </thead>
             <tbody>
-                ${filteredInv.map((x) => `<tr>
+                ${filteredInv.map((x) => `
+                <tr>
                     <td><b>${escapeHTML(x.name)}</b><br><small style="color:var(--neon-blue);">${escapeHTML(x.barcode) || ''}</small></td>
                     <td>${currentCurrency.symbol}${parseFloat(x.cost || 0).toFixed(2)}</td>
                     <td>${x.qty}</td>
@@ -1646,6 +2057,57 @@ function showInventory() {
         </table>
     </div>`;
     document.getElementById('modal-universal').style.display = 'flex';
+}
+
+function showStocktake() {
+    requireAuth('inv_add', () => {
+        const l = translations[document.getElementById('lang-sel').value];
+        document.getElementById('modal-title').innerText = l.m_stocktake || "Stocktaking";
+        
+        let html = `
+        <div class="card" style="margin-bottom:15px; background: rgba(0, 210, 255, 0.05); border: 2px dashed var(--neon-blue);">
+            <h3 style="color:var(--neon-blue); text-align:center;">PHYSICAL INVENTORY COUNT</h3>
+            <p style="text-align:center; font-size:12px;">Compare system stock with actual physical stock.</p>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item / Barcode</th>
+                        <th>Sys Qty</th>
+                        <th>Actual Qty</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${inv.map(x => `
+                    <tr>
+                        <td><b>${escapeHTML(x.name)}</b><br><small>${escapeHTML(x.barcode) || ''}</small></td>
+                        <td style="font-size:18px; font-weight:900;">${x.qty}</td>
+                        <td><input type="number" id="actual-qty-${x.id}" placeholder="0" value="${x.qty}" style="width:70px; text-align:center; padding:5px; margin:0;"></td>
+                        <td><button onclick="updateStocktake(${x.id})" class="btn-sm" style="background:var(--success); width:auto; padding:0 15px;">Update</button></td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>`;
+        
+        document.getElementById('modal-content').innerHTML = html;
+        document.getElementById('modal-universal').style.display = 'flex';
+        toggleMenu();
+    });
+}
+
+function updateStocktake(id) {
+    let actualInput = document.getElementById(`actual-qty-${id}`).value;
+    let actualQty = parseInt(actualInput) || 0;
+    
+    if (confirm(`Update stock to ${actualQty}?`)) {
+        db.ref(`/i/${id}/qty`).set(actualQty).then(() => {
+            logAction("STOCKTAKING", "Updated item ID " + id + " to qty " + actualQty);
+            showToast("Stock Updated!", "success");
+            showStocktake();
+        });
+    }
 }
 
 function directPrintLabel(id) {
@@ -1750,8 +2212,10 @@ function addInv() {
     }
     
     db.ref().update({ [`/i/${deviceData.id}`]: deviceData }).then(() => {
+        logAction("ADD INVENTORY", "Added " + q + "x " + n);
         const l = translations[document.getElementById('lang-sel').value];
         showToast(l.success_inv, "success");
+        showInventory();
     });
 }
 
@@ -1786,8 +2250,13 @@ function initScanner(targetInputId) {
     isScanning = true;
     const content = document.getElementById('modal-content');
     const oldHtml = content.innerHTML;
-    content.innerHTML = `<div id="reader-box"></div><button class="main-btn" id="close-scanner-btn" style="background:#475569; margin-top:15px;"><i class="fa-solid fa-arrow-left"></i> Back</button>`;
     
+    content.innerHTML = `
+        <div id="reader-box"></div>
+        <button class="main-btn" id="close-scanner-btn" style="background:#475569; margin-top:15px;">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </button>`;
+        
     const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
     activeScanner = new Html5Qrcode("reader-box");
     
@@ -1832,9 +2301,13 @@ function updateDetailsHint() {
     
     if (item) {
         document.getElementById('i-item').value = item.id;
-        if (item.type === 'Mobile') hint.innerText = `${escapeHTML(item.model) || ''} | ${escapeHTML(item.storage) || ''}GB | Cost: ${currentCurrency.symbol}${item.cost || 0}`;
-        else if (item.type === 'Computer') hint.innerText = `${escapeHTML(item.cpu) || ''} | ${escapeHTML(item.ram) || ''}GB RAM | Cost: ${currentCurrency.symbol}${item.cost || 0}`;
-        else hint.innerText = `Item Found | Cost: ${currentCurrency.symbol}${item.cost || 0}`;
+        if (item.type === 'Mobile') {
+            hint.innerText = `${escapeHTML(item.model) || ''} | ${escapeHTML(item.storage) || ''}GB | Cost: ${currentCurrency.symbol}${item.cost || 0}`;
+        } else if (item.type === 'Computer') {
+            hint.innerText = `${escapeHTML(item.cpu) || ''} | ${escapeHTML(item.ram) || ''}GB RAM | Cost: ${currentCurrency.symbol}${item.cost || 0}`;
+        } else {
+            hint.innerText = `Item Found | Cost: ${currentCurrency.symbol}${item.cost || 0}`;
+        }
     } else {
         hint.innerText = "";
     }
@@ -1869,40 +2342,48 @@ function applyLang() {
     document.getElementById('opt-inst').innerText = l.opt_inst;
     document.getElementById('opt-cash').innerText = l.opt_cash;
     document.getElementById('opt-debt').innerText = l.opt_debt;
+    
     document.getElementById('l-name').innerText = l.lname;
     document.getElementById('l-phone').innerText = l.lphone;
     document.getElementById('l-witness').innerText = l.lwitness;
     document.getElementById('l-witness-phone').innerText = l.lwphone;
+    
     document.getElementById('l-item').innerText = l.litem;
     document.getElementById('l-buy').innerText = l.lbuy;
     document.getElementById('l-down').innerText = l.ldown;
     document.getElementById('l-duration').innerText = l.lduration;
+    
     document.getElementById('opt-other-plan').innerText = l.opt_other_plan;
     document.getElementById('l-other-rate').innerText = l.custom_rate;
     document.getElementById('l-other-months').innerText = l.custom_months;
+    
     document.getElementById('l-note-title').innerText = l.lnote;
     document.getElementById('l-total-box').innerText = l.ltotal;
     document.getElementById('l-mon').innerText = l.lmon;
     document.getElementById('b-save').innerText = l.bsave;
+    
     document.getElementById('l-upload-text').innerText = l.lupload || "Upload Doc";
     document.getElementById('l-upload-label').innerText = l.doc_label || "Customer Document";
     document.getElementById('s1').innerText = l.s1;
     
-    // NET PROFIT
     const s4El = document.getElementById('s4');
     if (s4El) s4El.innerHTML = `${l.net_profit} <i class="fa-solid fa-eye privacy-toggle" onclick="togglePrivacy()"></i>`;
 
-    // Payment Method
     const payMethodLabel = document.getElementById('l-payment-method');
     if (payMethodLabel) payMethodLabel.innerText = l.pay_method;
 
-    // Expenses & Suppliers Menu
     if (document.getElementById('m-expenses')) document.getElementById('m-expenses').innerText = l.m_expenses;
     if (document.getElementById('m-suppliers')) document.getElementById('m-suppliers').innerText = l.m_suppliers;
+    if (document.getElementById('m-stocktake')) document.getElementById('m-stocktake').innerText = l.m_stocktake || "Stocktaking";
+    if (document.getElementById('m-audit')) document.getElementById('m-audit').innerText = l.m_audit || "Audit Log";
+    
+    if (document.getElementById('l-imei')) document.getElementById('l-imei').innerText = l.imei || "IMEI / SERIAL";
+    if (document.getElementById('l-discount')) document.getElementById('l-discount').innerText = l.discount || "DISCOUNT $";
 
     document.getElementById('s-rem').innerText = l.srem;
     document.getElementById('s-annual').innerText = l.sannual;
     document.getElementById('search-input').placeholder = l.search;
+    
     document.getElementById('th1').innerText = l.th1;
     document.getElementById('th2').innerText = l.th2;
     document.getElementById('th3').innerText = l.th3;
@@ -1976,9 +2457,11 @@ function render() {
             return s.name.toLowerCase().includes(q) || 
                    s.item.toLowerCase().includes(q) || 
                    s.id.toString().includes(q) || 
+                   (s.imei && s.imei.toLowerCase().includes(q)) || 
                    (s.itemDetails && s.itemDetails.barcode && s.itemDetails.barcode.toLowerCase().includes(q));
         }).forEach(s => {
-            listHtml += `<tr>
+            listHtml += `
+            <tr>
                 <td><b>${escapeHTML(s.name)}</b><br><small style="color:${s.type === 'Debt' ? 'var(--danger)' : 'var(--primary)'}">${s.type}</small></td>
                 <td>${escapeHTML(s.item)}</td>
                 <td>${currentCurrency.symbol}${s.total}</td>
@@ -2053,7 +2536,12 @@ function showReports(type = 'daily') {
         <table>
             <thead><tr><th>Customer</th><th>Amount</th><th>Date</th></tr></thead>
             <tbody>
-                ${filtered.map(x => `<tr><td>${escapeHTML(x.name)}</td><td>${currentCurrency.symbol}${parseFloat(x.mon).toFixed(2)}</td><td style="font-size:10px;">${new Date(x.timestamp).toLocaleDateString()}</td></tr>`).join('')}
+                ${filtered.map(x => `
+                <tr>
+                    <td>${escapeHTML(x.name)}</td>
+                    <td>${currentCurrency.symbol}${parseFloat(x.mon).toFixed(2)}</td>
+                    <td style="font-size:10px;">${new Date(x.timestamp).toLocaleDateString()}</td>
+                </tr>`).join('')}
             </tbody>
         </table>
     </div>`;
@@ -2081,12 +2569,24 @@ function showDailyClosing() {
     document.getElementById('modal-title').innerText = l.mclosing;
     document.getElementById('modal-content').innerHTML = `
         <div class="card receipt-preview" id="closing-preview" style="background:var(--bg); border:2px dashed var(--neon-blue);">
-            <div style="text-align:center;"><h3 style="color:var(--neon-blue)">DAILY CLOSING</h3><p>${nowFormatted}</p></div>
+            <div style="text-align:center;">
+                <h3 style="color:var(--neon-blue)">DAILY CLOSING</h3>
+                <p>${nowFormatted}</p>
+            </div>
             <hr style="margin:15px 0; border:0.5px dashed #000;">
-            <div class="thermal-row"><span>New Sales (Downpay):</span><b>${currentCurrency.symbol}${dailyDownPayments.toFixed(2)} (${downPayCount})</b></div>
-            <div class="thermal-row"><span>Installments Recv:</span><b>${currentCurrency.symbol}${installmentTotal.toFixed(2)} (${dailyInstallments.length})</b></div>
+            <div class="thermal-row">
+                <span>New Sales (Downpay):</span>
+                <b>${currentCurrency.symbol}${dailyDownPayments.toFixed(2)} (${downPayCount})</b>
+            </div>
+            <div class="thermal-row">
+                <span>Installments Recv:</span>
+                <b>${currentCurrency.symbol}${installmentTotal.toFixed(2)} (${dailyInstallments.length})</b>
+            </div>
             <hr style="margin:15px 0; border:0.5px dashed #000;">
-            <div class="thermal-row" style="font-size:1.4rem;"><span>CASH IN BOX:</span><b style="color:var(--success);">${currentCurrency.symbol}${closingTotal.toFixed(2)}</b></div>
+            <div class="thermal-row" style="font-size:1.4rem;">
+                <span>CASH IN BOX:</span>
+                <b style="color:var(--success);">${currentCurrency.symbol}${closingTotal.toFixed(2)}</b>
+            </div>
         </div>
         <button class="main-btn" onclick="printClosing()"><i class="fa-solid fa-print"></i> PRINT CLOSING</button>
     `;
@@ -2152,6 +2652,7 @@ function delInv(id) {
     const l = translations[document.getElementById('lang-sel').value];
     if (confirm(l.th_del + " ?")) {
         db.ref('/i/' + id).remove().then(() => {
+            logAction("DELETE ITEM", "Deleted item ID " + id);
             showToast("Item Deleted!", "danger");
         });
     }
@@ -2187,6 +2688,7 @@ function executeSoftDelete(id) {
             updates[`/s/${id}`] = null;
             
             db.ref().update(updates).then(() => {
+                logAction("TRASH SALE", "Moved sale ID " + id + " to trash.");
                 showToast("Moved to Trash", "danger");
                 closeModal();
             });
@@ -2207,7 +2709,16 @@ function showArchive(isRefresh = false) {
         <table>
             <thead><tr><th>${l.th1}</th><th>${l.th2}</th><th>${l.th3}</th><th>${l.th5}</th></tr></thead>
             <tbody>
-                ${filtered.map(x => `<tr><td><b>${escapeHTML(x.name)}</b></td><td>${escapeHTML(x.item)}</td><td>${currentCurrency.symbol}${parseFloat(x.total).toFixed(2)}</td><td><button onclick="showLedger(${x.id})" class="btn-sm" style="background:var(--primary);"><i class="fa-solid fa-clock-rotate-left"></i></button>${currentUserRole === "Admin" ? `<button onclick="editSale(${x.id})" class="btn-sm" style="background:#f59e0b;"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}</td></tr>`).join('')}
+                ${filtered.map(x => `
+                <tr>
+                    <td><b>${escapeHTML(x.name)}</b></td>
+                    <td>${escapeHTML(x.item)}</td>
+                    <td>${currentCurrency.symbol}${parseFloat(x.total).toFixed(2)}</td>
+                    <td>
+                        <button onclick="showLedger(${x.id})" class="btn-sm" style="background:var(--primary);"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                        ${currentUserRole === "Admin" ? `<button onclick="editSale(${x.id})" class="btn-sm" style="background:#f59e0b;"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
+                    </td>
+                </tr>`).join('')}
             </tbody>
         </table>
     </div>`;
@@ -2228,7 +2739,8 @@ function showRecycleBin(isRefresh = false) {
         <table>
             <thead><tr><th>${l.th1}</th><th>${l.th2}</th><th>${l.th5}</th></tr></thead>
             <tbody>
-                ${filtered.map((x) => `<tr>
+                ${filtered.map((x) => `
+                <tr>
                     <td><b>${escapeHTML(x.name)}</b></td>
                     <td>${escapeHTML(x.item)}</td>
                     <td style="display:flex; justify-content:center; gap:5px;">
@@ -2260,6 +2772,7 @@ function restore(id) {
         updates[`/t/${restoredSale.id}`] = null;
         
         db.ref().update(updates).then(() => {
+            logAction("RESTORE SALE", "Restored sale ID " + id);
             showToast("Restored!", "success");
             closeModal();
         });
@@ -2274,6 +2787,7 @@ function permanentlyDelete(id) {
         if(item && item.customerDoc) deleteImage(item.customerDoc);
         
         db.ref('/t/' + id).remove().then(() => { 
+            logAction("PERMANENT DELETE", "Deleted sale ID " + id);
             showToast("Deleted Permanently!", "success"); 
             const title = document.getElementById('modal-title').innerText;
             const l = translations[document.getElementById('lang-sel').value];
@@ -2321,6 +2835,7 @@ function exportJSON() {
             c: customers,
             e: expenses,
             sup: suppliers,
+            logs: logs,
             sec: securitySettings
         }));
         const dlAnchorElem = document.createElement('a');
@@ -2357,11 +2872,12 @@ function restoreData(e) {
             customers = d.c || [];
             expenses = d.e || [];
             suppliers = d.sup || [];
+            logs = d.logs || [];
             securitySettings = d.sec || { masterPass: "", protectedSections: [] };
             
             db.ref().update({
                 i: inv, s: sales, a: archive, t: trash, r: reports,
-                c: customers, e: expenses, sup: suppliers, sec: securitySettings
+                c: customers, e: expenses, sup: suppliers, logs: logs, sec: securitySettings
             }).then(() => {
                 const l = translations[document.getElementById('lang-sel').value];
                 showToast(l.success_restore, "success");
