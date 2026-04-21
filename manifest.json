@@ -1,0 +1,21 @@
+{
+  "name": "Bizhar POS Premium",
+  "short_name": "Bizhar POS",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#00d2ff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
