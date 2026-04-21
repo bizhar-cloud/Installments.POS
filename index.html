@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg">
     <link rel="icon" href="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg">
+    <link rel="manifest" href="manifest.json">
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
@@ -23,6 +24,10 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<div id="offline-indicator" style="display:none; background:var(--danger); color:white; text-align:center; padding:8px; font-weight:900; z-index:9999999; position:fixed; top:0; width:100%; font-size:12px;">
+    <i class="fa-solid fa-wifi"></i> ئینتەرنێت نینە (ئۆفلاین) - داتایێن تە دێ سەیڤ بن هەتا ئینتەرنێت دهێتەڤە!
+</div>
 
 <div id="toast-container"></div>
 
@@ -147,12 +152,15 @@
 <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()">
     <div class="dropdown-menu" onclick="event.stopPropagation()">
         <h4 id="m-header" style="text-align:center; color:var(--neon-blue); margin-bottom:20px; font-weight: 900;">MENU</h4>
+        
         <button class="menu-item" onclick="toggleLayout()"><i class="fa-solid fa-display" id="layout-icon"></i> <span id="m-pc">PC Mode</span></button>
         <button class="menu-item" onclick="toggleDark()"><i id="mode-icon" class="fa-solid fa-moon"></i> <span id="m-dark">Dark Mode</span></button>
         
         <div id="admin-only-menu">
             <button class="menu-item" onclick="showExpenses()"><i class="fa-solid fa-money-bill-transfer"></i> <span id="m-expenses">Expenses (مەسروفات)</span></button>
             <button class="menu-item" onclick="showSuppliers()"><i class="fa-solid fa-truck-field"></i> <span id="m-suppliers">Suppliers (کۆمپانیا)</span></button>
+            <button class="menu-item" onclick="showGuarantors()"><i class="fa-solid fa-user-shield"></i> <span id="m-guarantors">Guarantors (کەفیلان)</span></button>
+            <button class="menu-item" onclick="showCommissions()"><i class="fa-solid fa-hand-holding-dollar"></i> <span id="m-commissions">Commissions (عومولە)</span></button>
             <button class="menu-item" onclick="showReports('daily')"><i class="fa-solid fa-chart-line"></i> <span id="m-reports">Reports</span></button>
             <button class="menu-item" onclick="showDailyClosing()"><i class="fa-solid fa-cash-register"></i> <span id="m-closing">Daily Closing</span></button>
             <button class="menu-item" onclick="showCashDrawer()"><i class="fa-solid fa-vault"></i> <span id="m-vault">Cash Drawer</span></button>
@@ -165,6 +173,7 @@
             <button class="menu-item" onclick="showAuditLog()"><i class="fa-solid fa-list-check"></i> <span id="m-audit">Audit Log (تۆماری چالاکیان)</span></button>
             <button class="menu-item" onclick="showCurrencySettings()"><i class="fa-solid fa-coins"></i> <span id="m-currency">Currency</span></button>
             <button class="menu-item" onclick="showSecuritySettings()"><i class="fa-solid fa-shield-halved"></i> <span id="m-security">Security / Password</span></button>
+            
             <hr style="border: 0.5px solid var(--border); margin: 15px 0;">
             <button class="menu-item" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> <span id="m-backup">Export Excel</span></button>
             <button class="menu-item" onclick="exportJSON()"><i class="fa-solid fa-file-code"></i> <span id="m-backup-json">Backup (JSON)</span></button>
@@ -190,6 +199,7 @@
 </div>
 
 <div class="container" id="app-container">
+    
     <div id="side-p">
         <div class="card" style="border-top: 6px solid var(--primary);">
             <h3 id="t-form" style="font-weight: 900; color: var(--primary);"><i class="fa-solid fa-cart-plus"></i> NEW SALE</h3>
@@ -239,14 +249,18 @@
             <label id="l-item" style="margin-top:20px; display:block; font-weight: 700;">ITEM</label>
             <div style="display: flex; gap: 8px;">
                 <select id="i-item" style="flex: 1;" onchange="updateDetailsHint()"></select>
-                <button onclick="scanForSale()" class="scan-action-btn" style="margin-top: 8px;"><i class="fa-solid fa-barcode"></i><i class="fa-solid fa-qrcode"></i></button>
+                <button onclick="scanForSale()" class="scan-action-btn" style="margin-top: 8px;">
+                    <i class="fa-solid fa-barcode"></i><i class="fa-solid fa-qrcode"></i>
+                </button>
             </div>
             <div id="item-details-hint" style="font-size: 11px; color: var(--primary); margin-top: 5px; font-weight: bold;"></div>
 
             <label id="l-imei" style="font-weight: 700; margin-top: 15px; display: block;">IMEI / SERIAL NUMBER</label>
             <div style="display: flex; gap: 8px;">
                 <input type="text" id="i-imei" placeholder="..." style="flex: 1;" autocomplete="off">
-                <button onclick="startGenericScanner('i-imei')" class="scan-action-btn" style="margin-top: 8px;"><i class="fa-solid fa-barcode"></i></button>
+                <button onclick="startGenericScanner('i-imei')" class="scan-action-btn" style="margin-top: 8px;">
+                    <i class="fa-solid fa-barcode"></i>
+                </button>
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:20px;">
@@ -290,33 +304,56 @@
             <textarea id="i-note" rows="2"></textarea>
 
             <div style="display:flex; justify-content:space-between; margin-top:25px; background:var(--bg); padding:20px; border-radius:20px; border:2px dashed var(--neon-blue);">
-                <div style="text-align:center;"><small id="l-total-box" style="color:#64748b;">TOTAL</small><div id="o-total" style="font-weight:900; font-size:24px;">$0</div></div>
-                <div id="monthly-output-section" style="text-align:center;"><small id="l-mon" style="color:#64748b;">MONTHLY</small><div id="o-mon" style="font-weight:900; color:var(--primary); font-size:24px;">$0</div></div>
+                <div style="text-align:center;">
+                    <small id="l-total-box" style="color:#64748b;">TOTAL</small>
+                    <div id="o-total" style="font-weight:900; font-size:24px;">$0</div>
+                </div>
+                <div id="monthly-output-section" style="text-align:center;">
+                    <small id="l-mon" style="color:#64748b;">MONTHLY</small>
+                    <div id="o-mon" style="font-weight:900; color:var(--primary); font-size:24px;">$0</div>
+                </div>
             </div>
-            <button class="main-btn" id="save-sale-btn" onclick="saveSale()"><i class="fa-solid fa-floppy-disk"></i> <span id="b-save">SAVE</span></button>
+            
+            <button class="main-btn" id="save-sale-btn" onclick="saveSale()">
+                <i class="fa-solid fa-floppy-disk"></i> <span id="b-save">SAVE</span>
+            </button>
         </div>
     </div>
 
     <div id="main-p">
         <div class="stats-grid" id="stats-container">
             <div class="stat-card" style="border-bottom: 5px solid var(--neon-blue);">
-                <small id="s1">STOCK</small><h3 id="v1" style="color:var(--neon-blue)">0</h3>
+                <small id="s1">STOCK</small>
+                <h3 id="v1" style="color:var(--neon-blue)">0</h3>
             </div>
             <div class="stat-card admin-feature" style="border-bottom: 5px solid var(--success);">
                 <small id="s4">NET PROFIT <i class="fa-solid fa-eye privacy-toggle" onclick="togglePrivacy()"></i></small>
                 <h3 id="v4" style="color:var(--success)">****</h3>
             </div>
             <div class="stat-card" style="border-bottom: 5px solid var(--neon-purple);">
-                <small id="s-rem">OUTSTANDING</small><h3 id="v-rem" style="color:var(--neon-purple)">$0</h3>
+                <small id="s-rem">OUTSTANDING</small>
+                <h3 id="v-rem" style="color:var(--neon-purple)">$0</h3>
             </div>
             <div class="stat-card admin-feature" style="border-bottom: 5px solid #f59e0b;">
-                <small id="s-annual">YEARLY FORECAST</small><h3 id="v-annual" style="color:#f59e0b">****</h3>
+                <small id="s-annual">YEARLY FORECAST</small>
+                <h3 id="v-annual" style="color:#f59e0b">****</h3>
             </div>
         </div>
+        
         <input type="text" id="search-input" placeholder="..." oninput="handleSearch()" style="margin-bottom:20px; border: 2px solid var(--border);">
+        
         <div class="table-wrap">
             <table id="main-table">
-                <thead><tr><th id="th1">CUSTOMER</th><th id="th2">ITEM</th><th id="th3">TOTAL</th><th id="th_down">DOWN</th><th id="th4">PAID</th><th id="th5">ACTION</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th id="th1">CUSTOMER</th>
+                        <th id="th2">ITEM</th>
+                        <th id="th3">TOTAL</th>
+                        <th id="th_down">DOWN</th>
+                        <th id="th4">PAID</th>
+                        <th id="th5">ACTION</th>
+                    </tr>
+                </thead>
                 <tbody id="sales-list"></tbody>
             </table>
         </div>
