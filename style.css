@@ -443,4 +443,3 @@ td { padding: 18px; border-bottom: 1px solid var(--border); text-align: center; 
     .btn-sm { width: 35px; height: 35px; }
     .print-settings { grid-template-columns: 1fr; }
 }
-
