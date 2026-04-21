@@ -21,330 +21,228 @@ try {
     console.error("Firebase init failed:", e);
 }
 
-let inv = [], sales = [], archive = [], trash = [], reports = [], customers = [], expenses = [], suppliers = [], logs = [];
-let privacyHidden = true;
-let isInventoryOpen = false;
-let currentDocFile = null;
-let activeScanner = null;
-let isScanning = false;
-let currentUserRole = "Cashier";
-let currentUsername = "User";
+let inv = []; let sales = []; let archive = []; let trash = []; let reports = []; let customers = [];
+let expenses = []; let suppliers = []; let logs = []; let guarantors = []; let commissions = [];
+
+let privacyHidden = true; let isInventoryOpen = false; let currentDocFile = null; let activeScanner = null;
+let isScanning = false; let currentUserRole = "Cashier"; let currentUsername = "User";
 let currentCurrency = { code: 'USD', rate: 1, symbol: '$' };
 
-let securitySettings = {
-    masterPass: "",
-    protectedSections: [] 
-};
+let securitySettings = { masterPass: "", protectedSections: [] };
 
 // ==========================================
-// 2. TRANSLATIONS 
+// 2. TRANSLATIONS (100% COMPLETE FOR 6 LANGUAGES)
 // ==========================================
 const translations = {
     bd: {
         login_sub: "سیستەمێ فرۆشتنێ و قیستان", tab_si: "چوونەژوور", tab_su: "تۆمارکرن",
-        user: "ناڤێ بکارئینەری", pass: "کۆدا نهێنی", user_new: "ناڤێ بکارئینەری نوێ",
-        role_c: "کاشێر", role_a: "ئەدمین", lbl_code: "کۆدی (٦ ژمارە)", buy_code: "کڕینا کۆدی",
-        wa_link: "پەیوەندی ب گەشەپێدەرێ", err_empty: "تکایە هەمی خانێن پڕ بکە!", err_code: "کۆد یان زانیاری شێلۆنە!",
-        err_exists: "ئەڤ ناڤە یێ هەی!", succ_su: "سەرکەفتی! حیساب هاتە چێکرن.", succ_si: "ب سەرکەفتی چوویتە ژوور!", waMsg: "سڵاف، دێ شێم کۆدەکێ چالاککرنا سیستەمی کڕم؟",
-        mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", lphone: "موبایلا کڕیاری",
-        lwitness: "ناڤێ دیدەڤانی", lwphone: "موبایلا دیدەڤانی", litem: " ئامێر/کاڵا",
-        lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست",
-        ltotal: "کۆم", bsave: "تۆمارکرن", s1: "کۆگە", s4: "قازانج", srem: "ماوە",
-        sannual: "تەخمینا ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: " ئامێر",
-        th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "مەخزەن",
-        bclose: "داخستن", search: "لێگەریان ب ناڤ، بارکۆد یان ID...", inv_name: "ناڤێ ئامێری",
-        inv_qty: "دانە", inv_add: "زێدەکرن", marchive: "ئەڕشیڤ", mtrash: "گلێش",
-        mbackup: "سەیفکرنا ئێکسل", mbackup_json: "باکئەپ (JSON)", mpdf: "سەیفکرنا PDF",
-        mrestore: "دووبارە زێدەکرن", mreports: "ڕاپۆرت", mabout: "گەشەپێدەر",
-        mlogout: "چوونەدەر", mpc: "کۆمپیوتەر", mmobile: "موبایل", mdark: "شەڤ", mlight: "ڕۆژ",
-        dev_role: "پسپۆرێ IT و گەشەپێدەر", dev_msg: "ئەڤ سیستەمە ژ لایێ بژار ڕەشید هاتیە دروستکرن",
-        other: "پشکێن دی", lsaletype: "جۆرێ فرۆشتنێ", opt_inst: "بقیست", opt_cash: "کاش",
-        opt_debt: "قەرز/دەین", opt_other_plan: "پشکێن دی (دەستکاری)", custom_rate: "ڕێژەیا قازانجی %",
-        custom_months: "هژمارا هەیڤان", rep_d: "ڕۆژانە", rep_w: "هەفتیانە", rep_m: "هەیڤانە",
-        rep_y: "ساڵانە", rep_count: "هژمارا وەصلا", rep_total: "کۆما پارەی",
-        click_visit: "بۆ دیتنا پۆرتبۆلیۆی کلیک بکە", rec_title: "وەصلا وەرگرتنێ",
-        rec_cust: "کڕیار", rec_wit: "دیدەڤان", rec_rem: "ماوە", rec_msg: "سوپاس بۆ متمانەیا هەوە",
-        notif_title: "ئاگەهداریێن قستان", notif_msg: "٣ ڕۆژ ماینە بۆ دانا قستێ",
-        inv_cost: "بهایێ کڕینێ", out_of_stock: "ئەڤ کەلوپەلە د مەخزەنی دا نەماینە!",
-        mlabel: "چاپکرنا لەیبلا", invalid_phone: "ژمارەیا موبایلێ یا خەلەتە!",
-        save_error: "کێشەیەک ل دەمێ سەیفکرنێ پەیدابوو!", h_title: "دیرۆکا پارەدانێ",
-        mclosing: "داخستنا سندوقێ", lupload: "بارکرنا ناسنامێ", mvault: "سندوق",
+        user: "ناڤێ بکارئینەری", pass: "کۆدا نهێنی", user_new: "ناڤێ بکارئینەری نوێ", role_c: "کاشێر", role_a: "ئەدمین",
+        lbl_code: "کۆدی (٦ ژمارە)", buy_code: "کڕینا کۆدی", wa_link: "پەیوەندی ب گەشەپێدەرێ",
+        err_empty: "تکایە هەمی خانێن پڕ بکە!", err_code: "کۆد یان زانیاری شێلۆنە!", err_exists: "ئەڤ ناڤە یێ هەی!",
+        succ_su: "سەرکەفتی! حیساب هاتە چێکرن.", succ_si: "ب سەرکەفتی چوویتە ژوور!", waMsg: "سڵاف، دێ شێم کۆدەکێ چالاککرنا سیستەمی کڕم؟",
+        mhead: "مینیو", tform: "فرۆشتنا نوی", lname: "ناڤێ کڕیاری", lphone: "موبایلا کڕیاری", lwitness: "ناڤێ دیدەڤانی", lwphone: "موبایلا دیدەڤانی", litem: " ئامێر/کاڵا",
+        lbuy: "بهایێ فرۆتنێ", ldown: "پێشەکی", lduration: "ماوێ قیستێ", lmon: "قیست", ltotal: "کۆم", bsave: "تۆمارکرن",
+        s1: "کۆگە", s4: "قازانج", srem: "ماوە", sannual: "تەخمینا ساڵانە", lnote: "تێبینی",
+        th1: "کڕیار", th2: " ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار",
+        madd: "مەخزەن", bclose: "داخستن", search: "لێگەریان ب ناڤ، بارکۆد یان ID...", inv_name: "ناڤێ ئامێری", inv_qty: "دانە", inv_add: "زێدەکرن",
+        marchive: "ئەڕشیڤ", mtrash: "گلێش", mbackup: "سەیفکرنا ئێکسل", mbackup_json: "باکئەپ (JSON)", mpdf: "سەیفکرنا PDF", mrestore: "دووبارە زێدەکرن",
+        mreports: "ڕاپۆرت", mabout: "گەشەپێدەر", mlogout: "چوونەدەر", mpc: "کۆمپیوتەر", mmobile: "موبایل", mdark: "شەڤ", mlight: "ڕۆژ",
+        dev_role: "پسپۆرێ IT و گەشەپێدەر", dev_msg: "ئەڤ سیستەمە ژ لایێ بژار ڕەشید هاتیە دروستکرن", other: "پشکێن دی",
+        lsaletype: "جۆرێ فرۆشتنێ", opt_inst: "بقیست", opt_cash: "کاش", opt_debt: "قەرز/دەین", opt_other_plan: "پشکێن دی (دەستکاری)",
+        custom_rate: "ڕێژەیا قازانجی %", custom_months: "هژمارا هەیڤان", rep_d: "ڕۆژانە", rep_w: "هەفتیانە", rep_m: "هەیڤانە", rep_y: "ساڵانە",
+        rep_count: "هژمارا وەصلا", rep_total: "کۆما پارەی", click_visit: "بۆ دیتنا پۆرتبۆلیۆی کلیک بکە", rec_title: "وەصلا وەرگرتنێ",
+        rec_cust: "کڕیار", rec_wit: "دیدەڤان", rec_rem: "ماوە", rec_msg: "سوپاس بۆ متمانەیا هەوە", notif_title: "ئاگەهداریێن قستان", notif_msg: "٣ ڕۆژ ماینە بۆ دانا قستێ",
+        inv_cost: "بهایێ کڕینێ", out_of_stock: "ئەڤ کەلوپەلە د مەخزەنی دا نەماینە!", mlabel: "چاپکرنا لەیبلا", invalid_phone: "ژمارەیا موبایلێ یا خەلەتە!",
+        save_error: "کێشەیەک ل دەمێ سەیفکرنێ پەیدابوو!", h_title: "دیرۆکا پارەدانێ", mclosing: "داخستنا سندوقێ", lupload: "بارکرنا ناسنامێ", mvault: "سندوق",
         edit_sale: "دەستکاری", update: "نویکردنەوە", confirm_del: "ئەرێ تو پشتراستی دێ برە د ناف گلێشی دا؟",
-        success_save: "وەێل ب سەرکەفتی هاتە تۆمارکرن", success_pay: "پارە ب سەرکەفتی هاتە وەرگرتن",
-        success_inv: "کەلوپەل ل مەخزەنی هاتە زێدەکرن", success_restore: "داتا ب سەرکەفتی هاتە زێدەکرن",
-        doc_label: "بەلگەیێ کڕیاری (ناسنامە)", mcustomers: "کڕیاران", mcurrency: "دراو",
-        edit_receipt: "دەستکاری وەسلێ", save_changes: "تۆمارکرنا گۆهرینان",
-        print_preview: "پێشبینینا چاپکرنێ", receipt_saved: "وەسل هاتە تۆمارکرن",
-        add_customer: "زێدەکرنا کڕیاری", customer_saved: "کڕیار هاتە تۆمارکرن",
-        customer_exists: "ئەڤ کڕیاری پێشتر هەیە", currency_usd: "دۆلاری ئەمریکی",
-        currency_iqd: "دیناری عێراقی", currency_irr: "تۆمانی ئێرانی", currency_try: "لیرەی تورکی",
-        edit_receipt_note: "دەستکاریێن تێدا بکە پاشان تۆمار بکە", msecurity: "سکیورتی / پاسۆرد",
-        sec_title: "رێکخستنا پاسۆردی", sec_pass: "پاسۆردێ نوێ بنڤیسە", sec_save: "پاسۆردێ خەزن بکە",
-        prot_inv: "پاراستنا مەخزەنی", prot_edit: "پاراستنا دەستکاریکرنێ",
-        prot_ret: "پاراستنا گەڕاندنەوەی", prot_pay: "پاراستنا وەرگرتنا پارەی",
-        prot_del: "پاراستنا سڕینەوەی", enter_pass: "تکایە پاسۆردی بنڤیسە:",
-        print_qr: "چاپکرن", net_profit: "قازانجێ سافی", pay_method: "شێوازێ پارەدانێ",
-        m_expenses: "خەرجی", m_suppliers: "دابینکار (کۆمپانیا)", cash_in_box: "کۆما پارەیێ سندوقێ",
-        th_desc: "وەسف", th_amt: "بڕێ پارەی", th_date: "بەروار", th_del: "سڕینەوە",
-        btn_restore: "گەڕاندنەوە",
-        discount: "داشکاندن (خصم)", imei: "IMEI / ژمارا زنجیرەیی", blacklist: "لیستا ڕەش", 
-        m_stocktake: "جەردکرنا مەخزەنی", low_stock: "ل مەخزەنی کێم بوویە", 
-        err_blacklisted: "ئەڤ کڕیارە د لیستا ڕەش دایە، نابت ب قەرز ببەت!",
-        m_audit: "تۆماری چالاکیان", m_statement: "کەشفی حساب", btn_a4: "چاپا A4", 
-        contract_title: "گرێبەستا قستان", seller: "فرۆشیار", buyer: "کڕیار", guarantor: "کەفیل"
+        success_save: "وەێل ب سەرکەفتی هاتە تۆمارکرن", success_pay: "پارە ب سەرکەفتی هاتە وەرگرتن", success_inv: "کەلوپەل ل مەخزەنی هاتە زێدەکرن", success_restore: "داتا ب سەرکەفتی هاتە زێدەکرن",
+        doc_label: "بەلگەیێ کڕیاری (ناسنامە)", mcustomers: "کڕیاران", mcurrency: "دراو", edit_receipt: "دەستکاری وەسلێ", save_changes: "تۆمارکرنا گۆهرینان",
+        print_preview: "پێشبینینا چاپکرنێ", receipt_saved: "وەسل هاتە تۆمارکرن", add_customer: "زێدەکرنا کڕیاری", customer_saved: "کڕیار هاتە تۆمارکرن", customer_exists: "ئەڤ کڕیاری پێشتر هەیە",
+        currency_usd: "دۆلاری ئەمریکی", currency_iqd: "دیناری عێراقی", currency_irr: "تۆمانی ئێرانی", currency_try: "لیرەی تورکی",
+        edit_receipt_note: "دەستکاریێن تێدا بکە پاشان تۆمار بکە", msecurity: "سکیورتی / پاسۆرد", sec_title: "رێکخستنا پاسۆردی", sec_pass: "پاسۆردێ نوێ بنڤیسە", sec_save: "پاسۆردێ خەزن بکە",
+        prot_inv: "پاراستنا مەخزەنی", prot_edit: "پاراستنا دەستکاریکرنێ", prot_ret: "پاراستنا گەڕاندنەوەی", prot_pay: "پاراستنا وەرگرتنا پارەی", prot_del: "پاراستنا سڕینەوەی",
+        enter_pass: "تکایە پاسۆردی بنڤیسە:", print_qr: "چاپکرن", net_profit: "قازانجێ سافی", pay_method: "شێوازێ پارەدانێ",
+        m_expenses: "خەرجی", m_suppliers: "دابینکار (کۆمپانیا)", cash_in_box: "کۆما پارەیێ سندوقێ", th_desc: "وەسف", th_amt: "بڕێ پارەی", th_date: "بەروار", th_del: "سڕینەوە",
+        btn_restore: "گەڕاندنەوە", discount: "داشکاندن (خصم)", imei: "IMEI / ژمارا زنجیرەیی", blacklist: "لیستا ڕەش", m_stocktake: "جەردکرنا مەخزەنی", low_stock: "ل مەخزەنی کێم بوویە",
+        err_blacklisted: "ئەڤ کڕیارە د لیستا ڕەش دایە، نابت ب قەرز ببەت!", m_audit: "تۆماری چالاکیان", m_statement: "کەشفی حساب", btn_a4: "چاپا A4", contract_title: "گرێبەستا قستان",
+        seller: "فرۆشیار", buyer: "کڕیار", guarantor: "کەفیل", m_guarantors: "کەفیلان", m_commissions: "عومولە و پاداشت", late_fee: "غەرامەیا دواکەفتنێ",
+        exp_cat: "پۆلێ خەرجیێ", cat_rent: "کرێ", cat_salary: "مووچە", cat_bills: "پارەیێن خزمەتگوزاری", cat_other: "یێن دی", comm_amt: "عومولەیا کارمەندی",
+        auth_req: "پاسۆردێ نوکە یان کۆدێ ئەدمینی:", err_auth_req: "تکایە پاسۆردێ نوکە یان کۆد بنڤیسە!", err_auth_fail: "پاسۆرد یان کۆد خەلەتە!"
     },
     sr: {
         login_sub: "سیستەمی فرۆشتن و قیستەکان", tab_si: "چوونەژوورەوە", tab_su: "خۆتۆمارکردن",
-        user: "ناوی بەکارهێنەر", pass: "وشەی نهێنی", user_new: "ناوی بەکارهێنەری نوێ",
-        role_c: "کاشێر", role_a: "بەڕێوەبەر", lbl_code: "کۆد (٦ ژمارە)", buy_code: "کڕینی کۆد",
-        wa_link: "پەیوەندی بە گەشەپێدەرەوە", err_empty: "تکایە هەموو خانەکان پڕبکەوە!", err_code: "کۆدەکە یان زانیارییەکان هەڵەن!",
-        err_exists: "ئەم ناوە پێشتر بەکارهاتووە!", succ_su: "سەرکەوتووبوو! هەژمار دروستکرا.", succ_si: "بە سەرکەوتوویی چوویتە ژوورەوە!", waMsg: "سڵاو، دەتوانم کۆدێکی چالاککردنی سیستم بکڕم؟",
-        mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", lphone: "موبایلی کڕیار",
-        lwitness: "ناوی دیدەڤان", lwphone: "موبایلی دیدەڤان", litem: "ئامێر",
-        lbuy: "نرخی فرۆشتنی", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست",
-        ltotal: "کۆم", bsave: "پاشەکەوت", s1: "کۆگا", s4: "قازانج", srem: "ماوە",
-        sannual: "ساڵانە", lnote: "تێبینی", th1: "کڕیار", th2: "ئامێر", th3: "کۆم",
-        th_down: "پێشەکی", th4: "قیست", th5: "کردار", madd: "کۆگا", bclose: "داخستن",
-        search: "گەڕان بە ناو، بارکۆد یان ID...", inv_name: "ناوی کاڵا", inv_qty: "ژمارە",
-        inv_add: "زیادکردن", marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ",
-        mbackup: "باکئەپی ئێکسل", mbackup_json: "باکئەپ (JSON)", mpdf: "باکئەپی PDF",
-        mrestore: "گێڕانەوەی داتا", mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم",
-        mlogout: "چوونەدرەوە", mpc: "کۆمپیوتەر", mmobile: "موبایل", mdark: "شەو", mlight: "ڕۆژ",
-        dev_role: "پسپۆڕی IT و گەشەپێدەر", dev_msg: "ئەم سیستمە لەلایەن بژار ڕەشید دروست کراوە",
-        other: "بەشەکانی تر", lsaletype: "جۆری فرۆشتن", opt_inst: "قست", opt_cash: "نەقد",
-        opt_debt: "قەرز", opt_other_plan: "دەستکاری", custom_rate: "ڕێژەی قازانج %",
-        custom_months: "مانگەکان", rep_d: "ڕۆژانە", rep_w: "هەفتانە", rep_m: "مانگانە",
-        rep_y: "ساڵانە", rep_count: "ژمارەی وەصڵ", rep_total: "کۆیی پارە",
-        click_visit: "بۆ بینینی پۆرتبۆلیۆ کلیک بکە", rec_title: "وەصڵی وەرگرتن",
-        rec_cust: "کڕیار", rec_wit: "شایەت", rec_rem: "ماوە", rec_msg: "سوپاس بۆ متمانەکەتان",
-        notif_title: "ئاگادارکەرەوەی قیستەکان", notif_msg: "٣ ڕۆژ ماوە بۆدانی قیست",
-        inv_cost: "نرخی کڕین", out_of_stock: "ببوورە! ئەم کاڵایە لە کۆگا نەماوە",
-        mlabel: "چاپکردنی لەیبڵ", invalid_phone: "ژمارەی مۆبایلەکە هەڵەیە!",
-        save_error: "کێشەیەک لە پاشەکەوتکردن هەبوو!", h_title: "مێژووی قیستەکان",
-        mclosing: "داخستنی سندوق", lupload: "بارکردنی ناسنامە", mvault: "سندوق",
+        user: "ناوی بەکارهێنەر", pass: "وشەی نهێنی", user_new: "ناوی بەکارهێنەری نوێ", role_c: "کاشێر", role_a: "بەڕێوەبەر",
+        lbl_code: "کۆد (٦ ژمارە)", buy_code: "کڕینی کۆد", wa_link: "پەیوەندی بە گەشەپێدەرەوە",
+        err_empty: "تکایە هەموو خانەکان پڕبکەوە!", err_code: "کۆدەکە یان زانیارییەکان هەڵەن!", err_exists: "ئەم ناوە پێشتر بەکارهاتووە!",
+        succ_su: "سەرکەوتووبوو! هەژمار دروستکرا.", succ_si: "بە سەرکەوتوویی چوویتە ژوورەوە!", waMsg: "سڵاو، دەتوانم کۆدێکی چالاککردنی سیستم بکڕم؟",
+        mhead: "مینیو", tform: "فرۆشتنی نوێ", lname: "ناوی کڕیار", lphone: "موبایلی کڕیار", lwitness: "ناوی دیدەڤان", lwphone: "موبایلی دیدەڤان", litem: "ئامێر",
+        lbuy: "نرخی فرۆشتنی", ldown: "پێشەکی", lduration: "ماوە", lmon: "قیست", ltotal: "کۆم", bsave: "پاشەکەوت",
+        s1: "کۆگا", s4: "قازانج", srem: "ماوە", sannual: "ساڵانە", lnote: "تێبینی",
+        th1: "کڕیار", th2: "ئامێر", th3: "کۆم", th_down: "پێشەکی", th4: "قیست", th5: "کردار",
+        madd: "کۆگا", bclose: "داخستن", search: "گەڕان بە ناو، بارکۆد یان ID...", inv_name: "ناوی کاڵا", inv_qty: "ژمارە", inv_add: "زیادکردن",
+        marchive: "ئەرشیف", mtrash: "تەنەکەی خۆڵ", mbackup: "باکئەپی ئێکسل", mbackup_json: "باکئەپ (JSON)", mpdf: "باکئەپی PDF", mrestore: "گێڕانەوەی داتا",
+        mreports: "ڕاپۆرتەکان", mabout: "دەربارەی سیستم", mlogout: "چوونەدرەوە", mpc: "کۆمپیوتەر", mmobile: "موبایل", mdark: "شەو", mlight: "ڕۆژ",
+        dev_role: "پسپۆڕی IT و گەشەپێدەر", dev_msg: "ئەم سیستمە لەلایەن بژار ڕەشید دروست کراوە", other: "بەشەکانی تر",
+        lsaletype: "جۆری فرۆشتن", opt_inst: "قست", opt_cash: "نەقد", opt_debt: "قەرز", opt_other_plan: "دەستکاری",
+        custom_rate: "ڕێژەی قازانج %", custom_months: "مانگەکان", rep_d: "ڕۆژانە", rep_w: "هەفتانە", rep_m: "مانگانە", rep_y: "ساڵانە",
+        rep_count: "ژمارەی وەصڵ", rep_total: "کۆیی پارە", click_visit: "بۆ بینینی پۆرتبۆلیۆ کلیک بکە", rec_title: "وەصڵی وەرگرتن",
+        rec_cust: "کڕیار", rec_wit: "شایەت", rec_rem: "ماوە", rec_msg: "سوپاس بۆ متمانەکەتان", notif_title: "ئاگادارکەرەوەی قیستەکان", notif_msg: "٣ ڕۆژ ماوە بۆدانی قیست",
+        inv_cost: "نرخی کڕین", out_of_stock: "ببوورە! ئەم کاڵایە لە کۆگا نەماوە", mlabel: "چاپکردنی لەیبڵ", invalid_phone: "ژمارەی مۆبایلەکە هەڵەیە!",
+        save_error: "کێشەیەک لە پاشەکەوتکردن هەبوو!", h_title: "مێژووی قیستەکان", mclosing: "داخستنی سندوق", lupload: "بارکردنی ناسنامە", mvault: "سندوق",
         edit_sale: "دەستکاری", update: "نوێکردنەوە", confirm_del: "ئایا دڵنیای دەتەوێت بیخەیتە ناو تەنەکەی خۆڵ؟",
-        success_save: "وەصڵەکە بە سەرکەوتوویی پاشەکەوت کرا", success_pay: "پارەکە بە سەرکەوتوویی وەرگیرا",
-        success_inv: "کاڵاکە بۆ کۆگا زیاد کرا", success_restore: "داتاکان بە سەرکەوتوویی گەڕێنرانەوە",
-        doc_label: "بەڵگەی کڕیار (ناسنامە)", mcustomers: "کڕیاران", mcurrency: "دراو",
-        edit_receipt: "دەستکاری وەصڵ", save_changes: "پاشەکەوتکردنی گۆڕانکاریەکان",
-        print_preview: "پێشبینینی چاپکردن", receipt_saved: "وەصڵ پاشەکەوت کرا",
-        add_customer: "زیادکردنی کڕیار", customer_saved: "کڕیار پاشەکەوت کرا",
-        customer_exists: "ئەم کڕیارە پێشتر هەیە", currency_usd: "دۆلاری ئەمریکی",
-        currency_iqd: "دیناری عێراقی", currency_irr: "تۆمانی ئێرانی", currency_try: "لیرەی تورکی",
-        edit_receipt_note: "گۆڕانکاریەکان بکە پاشان پاشەکەوت بکە", msecurity: "سکیوریتی / پاسۆرد",
-        sec_title: "ڕێکخستنی پاسۆرد", sec_pass: "پاسۆردی نوێ بنووسە", sec_save: "پاشەکەوتکردنی پاسۆرد",
-        prot_inv: "پاراستنی کۆگا", prot_edit: "پاراستنی دەستکاری فرۆشتن", prot_ret: "پاراستنی گەڕاندنەوە",
-        prot_pay: "پاراستنی وەرگرتنی پارە", prot_del: "پاراستنی سڕینەوە", enter_pass: "تکایە پاسۆرد بنووسە:",
-        print_qr: "چاپکردن", net_profit: "قازانجی پوخت", pay_method: "شێوازی پارەدان",
-        m_expenses: "خەرجییەکان", m_suppliers: "دابینکاران (کۆمپانیا)", cash_in_box: "کۆی پارەی ناو سندوق",
-        th_desc: "وەسف", th_amt: "بڕ", th_date: "بەروار", th_del: "سڕینەوە",
-        btn_restore: "گەڕاندنەوە", discount: "داشکاندن (خصم)", imei: "IMEI / زنجیرەیی", blacklist: "لیستی ڕەش", 
-        m_stocktake: "جەردکردنی کۆگا", low_stock: "لە کۆگا کەم بووەتەوە", err_blacklisted: "ئەم کڕیارە لە لیستی ڕەشدایە!",
-        m_audit: "تۆماری چالاکیەکان", m_statement: "کەشفی حساب", btn_a4: "چاپی A4", 
-        contract_title: "گرێبەستی قیست", seller: "فرۆشیار", buyer: "کڕیار", guarantor: "کەفیل"
+        success_save: "وەصڵەکە بە سەرکەوتوویی پاشەکەوت کرا", success_pay: "پارەکە بە سەرکەوتوویی وەرگیرا", success_inv: "کاڵاکە بۆ کۆگا زیاد کرا", success_restore: "داتاکان بە سەرکەوتوویی گەڕێنرانەوە",
+        doc_label: "بەڵگەی کڕیار (ناسنامە)", mcustomers: "کڕیاران", mcurrency: "دراو", edit_receipt: "دەستکاری وەصڵ", save_changes: "پاشەکەوتکردنی گۆڕانکاریەکان",
+        print_preview: "پێشبینینی چاپکردن", receipt_saved: "وەصڵ پاشەکەوت کرا", add_customer: "زیادکردنی کڕیار", customer_saved: "کڕیار پاشەکەوت کرا", customer_exists: "ئەم کڕیارە پێشتر هەیە",
+        currency_usd: "دۆلاری ئەمریکی", currency_iqd: "دیناری عێراقی", currency_irr: "تۆمانی ئێرانی", currency_try: "لیرەی تورکی",
+        edit_receipt_note: "گۆڕانکاریەکان بکە پاشان پاشەکەوت بکە", msecurity: "سکیوریتی / پاسۆرد", sec_title: "ڕێکخستنی پاسۆرد", sec_pass: "پاسۆردی نوێ بنووسە", sec_save: "پاشەکەوتکردنی پاسۆرد",
+        prot_inv: "پاراستنی کۆگا", prot_edit: "پاراستنی دەستکاری فرۆشتن", prot_ret: "پاراستنی گەڕاندنەوە", prot_pay: "پاراستنی وەرگرتنی پارە", prot_del: "پاراستنی سڕینەوە",
+        enter_pass: "تکایە پاسۆرد بنووسە:", print_qr: "چاپکردن", net_profit: "قازانجی پوخت", pay_method: "شێوازی پارەدان",
+        m_expenses: "خەرجییەکان", m_suppliers: "دابینکاران (کۆمپانیا)", cash_in_box: "کۆی پارەی ناو سندوق", th_desc: "وەسف", th_amt: "بڕ", th_date: "بەروار", th_del: "سڕینەوە",
+        btn_restore: "گەڕاندنەوە", discount: "داشکاندن (خصم)", imei: "IMEI / زنجیرەیی", blacklist: "لیستی ڕەش", m_stocktake: "جەردکردنی کۆگا", low_stock: "لە کۆگا کەم بووەتەوە",
+        err_blacklisted: "ئەم کڕیارە لە لیستی ڕەشدایە!", m_audit: "تۆماری چالاکیەکان", m_statement: "کەشفی حساب", btn_a4: "چاپی A4", contract_title: "گرێبەستی قیست",
+        seller: "فرۆشیار", buyer: "کڕیار", guarantor: "کەفیل", m_guarantors: "کەفیلەکان", m_commissions: "عومولەکان", late_fee: "سزای دواکەوتن",
+        exp_cat: "جۆری خەرجی", cat_rent: "کرێ", cat_salary: "مووچە", cat_bills: "پسوولە", cat_other: "هیتر", comm_amt: "بڕی عومولە",
+        auth_req: "پاسۆردی ئێستا یان کۆدی ئەدمین:", err_auth_req: "تکایە پاسۆردی ئێستا یان کۆدی ئەدمین بنووسە!", err_auth_fail: "پاسۆرد یان کۆدی ئەدمین هەڵەیە!"
     },
     ar: {
         login_sub: "نظام المبيعات والأقساط", tab_si: "تسجيل الدخول", tab_su: "إنشاء حساب",
-        user: "اسم المستخدم", pass: "كلمة المرور", user_new: "اسم مستخدم جديد",
-        role_c: "كاشير", role_a: "مدير", lbl_code: "الرمز (6 أرقام)", buy_code: "شراء الرمز",
-        wa_link: "اتصل بالمطور", err_empty: "يرجى ملء جميع الحقول!", err_code: "الرمز أو البيانات خاطئة!",
-        err_exists: "هذا المستخدم موجود مسبقاً!", succ_su: "نجاح! تم إنشاء الحساب.", succ_si: "تم تسجيل الدخول بنجاح!", waMsg: "مرحباً، هل يمكنني شراء كود تفعيل النظام؟",
-        mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", lphone: "رقم الهاتف",
-        lwitness: "اسم الشاهد", lwphone: "هاتف الشاهد", litem: "المنتج", lbuy: "سعر البيع",
-        ldown: "المقدمة", lduration: "مدة الأقساط", lmon: "القسط الشهري", ltotal: "المجموع",
-        bsave: "حفظ", s1: "المخزن", s4: "الأرباح", srem: "المتبقي", sannual: "التوقع السنوي",
-        lnote: "ملاحظات", th1: "الزبون", th2: "المنتج", th3: "المجموع", th_down: "المقدم",
-        th4: "المدفوع", th5: "إجراء", madd: "المخزن", bclose: "إغلاق",
-        search: "بحث عن طريق الاسم أو الرقم...", inv_name: "اسم المنتج", inv_qty: "الكمية",
-        inv_add: "إضافة", marchive: "الأرشيف", mtrash: "سلة المهملات", mbackup: "تصدير إكسل",
-        mbackup_json: "نسخة JSON", mpdf: "تصدير PDF", mrestore: "استرجاع البيانات",
-        mreports: "التقارير", mabout: "حول المطور", mlogout: "تسجيل الخروج",
-        mpc: "وضع الكمبيوتر", mmobile: "وضع الهاتف", mdark: "ليلي", mlight: "نهاري",
-        dev_role: "خبير IT ومطور برامج", dev_msg: "تم تطوير هذا النظام بواسطة بژار رشيد",
-        other: "أقسام أخرى", lsaletype: "نوع البيع", opt_inst: "أقساط", opt_cash: "نقدي",
-        opt_debt: "دين", opt_other_plan: "تعديل النسبة", custom_rate: "النسبة %",
-        custom_months: "الأشهر", rep_d: "يومي", rep_w: "أسبوعي", rep_m: "شهري",
-        rep_y: "سنوي", rep_count: "عدد الوصلات", rep_total: "إجمالي المبلغ",
-        click_visit: "لمشاهدة معرض الأعمال", rec_title: "وصل استلام", rec_cust: "الزبون",
-        rec_wit: "الشاهد", rec_rem: "الباقي", rec_msg: "شكراً لثقتكم بنا",
-        notif_title: "تنبيهات الأقساط", notif_msg: "بقي ٣ أيام على موعد القسط",
-        inv_cost: "سعر الشراء", out_of_stock: "عذراً! المنتج غير متوفر",
-        mlabel: "صانع الليبل", invalid_phone: "رقم الهاتف غير صحيح!",
-        save_error: "فشل الحفظ!", h_title: "سجل المدفوعات", mclosing: "إغلاق الصندوق",
-        lupload: "رفع المستمسكات", mvault: "الصندوق", edit_sale: "تعديل",
-        update: "تحديث", confirm_del: "هل أنت متأكد من النقل لسلة المهملات؟",
-        success_save: "تم حفظ الوصل بنجاح", success_pay: "تم استلام المبلغ بنجاح",
-        success_inv: "تمت إضافة المنتج للمخزن", success_restore: "تم استرجاع البيانات بنجاح",
-        doc_label: "مستمسك الزبون", mcustomers: "العملاء", mcurrency: "العملة",
-        edit_receipt: "تعديل الوصل", save_changes: "حفظ التغييرات",
-        print_preview: "معاينة الطباعة", receipt_saved: "تم حفظ الوصل",
-        add_customer: "إضافة عميل", customer_saved: "تم حفظ العميل",
-        customer_exists: "هذا العميل موجود مسبقاً", currency_usd: "دولار أمريكي",
-        currency_iqd: "دينار عراقي", currency_irr: "تومان إيراني", currency_try: "ليرة تركية",
-        edit_receipt_note: "قم بالتعديل ثم احفظ", msecurity: "الأمان وكلمة المرور",
-        sec_title: "إعدادات كلمة المرور", sec_pass: "أدخل كلمة المرور الجديدة", sec_save: "حفظ الإعدادات",
-        prot_inv: "حماية المخزن", prot_edit: "حماية تعديل البيع", prot_ret: "حماية إرجاع البيع",
-        prot_pay: "حماية استلام المبالغ", prot_del: "حماية الحذف", enter_pass: "الرجاء إدخال كلمة المرور:",
-        print_qr: "طباعة", net_profit: "صافي الربح", pay_method: "طريقة الدفع",
-        m_expenses: "المصروفات", m_suppliers: "الموردين", cash_in_box: "النقد في الصندوق",
-        th_desc: "الوصف", th_amt: "المبلغ", th_date: "التاريخ", th_del: "حذف",
-        btn_restore: "استعادة", discount: "الخصم", imei: "السيريال / IMEI", blacklist: "القائمة السوداء", 
-        m_stocktake: "جرد المخزن", low_stock: "نفاد الكمية قريباً", err_blacklisted: "العميل في القائمة السوداء!",
-        m_audit: "سجل النشاطات", m_statement: "كشف حساب", btn_a4: "طباعة عقد A4", 
-        contract_title: "عقد بيع بالتقسيط", seller: "البائع", buyer: "المشتري", guarantor: "الضامن"
+        user: "اسم المستخدم", pass: "كلمة المرور", user_new: "اسم مستخدم جديد", role_c: "كاشير", role_a: "مدير",
+        lbl_code: "الرمز (6 أرقام)", buy_code: "شراء الرمز", wa_link: "اتصل بالمطور",
+        err_empty: "يرجى ملء جميع الحقول!", err_code: "الرمز أو البيانات خاطئة!", err_exists: "هذا المستخدم موجود مسبقاً!",
+        succ_su: "نجاح! تم إنشاء الحساب.", succ_si: "تم تسجيل الدخول بنجاح!", waMsg: "مرحباً، هل يمكنني شراء كود تفعيل النظام؟",
+        mhead: "القائمة", tform: "بيع جديد", lname: "اسم الزبون", lphone: "رقم الهاتف", lwitness: "اسم الشاهد", lwphone: "هاتف الشاهد", litem: "المنتج",
+        lbuy: "سعر البيع", ldown: "المقدمة", lduration: "مدة الأقساط", lmon: "القسط الشهري", ltotal: "المجموع", bsave: "حفظ",
+        s1: "المخزن", s4: "الأرباح", srem: "المتبقي", sannual: "التوقع السنوي", lnote: "ملاحظات",
+        th1: "الزبون", th2: "المنتج", th3: "المجموع", th_down: "المقدم", th4: "المدفوع", th5: "إجراء",
+        madd: "المخزن", bclose: "إغلاق", search: "بحث عن طريق الاسم أو الرقم...", inv_name: "اسم المنتج", inv_qty: "الكمية", inv_add: "إضافة",
+        marchive: "الأرشيف", mtrash: "سلة المهملات", mbackup: "تصدير إكسل", mbackup_json: "نسخة JSON", mpdf: "تصدير PDF", mrestore: "استرجاع البيانات",
+        mreports: "التقارير", mabout: "حول المطور", mlogout: "تسجيل الخروج", mpc: "وضع الكمبيوتر", mmobile: "وضع الهاتف", mdark: "ليلي", mlight: "نهاري",
+        dev_role: "خبير IT ومطور برامج", dev_msg: "تم تطوير هذا النظام بواسطة بژار رشيد", other: "أقسام أخرى",
+        lsaletype: "نوع البيع", opt_inst: "أقساط", opt_cash: "نقدي", opt_debt: "دين", opt_other_plan: "تعديل النسبة",
+        custom_rate: "النسبة %", custom_months: "الأشهر", rep_d: "يومي", rep_w: "أسبوعي", rep_m: "شهري", rep_y: "سنوي",
+        rep_count: "عدد الوصلات", rep_total: "إجمالي المبلغ", click_visit: "لمشاهدة معرض الأعمال", rec_title: "وصل استلام",
+        rec_cust: "الزبون", rec_wit: "الشاهد", rec_rem: "الباقي", rec_msg: "شكراً لثقتكم بنا", notif_title: "تنبيهات الأقساط", notif_msg: "بقي ٣ أيام على موعد القسط",
+        inv_cost: "سعر الشراء", out_of_stock: "عذراً! المنتج غير متوفر", mlabel: "صانع الليبل", invalid_phone: "رقم الهاتف غير صحيح!",
+        save_error: "فشل الحفظ!", h_title: "سجل المدفوعات", mclosing: "إغلاق الصندوق", lupload: "رفع المستمسكات", mvault: "الصندوق",
+        edit_sale: "تعديل", update: "تحديث", confirm_del: "هل أنت متأكد من النقل لسلة المهملات؟",
+        success_save: "تم حفظ الوصل بنجاح", success_pay: "تم استلام المبلغ بنجاح", success_inv: "تمت إضافة المنتج للمخزن", success_restore: "تم استرجاع البيانات بنجاح",
+        doc_label: "مستمسك الزبون", mcustomers: "العملاء", mcurrency: "العملة", edit_receipt: "تعديل الوصل", save_changes: "حفظ التغييرات",
+        print_preview: "معاينة الطباعة", receipt_saved: "تم حفظ الوصل", add_customer: "إضافة عميل", customer_saved: "تم حفظ العميل", customer_exists: "هذا العميل موجود مسبقاً",
+        currency_usd: "دولار أمريكي", currency_iqd: "دينار عراقي", currency_irr: "تومان إيراني", currency_try: "ليرة تركية",
+        edit_receipt_note: "قم بالتعديل ثم احفظ", msecurity: "الأمان وكلمة المرور", sec_title: "إعدادات كلمة المرور", sec_pass: "أدخل كلمة المرور الجديدة", sec_save: "حفظ الإعدادات",
+        prot_inv: "حماية المخزن", prot_edit: "حماية تعديل البيع", prot_ret: "حماية إرجاع البيع", prot_pay: "حماية استلام المبالغ", prot_del: "حماية الحذف",
+        enter_pass: "الرجاء إدخال كلمة المرور:", print_qr: "طباعة", net_profit: "صافي الربح", pay_method: "طريقة الدفع",
+        m_expenses: "المصروفات", m_suppliers: "الموردين", cash_in_box: "النقد في الصندوق", th_desc: "الوصف", th_amt: "المبلغ", th_date: "التاريخ", th_del: "حذف",
+        btn_restore: "استعادة", discount: "الخصم", imei: "السيريال / IMEI", blacklist: "القائمة السوداء", m_stocktake: "جرد المخزن", low_stock: "نفاد الكمية قريباً",
+        err_blacklisted: "العميل في القائمة السوداء!", m_audit: "سجل النشاطات", m_statement: "كشف حساب", btn_a4: "طباعة عقد A4", contract_title: "عقد بيع بالتقسيط",
+        seller: "البائع", buyer: "المشتري", guarantor: "الضامن", m_guarantors: "الضامنين", m_commissions: "العمولات", late_fee: "غرامة تأخير",
+        exp_cat: "نوع المصروف", cat_rent: "إيجار", cat_salary: "رواتب", cat_bills: "فواتير", cat_other: "أخرى", comm_amt: "مبلغ العمولة",
+        auth_req: "كلمة المرور الحالية أو كود الآدمن:", err_auth_req: "يرجى إدخال كلمة المرور أو الكود!", err_auth_fail: "كلمة المرور أو الكود غير صحيح!"
     },
     en: {
         login_sub: "Sales & Installment System", tab_si: "Sign In", tab_su: "Sign Up",
-        user: "Username", pass: "Password", user_new: "New Username",
-        role_c: "Cashier", role_a: "Admin", lbl_code: "Code (6 Digits)", buy_code: "Buy Code",
-        wa_link: "Contact Developer", err_empty: "Please fill all fields!", err_code: "Invalid Code or Data!",
-        err_exists: "User already exists!", succ_su: "Success! Account created.", succ_si: "Logged in successfully!", waMsg: "Hello, can I purchase a system activation code?",
-        mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", lphone: "PHONE",
-        lwitness: "WITNESS", lwphone: "WIT PHONE", litem: "ITEM", lbuy: "PRICE",
-        ldown: "DOWN", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL",
-        bsave: "SAVE", s1: "STOCK", s4: "NET PROFIT", srem: "REMAIN", sannual: "ANNUAL",
-        lnote: "NOTES", th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN",
-        th4: "PAID", th5: "ACTION", madd: "INVENTORY", bclose: "CLOSE",
-        search: "Search by Name, Barcode or ID...", inv_name: "Item Name", inv_qty: "Qty",
-        inv_add: "Add", marchive: "Archive", mtrash: "Trash", mbackup: "Excel",
-        mbackup_json: "Backup JSON", mpdf: "PDF", mrestore: "Restore",
-        mreports: "Reports", mabout: "About", mlogout: "Logout",
-        mpc: "PC Mode", mmobile: "Mobile Mode", mdark: "Dark", mlight: "Light",
-        dev_role: "IT Specialist & Developer", dev_msg: "Developed by Bizhar Rasheed",
-        other: "Other Items", lsaletype: "Sale Type", opt_inst: "Installments",
-        opt_cash: "Cash", opt_debt: "Debt", opt_other_plan: "Other",
-        custom_rate: "Rate %", custom_months: "Months", rep_d: "Daily",
-        rep_w: "Weekly", rep_m: "Monthly", rep_y: "Yearly", rep_count: "Receipts",
-        rep_total: "Total", click_visit: "Portfolio", rec_title: "RECEIPT",
-        rec_cust: "Customer", rec_wit: "Witness", rec_rem: "Remain",
-        rec_msg: "Thank you for your trust", notif_title: "Installment Alerts",
-        notif_msg: "3 days left for payment", inv_cost: "Cost Price",
-        out_of_stock: "Sorry! Item out of stock", mlabel: "Label Maker",
-        invalid_phone: "Invalid phone number!", save_error: "Save failed!",
-        h_title: "Payment Ledger", mclosing: "Daily Closing",
-        lupload: "Upload Document", mvault: "Cash Drawer", edit_sale: "Edit",
-        update: "Update", confirm_del: "Are you sure you want to move this to trash?",
-        success_save: "Sale saved successfully!", success_pay: "Payment received!",
-        success_inv: "Inventory updated!", success_restore: "Data restored successfully!",
-        doc_label: "Customer ID Doc", mcustomers: "Customers", mcurrency: "Currency",
-        edit_receipt: "Edit Receipt", save_changes: "Save Changes",
-        print_preview: "Print Preview", receipt_saved: "Receipt saved",
-        add_customer: "Add Customer", customer_saved: "Customer saved",
-        customer_exists: "Customer already exists", currency_usd: "US Dollar",
-        currency_iqd: "Iraqi Dinar", currency_irr: "Iranian Toman", currency_try: "Turkish Lira",
-        edit_receipt_note: "Edit then save", msecurity: "Security / Password",
-        sec_title: "Password Settings", sec_pass: "Set Master Password", sec_save: "Save Settings",
-        prot_inv: "Protect Inventory Access", prot_edit: "Protect Edit Sale", prot_ret: "Protect Return Sale",
-        prot_pay: "Protect Receive Payment", prot_del: "Protect Delete/Trash", enter_pass: "Please enter password:",
-        print_qr: "Print QR", net_profit: "NET PROFIT", pay_method: "Payment Method",
-        m_expenses: "Expenses", m_suppliers: "Suppliers", cash_in_box: "TOTAL CASH IN BOX",
-        th_desc: "Description", th_amt: "Amount", th_date: "Date", th_del: "Delete",
-        btn_restore: "RESTORE", discount: "Discount", imei: "IMEI / Serial", blacklist: "Blacklist", 
-        m_stocktake: "Stocktaking", low_stock: "Low in Stock", err_blacklisted: "Customer is blacklisted!",
-        m_audit: "Audit Log", m_statement: "Statement", btn_a4: "Print A4", 
-        contract_title: "Installment Contract", seller: "Seller", buyer: "Buyer", guarantor: "Guarantor"
+        user: "Username", pass: "Password", user_new: "New Username", role_c: "Cashier", role_a: "Admin",
+        lbl_code: "Code (6 Digits)", buy_code: "Buy Code", wa_link: "Contact Developer",
+        err_empty: "Please fill all fields!", err_code: "Invalid Code or Data!", err_exists: "User already exists!",
+        succ_su: "Success! Account created.", succ_si: "Logged in successfully!", waMsg: "Hello, can I purchase a system activation code?",
+        mhead: "MENU", tform: "NEW SALE", lname: "CUSTOMER NAME", lphone: "PHONE", lwitness: "WITNESS", lwphone: "WIT PHONE", litem: "ITEM",
+        lbuy: "PRICE", ldown: "DOWN", lduration: "PLAN", lmon: "MONTHLY", ltotal: "TOTAL", bsave: "SAVE",
+        s1: "STOCK", s4: "NET PROFIT", srem: "REMAIN", sannual: "ANNUAL", lnote: "NOTES",
+        th1: "NAME", th2: "ITEM", th3: "TOTAL", th_down: "DOWN", th4: "PAID", th5: "ACTION",
+        madd: "INVENTORY", bclose: "CLOSE", search: "Search by Name, Barcode or ID...", inv_name: "Item Name", inv_qty: "Qty", inv_add: "Add",
+        marchive: "Archive", mtrash: "Trash", mbackup: "Excel", mbackup_json: "Backup JSON", mpdf: "PDF", mrestore: "Restore",
+        mreports: "Reports", mabout: "About", mlogout: "Logout", mpc: "PC Mode", mmobile: "Mobile Mode", mdark: "Dark", mlight: "Light",
+        dev_role: "IT Specialist & Developer", dev_msg: "Developed by Bizhar Rasheed", other: "Other Items",
+        lsaletype: "Sale Type", opt_inst: "Installments", opt_cash: "Cash", opt_debt: "Debt", opt_other_plan: "Other",
+        custom_rate: "Rate %", custom_months: "Months", rep_d: "Daily", rep_w: "Weekly", rep_m: "Monthly", rep_y: "Yearly",
+        rep_count: "Receipts", rep_total: "Total", click_visit: "Portfolio", rec_title: "RECEIPT",
+        rec_cust: "Customer", rec_wit: "Witness", rec_rem: "Remain", rec_msg: "Thank you for your trust", notif_title: "Installment Alerts", notif_msg: "3 days left for payment",
+        inv_cost: "Cost Price", out_of_stock: "Sorry! Item out of stock", mlabel: "Label Maker", invalid_phone: "Invalid phone number!",
+        save_error: "Save failed!", h_title: "Payment Ledger", mclosing: "Daily Closing", lupload: "Upload Document", mvault: "Cash Drawer",
+        edit_sale: "Edit", update: "Update", confirm_del: "Are you sure you want to move this to trash?",
+        success_save: "Sale saved successfully!", success_pay: "Payment received!", success_inv: "Inventory updated!", success_restore: "Data restored successfully!",
+        doc_label: "Customer ID Doc", mcustomers: "Customers", mcurrency: "Currency", edit_receipt: "Edit Receipt", save_changes: "Save Changes",
+        print_preview: "Print Preview", receipt_saved: "Receipt saved", add_customer: "Add Customer", customer_saved: "Customer saved", customer_exists: "Customer already exists",
+        currency_usd: "US Dollar", currency_iqd: "Iraqi Dinar", currency_irr: "Iranian Toman", currency_try: "Turkish Lira",
+        edit_receipt_note: "Edit then save", msecurity: "Security / Password", sec_title: "Password Settings", sec_pass: "Set Master Password", sec_save: "Save Settings",
+        prot_inv: "Protect Inventory Access", prot_edit: "Protect Edit Sale", prot_ret: "Protect Return Sale", prot_pay: "Protect Receive Payment", prot_del: "Protect Delete/Trash",
+        enter_pass: "Please enter password:", print_qr: "Print QR", net_profit: "NET PROFIT", pay_method: "Payment Method",
+        m_expenses: "Expenses", m_suppliers: "Suppliers", cash_in_box: "TOTAL CASH IN BOX", th_desc: "Description", th_amt: "Amount", th_date: "Date", th_del: "Delete",
+        btn_restore: "RESTORE", discount: "Discount", imei: "IMEI / Serial", blacklist: "Blacklist", m_stocktake: "Stocktaking", low_stock: "Low in Stock",
+        err_blacklisted: "Customer is blacklisted!", m_audit: "Audit Log", m_statement: "Statement", btn_a4: "Print A4", contract_title: "Installment Contract",
+        seller: "Seller", buyer: "Buyer", guarantor: "Guarantor", m_guarantors: "Guarantors", m_commissions: "Commissions", late_fee: "Late Fee",
+        exp_cat: "Category", cat_rent: "Rent", cat_salary: "Salary", cat_bills: "Bills", cat_other: "Other", comm_amt: "Commission Amt",
+        auth_req: "Current Pass or Admin Code:", err_auth_req: "Please enter current pass or code!", err_auth_fail: "Invalid password or admin code!"
     },
     tr: {
         login_sub: "Satış ve Taksit Sistemi", tab_si: "Giriş Yap", tab_su: "Kayıt Ol",
-        user: "Kullanıcı Adı", pass: "Şifre", user_new: "Yeni Kullanıcı Adı",
-        role_c: "Kasiyer", role_a: "Yönetici", lbl_code: "Kod (6 Hane)", buy_code: "Kod Satın Al",
-        wa_link: "Geliştiriciyle İletişim", err_empty: "Lütfen tüm alanları doldurun!", err_code: "Geçersiz Kod veya Veri!",
-        err_exists: "Kullanıcı zaten mevcut!", succ_su: "Başarılı! Hesap oluşturuldu.", succ_si: "Başarıyla giriş yapıldı!", waMsg: "Merhaba, sistem aktivasyon kodu satın alabilir miyim?",
-        mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", lphone: "TELEFON",
-        lwitness: "ŞAHİT", lwphone: "ŞAHİT TEL", litem: "ÜRÜN", lbuy: "SATIŞ FİYATI",
-        ldown: "PEŞİNAT", lduration: "TAKSİT PLANI", lmon: "AYLIK", ltotal: "TOPLAM",
-        bsave: "KAYDET", s1: "STOK", s4: "KAR", srem: "KALAN", sannual: "YILLIK TAHMİN",
-        lnote: "NOTLAR", th1: "AD", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN",
-        th4: "ÖDENEN", th5: "İŞLEM", madd: "ENVANTER", bclose: "KAPAT",
-        search: "İsim veya ID ile ara...", inv_name: "Ürün Adı", inv_qty: "Adet",
-        inv_add: "Ekle", marchive: "Arşiv", mtrash: "Çöp Kutusu",
-        mbackup: "Excel Çıktısı", mbackup_json: "JSON Yedek", mpdf: "PDF Çıktısı",
-        mrestore: "Veriyi Geri Yükle", mreports: "Raporlar", mabout: "Geliştirici",
-        mlogout: "Çıkış Yap", mpc: "PC Modu", mmobile: "Mobil Mod", mdark: "Koyu", mlight: "Açık",
-        dev_role: "BT Uzmanı ve Geliştirici", dev_msg: "Bu sistem Bizhar Rasheed tarafından geliştirildi",
-        other: "Diğer Bölümler", lsaletype: "Satış Türü", opt_inst: "Taksitli",
-        opt_cash: "Nakit", opt_debt: "Borç", opt_other_plan: "Oranı Düzenle",
-        custom_rate: "Oran %", custom_months: "Ay Sayısı", rep_d: "Günlük",
-        rep_w: "Haftalık", rep_m: "Aylık", rep_y: "Yıllık", rep_count: "Fiş Sayısı",
-        rep_total: "Toplam Tutar", click_visit: "Portfolyoyu Gör",
-        rec_title: "MAKBUZ", rec_cust: "Müşteri", rec_wit: "Şahit", rec_rem: "Kalan",
-        rec_msg: "Güveniniz için teşekkürler", notif_title: "Taksit Uyarıları",
-        notif_msg: "Ödeme için 3 gün kaldı", inv_cost: "Maliyet",
-        out_of_stock: "Üzgünüz! Ürün stokta yok", mlabel: "Etiket Oluşturucu",
-        invalid_phone: "Geçersiz telefon numarası!", save_error: "Kaydetme hatası!",
-        h_title: "Ödeme Geçmişi", mclosing: "Günlük Kapanış", lupload: "Belge Yükle",
-        mvault: "Kasa", edit_sale: "Düzenle", update: "Güncelle",
-        confirm_del: "Çöp kutusuna taşımak istediğinize emin misiniz?",
-        success_save: "Satış başarıyla kaydedildi!", success_pay: "Ödeme alındı!",
-        success_inv: "Envanter güncellendi!", success_restore: "Veriler başarıyla yüklendi!",
-        doc_label: "Müşteri Kimlik Belgesi", mcustomers: "Müşteriler", mcurrency: "Para Birimi",
-        edit_receipt: "Makbuzu Düzenle", save_changes: "Değişiklikleri Kaydet",
-        print_preview: "Baskı Önizleme", receipt_saved: "Makbuz kaydedildi",
-        add_customer: "Müşteri Ekle", customer_saved: "Müşteri kaydedildi",
-        customer_exists: "Müşteri zaten mevcut", currency_usd: "Amerikan Doları",
-        currency_iqd: "Irak Dinarı", currency_irr: "İran Tümeni", currency_try: "Türk Lirası",
-        edit_receipt_note: "Düzenleyip kaydedin", msecurity: "Güvenlik / Şifre",
-        sec_title: "Şifre Ayarları", sec_pass: "Yeni Şifre Belirle", sec_save: "Ayarları Kaydet",
-        prot_inv: "Envanteri Koru", prot_edit: "Düzenlemeyi Koru", prot_ret: "İadeyi Koru",
-        prot_pay: "Ödeme Almayı Koru", prot_del: "Silmeyi Koru", enter_pass: "Lütfen şifreyi girin:",
-        print_qr: "Yazdır", net_profit: "NET KÂR", pay_method: "Ödeme Yöntemi",
-        m_expenses: "Giderler", m_suppliers: "Tedarikçiler", cash_in_box: "KASADAKİ TOPLAM PARA",
-        th_desc: "Açıklama", th_amt: "Tutar", th_date: "Tarih", th_del: "Sil",
-        btn_restore: "GERİ YÜKLE", discount: "İndirim", imei: "IMEI / Seri No", blacklist: "Kara Liste", 
-        m_stocktake: "Stok Sayımı", low_stock: "Stokta Az", err_blacklisted: "Müşteri kara listede!",
-        m_audit: "İşlem Günlüğü", m_statement: "Hesap Özeti", btn_a4: "A4 Yazdır", 
-        contract_title: "Taksit Sözleşmesi", seller: "Satıcı", buyer: "Alıcı", guarantor: "Kefil"
+        user: "Kullanıcı Adı", pass: "Şifre", user_new: "Yeni Kullanıcı Adı", role_c: "Kasiyer", role_a: "Yönetici",
+        lbl_code: "Kod (6 Hane)", buy_code: "Kod Satın Al", wa_link: "Geliştiriciyle İletişim",
+        err_empty: "Lütfen tüm alanları doldurun!", err_code: "Geçersiz Kod veya Veri!", err_exists: "Kullanıcı zaten mevcut!",
+        succ_su: "Başarılı! Hesap oluşturuldu.", succ_si: "Başarıyla giriş yapıldı!", waMsg: "Merhaba, sistem aktivasyon kodu satın alabilir miyim?",
+        mhead: "MENÜ", tform: "YENİ SATIŞ", lname: "MÜŞTERİ ADI", lphone: "TELEFON", lwitness: "ŞAHİT", lwphone: "ŞAHİT TEL", litem: "ÜRÜN",
+        lbuy: "SATIŞ FİYATI", ldown: "PEŞİNAT", lduration: "TAKSİT PLANI", lmon: "AYLIK", ltotal: "TOPLAM", bsave: "KAYDET",
+        s1: "STOK", s4: "KAR", srem: "KALAN", sannual: "YILLIK TAHMİN", lnote: "NOTLAR",
+        th1: "AD", th2: "ÜRÜN", th3: "TOPLAM", th_down: "PEŞİN", th4: "ÖDENEN", th5: "İŞLEM",
+        madd: "ENVANTER", bclose: "KAPAT", search: "İsim veya ID ile ara...", inv_name: "Ürün Adı", inv_qty: "Adet", inv_add: "Ekle",
+        marchive: "Arşiv", mtrash: "Çöp Kutusu", mbackup: "Excel Çıktısı", mbackup_json: "JSON Yedek", mpdf: "PDF Çıktısı", mrestore: "Veriyi Geri Yükle",
+        mreports: "Raporlar", mabout: "Geliştirici", mlogout: "Çıkış Yap", mpc: "PC Modu", mmobile: "Mobil Mod", mdark: "Koyu", mlight: "Açık",
+        dev_role: "BT Uzmanı ve Geliştirici", dev_msg: "Bu sistem Bizhar Rasheed tarafından geliştirildi", other: "Diğer Bölümler",
+        lsaletype: "Satış Türü", opt_inst: "Taksitli", opt_cash: "Nakit", opt_debt: "Borç", opt_other_plan: "Oranı Düzenle",
+        custom_rate: "Oran %", custom_months: "Ay Sayısı", rep_d: "Günlük", rep_w: "Haftalık", rep_m: "Aylık", rep_y: "Yıllık",
+        rep_count: "Fiş Sayısı", rep_total: "Toplam Tutar", click_visit: "Portfolyoyu Gör", rec_title: "MAKBUZ",
+        rec_cust: "Müşteri", rec_wit: "Şahit", rec_rem: "Kalan", rec_msg: "Güveniniz için teşekkürler", notif_title: "Taksit Uyarıları", notif_msg: "Ödeme için 3 gün kaldı",
+        inv_cost: "Maliyet", out_of_stock: "Üzgünüz! Ürün stokta yok", mlabel: "Etiket Oluşturucu", invalid_phone: "Geçersiz telefon numarası!",
+        save_error: "Kaydetme hatası!", h_title: "Ödeme Geçmişi", mclosing: "Günlük Kapanış", lupload: "Belge Yükle", mvault: "Kasa",
+        edit_sale: "Düzenle", update: "Güncelle", confirm_del: "Çöp kutusuna taşımak istediğinize emin misiniz?",
+        success_save: "Satış başarıyla kaydedildi!", success_pay: "Ödeme alındı!", success_inv: "Envanter güncellendi!", success_restore: "Veriler başarıyla yüklendi!",
+        doc_label: "Müşteri Kimlik Belgesi", mcustomers: "Müşteriler", mcurrency: "Para Birimi", edit_receipt: "Makbuzu Düzenle", save_changes: "Değişiklikleri Kaydet",
+        print_preview: "Baskı Önizleme", receipt_saved: "Makbuz kaydedildi", add_customer: "Müşteri Ekle", customer_saved: "Müşteri kaydedildi", customer_exists: "Müşteri zaten mevcut",
+        currency_usd: "Amerikan Doları", currency_iqd: "Irak Dinarı", currency_irr: "İran Tümeni", currency_try: "Türk Lirası",
+        edit_receipt_note: "Düzenleyip kaydedin", msecurity: "Güvenlik / Şifre", sec_title: "Şifre Ayarları", sec_pass: "Yeni Şifre Belirle", sec_save: "Ayarları Kaydet",
+        prot_inv: "Envanteri Koru", prot_edit: "Düzenlemeyi Koru", prot_ret: "İadeyi Koru", prot_pay: "Ödeme Almayı Koru", prot_del: "Silmeyi Koru",
+        enter_pass: "Lütfen şifreyi girin:", print_qr: "Yazdır", net_profit: "NET KÂR", pay_method: "Ödeme Yöntemi",
+        m_expenses: "Giderler", m_suppliers: "Tedarikçiler", cash_in_box: "KASADAKİ TOPLAM PARA", th_desc: "Açıklama", th_amt: "Tutar", th_date: "Tarih", th_del: "Sil",
+        btn_restore: "GERİ YÜKLE", discount: "İndirim", imei: "IMEI / Seri No", blacklist: "Kara Liste", m_stocktake: "Stok Sayımı", low_stock: "Stokta Az",
+        err_blacklisted: "Müşteri kara listede!", m_audit: "İşlem Günlüğü", m_statement: "Hesap Özeti", btn_a4: "A4 Yazdır", contract_title: "Taksit Sözleşmesi",
+        seller: "Satıcı", buyer: "Alıcı", guarantor: "Kefil", m_guarantors: "Kefiller", m_commissions: "Komisyonlar", late_fee: "Gecikme Cezası",
+        exp_cat: "Kategori", cat_rent: "Kira", cat_salary: "Maaş", cat_bills: "Faturalar", cat_other: "Diğer", comm_amt: "Komisyon Miktarı",
+        auth_req: "Mevcut Şifre veya Admin Kodu:", err_auth_req: "Lütfen mevcut şifre veya kodu girin!", err_auth_fail: "Geçersiz şifre veya kod!"
     },
     fa: {
         login_sub: "سیستم فروش و اقساط", tab_si: "ورود", tab_su: "ثبت نام",
-        user: "نام کاربری", pass: "رمز عبور", user_new: "نام کاربری جدید",
-        role_c: "صندوقدار", role_a: "مدیر", lbl_code: "کد (۶ رقم)", buy_code: "خرید کد",
-        wa_link: "تماس با برنامه‌نویس", err_empty: "لطفا همه فیلدها را پر کنید!", err_code: "کد یا اطلاعات اشتباه است!",
-        err_exists: "این کاربر قبلا وجود دارد!", succ_su: "موفقیت! حساب ایجاد شد.", succ_si: "با موفقیت وارد شدید!", waMsg: "سلام، آیا می‌توانم کد فعال‌سازی سیستم را خریداری کنم؟",
-        mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", lphone: "شماره تماس",
-        lwitness: "نام شاهد", lwphone: "تماس شاهد", litem: "کالا", lbuy: "قیمت فروش",
-        ldown: "پیش‌پرداخت", lduration: "مدت اقساط", lmon: "قسط ماهانه", ltotal: "مجموع",
-        bsave: "ذخیره", s1: "موجودی", s4: "سود", srem: "باقیمانده", sannual: "تخمین سالانه",
-        lnote: "یادداشت", th1: "مشتری", th2: "کالا", th3: "مجموع", th_down: "پیش",
-        th4: "پرداختی", th5: "عملیات", madd: "انبار", bclose: "بستن",
-        search: "جستجو با نام یا شناسه...", inv_name: "نام کالا", inv_qty: "تعداد",
-        inv_add: "افزودن", marchive: "آرشیو", mtrash: "زباله‌دان",
-        mbackup: "خروجی اکسل", mbackup_json: "پشتیبان JSON", mpdf: "خروجی PDF",
-        mrestore: "بازیابی داده‌ها", mreports: "گزارش‌ها", mabout: "درباره توسعه‌دهنده",
-        mlogout: "خروج", mpc: "حالت کامپیوتر", mmobile: "حالت موبایل", mdark: "تاریک", mlight: "روشن",
-        dev_role: "متخصص IT و توسعه‌دهنده", dev_msg: "این سیستم توسط بژار رشید طراحی شده است",
-        other: "بخش‌های دیگر", lsaletype: "نوع فروش", opt_inst: "اقساطی",
-        opt_cash: "نقدی", opt_debt: "قرض", opt_other_plan: "تغییر درصد",
-        custom_rate: "درصد سود %", custom_months: "تعداد ماه", rep_d: "روزانه",
-        rep_w: "هفتگی", rep_m: "ماهانه", rep_y: "سالانه", rep_count: "تعداد فاکتور",
-        rep_total: "جمع مبالغ", click_visit: "مشاهده نمونه کارها",
-        rec_title: "رسید پرداخت", rec_cust: "مشتری", rec_wit: "شاهد", rec_rem: "مانده",
-        rec_msg: "ممنون از اعتماد شما", notif_title: "هشدار اقساط",
-        notif_msg: "۳ روز تا سررسید قسط", inv_cost: "قیمت خرید",
-        out_of_stock: "متاسفیم! موجودی انبار تمام شده", mlabel: "برچسب‌ساز",
-        invalid_phone: "شماره تماس نامعتبر است!", save_error: "خطا در ذخیره‌سازی!",
-        h_title: "تاریخچه پرداخت", mclosing: "بستن صندوق", lupload: "بارگذاری مدرک",
-        mvault: "صندوق نقد", edit_sale: "ویرایش", update: "بروزرسانی",
-        confirm_del: "آیا از انتقال به زباله‌دان مطمئن هستید؟",
-        success_save: "فروش با موفقیت ثبت شد", success_pay: "مبلغ دریافت شد!",
-        success_inv: "انبار بروزرسانی شد", success_restore: "داده‌ها بازیابی شدند",
-        doc_label: "مدارک مشتری", mcustomers: "مشتریان", mcurrency: "ارز",
-        edit_receipt: "ویرایش رسید", save_changes: "ذخیره تغییرات",
-        print_preview: "پیش‌نمایش چاپ", receipt_saved: "رسید ذخیره شد",
-        add_customer: "افزودن مشتری", customer_saved: "مشتری ذخیره شد",
-        customer_exists: "این مشتری قبلاً وجود دارد", currency_usd: "دلار آمریکا",
-        currency_iqd: "دین عراق", currency_irr: "تومان ایران", currency_try: "لیر ترکیه",
-        edit_receipt_note: "ویرایش کنید و ذخیره کنید", msecurity: "امنیت / رمز عبور",
-        sec_title: "تنظیمات رمز عبور", sec_pass: "رمز عبور جدید", sec_save: "ذخیره تنظیمات",
-        prot_inv: "محافظت از انبار", prot_edit: "محافظت از ویرایش", prot_ret: "محافظت از مرجوعی",
-        prot_pay: "محافظت از دریافت وجه", prot_del: "محافظت از حذف", enter_pass: "لطفا رمز عبور را وارد کنید:",
-        print_qr: "چاپ", net_profit: "سود خالص", pay_method: "روش پرداخت",
-        m_expenses: "هزینه‌ها", m_suppliers: "تامین‌کنندگان", cash_in_box: "کل موجودی صندوق",
-        th_desc: "توضیحات", th_amt: "مبلغ", th_date: "تاریخ", th_del: "حذف",
-        btn_restore: "بازیابی", discount: "تخفیف", imei: "شماره سریال / IMEI", blacklist: "لیست سیاه", 
-        m_stocktake: "انبارگردانی", low_stock: "موجودی کم", err_blacklisted: "این مشتری در لیست سیاه است!",
-        m_audit: "گزارش فعالیت", m_statement: "صورتحساب", btn_a4: "چاپ A4", 
-        contract_title: "قرارداد اقساطی", seller: "فروشنده", buyer: "خریدار", guarantor: "ضامن"
+        user: "نام کاربری", pass: "رمز عبور", user_new: "نام کاربری جدید", role_c: "صندوقدار", role_a: "مدیر",
+        lbl_code: "کد (۶ رقم)", buy_code: "خرید کد", wa_link: "تماس با برنامه‌نویس",
+        err_empty: "لطفا همه فیلدها را پر کنید!", err_code: "کد یا اطلاعات اشتباه است!", err_exists: "این کاربر قبلا وجود دارد!",
+        succ_su: "موفقیت! حساب ایجاد شد.", succ_si: "با موفقیت وارد شدید!", waMsg: "سلام، آیا می‌توانم کد فعال‌سازی سیستم را خریداری کنم؟",
+        mhead: "منو", tform: "فروش جدید", lname: "نام مشتری", lphone: "شماره تماس", lwitness: "نام شاهد", lwphone: "تماس شاهد", litem: "کالا",
+        lbuy: "قیمت فروش", ldown: "پیش‌پرداخت", lduration: "مدت اقساط", lmon: "قسط ماهانه", ltotal: "مجموع", bsave: "ذخیره",
+        s1: "موجودی", s4: "سود", srem: "باقیمانده", sannual: "تخمین سالانه", lnote: "یادداشت",
+        th1: "مشتری", th2: "کالا", th3: "مجموع", th_down: "پیش", th4: "پرداختی", th5: "عملیات",
+        madd: "انبار", bclose: "بستن", search: "جستجو با نام یا شناسه...", inv_name: "نام کالا", inv_qty: "تعداد", inv_add: "افزودن",
+        marchive: "آرشیو", mtrash: "زباله‌دان", mbackup: "خروجی اکسل", mbackup_json: "پشتیبان JSON", mpdf: "خروجی PDF", mrestore: "بازیابی داده‌ها",
+        mreports: "گزارش‌ها", mabout: "درباره توسعه‌دهنده", mlogout: "خروج", mpc: "حالت کامپیوتر", mmobile: "حالت موبایل", mdark: "تاریک", mlight: "روشن",
+        dev_role: "متخصص IT و توسعه‌دهنده", dev_msg: "این سیستم توسط بژار رشید طراحی شده است", other: "بخش‌های دیگر",
+        lsaletype: "نوع فروش", opt_inst: "اقساطی", opt_cash: "نقدی", opt_debt: "قرض", opt_other_plan: "تغییر درصد",
+        custom_rate: "درصد سود %", custom_months: "تعداد ماه", rep_d: "روزانه", rep_w: "هفتگی", rep_m: "ماهانه", rep_y: "سالانه",
+        rep_count: "تعداد فاکتور", rep_total: "جمع مبالغ", click_visit: "مشاهده نمونه کارها", rec_title: "رسید پرداخت",
+        rec_cust: "مشتری", rec_wit: "شاهد", rec_rem: "مانده", rec_msg: "ممنون از اعتماد شما", notif_title: "هشدار اقساط", notif_msg: "۳ روز تا سررسید قسط",
+        inv_cost: "قیمت خرید", out_of_stock: "متاسفیم! موجودی انبار تمام شده", mlabel: "برچسب‌ساز", invalid_phone: "شماره تماس نامعتبر است!",
+        save_error: "خطا در ذخیره‌سازی!", h_title: "تاریخچه پرداخت", mclosing: "بستن صندوق", lupload: "بارگذاری مدرک", mvault: "صندوق نقد",
+        edit_sale: "ویرایش", update: "بروزرسانی", confirm_del: "آیا از انتقال به زباله‌دان مطمئن هستید؟",
+        success_save: "فروش با موفقیت ثبت شد", success_pay: "مبلغ دریافت شد!", success_inv: "انبار بروزرسانی شد", success_restore: "داده‌ها بازیابی شدند",
+        doc_label: "مدارک مشتری", mcustomers: "مشتریان", mcurrency: "ارز", edit_receipt: "ویرایش رسید", save_changes: "ذخیره تغییرات",
+        print_preview: "پیش‌نمایش چاپ", receipt_saved: "رسید ذخیره شد", add_customer: "افزودن مشتری", customer_saved: "مشتری ذخیره شد", customer_exists: "این مشتری قبلاً وجود دارد",
+        currency_usd: "دلار آمریکا", currency_iqd: "دین عراق", currency_irr: "تومان ایران", currency_try: "لیر ترکیه",
+        edit_receipt_note: "ویرایش کنید و ذخیره کنید", msecurity: "امنیت / رمز عبور", sec_title: "تنظیمات رمز عبور", sec_pass: "رمز عبور جدید", sec_save: "ذخیره تنظیمات",
+        prot_inv: "محافظت از انبار", prot_edit: "محافظت از ویرایش", prot_ret: "محافظت از مرجوعی", prot_pay: "محافظت از دریافت وجه", prot_del: "محافظت از حذف",
+        enter_pass: "لطفا رمز عبور را وارد کنید:", print_qr: "چاپ", net_profit: "سود خالص", pay_method: "روش پرداخت",
+        m_expenses: "هزینه‌ها", m_suppliers: "تامین‌کنندگان", cash_in_box: "کل موجودی صندوق", th_desc: "توضیحات", th_amt: "مبلغ", th_date: "تاریخ", th_del: "حذف",
+        btn_restore: "بازیابی", discount: "تخفیف", imei: "شماره سریال / IMEI", blacklist: "لیست سیاه", m_stocktake: "انبارگردانی", low_stock: "موجودی کم",
+        err_blacklisted: "این مشتری در لیست سیاه است!", m_audit: "گزارش فعالیت", m_statement: "صورتحساب", btn_a4: "چاپ A4", contract_title: "قرارداد اقساطی",
+        seller: "فروشنده", buyer: "خریدار", guarantor: "ضامن", m_guarantors: "ضامنین", m_commissions: "پورسانت‌ها", late_fee: "جریمه دیرکرد",
+        exp_cat: "دسته‌بندی", cat_rent: "اجاره", cat_salary: "حقوق", cat_bills: "قبوض", cat_other: "سایر", comm_amt: "مبلغ پورسانت",
+        auth_req: "رمز فعلی یا کد ادمین:", err_auth_req: "لطفا رمز فعلی یا کد را وارد کنید!", err_auth_fail: "رمز یا کد ادمین اشتباه است!"
     }
 };
 
@@ -357,15 +255,13 @@ let currentTab = 'signin';
 
 function escapeHTML(str) {
     if (typeof str !== 'string') return str;
-    return str.replace(/[&<>'"]/g, 
-        tag => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&#39;',
-            '"': '&quot;'
-        }[tag] || tag)
-    );
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag] || tag));
 }
 
 function showToast(message, type = 'success') {
@@ -375,7 +271,11 @@ function showToast(message, type = 'success') {
     const icon = type === 'success' ? 'fa-circle-check' : (type === 'danger' ? 'fa-circle-xmark' : 'fa-circle-info');
     toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
     container.appendChild(toast);
-    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 3000);
 }
 
 function logAction(actionName, details) {
@@ -417,8 +317,13 @@ function selectRole(role) {
 
 function handleCodeInput(input, index) {
     const val = input.value;
-    if (!/^\d*$/.test(val)) { input.value = ''; return; }
-    if (val && index < 5) { document.querySelector(`[data-index="${index + 1}"]`).focus(); }
+    if (!/^\d*$/.test(val)) {
+        input.value = '';
+        return;
+    }
+    if (val && index < 5) {
+        document.querySelector(`[data-index="${index + 1}"]`).focus();
+    }
 }
 
 function handleCodeKeydown(event, index) {
@@ -545,16 +450,31 @@ function loginSuccess() {
     showToast(l.succ_si, "success");
 }
 
+function togglePrivacy() {
+    privacyHidden = !privacyHidden;
+    render();
+}
+function toggleDark() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    const l = translations[document.getElementById('lang-sel').value];
+    document.getElementById('m-dark').innerText = isDark ? l.mlight : l.mdark;
+    document.getElementById('mode-icon').className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+    toggleMenu();
+}
+
 // ==========================================
 // 4. MAIN POS LOGIC & SCALABLE DB SYNC
 // ==========================================
-
 let renderTimeout;
+
 function requestRender() {
     clearTimeout(renderTimeout);
     renderTimeout = setTimeout(() => {
         render();
-        if (isInventoryOpen) showInventory();
+        if (isInventoryOpen) {
+            showInventory();
+        }
         checkInstallmentsNotif();
         updateCustomerDropdown();
     }, 200);
@@ -565,22 +485,30 @@ function syncNode(nodePath, arrayTarget, sortFunc = null) {
         const data = snap.val();
         if(!arrayTarget.find(x => x.id === data.id)) {
             arrayTarget.push(data);
-            if(sortFunc) arrayTarget.sort(sortFunc);
+            if(sortFunc) {
+                arrayTarget.sort(sortFunc);
+            }
         }
         requestRender();
     });
+
     db.ref(nodePath).on('child_changed', snap => {
         const data = snap.val();
         const idx = arrayTarget.findIndex(x => x.id === data.id);
         if (idx !== -1) {
             arrayTarget[idx] = data;
-            if(sortFunc) arrayTarget.sort(sortFunc);
+            if(sortFunc) {
+                arrayTarget.sort(sortFunc);
+            }
         }
         requestRender();
     });
+
     db.ref(nodePath).on('child_removed', snap => {
         const idx = arrayTarget.findIndex(x => x.id.toString() === snap.key);
-        if (idx !== -1) arrayTarget.splice(idx, 1);
+        if (idx !== -1) {
+            arrayTarget.splice(idx, 1);
+        }
         requestRender();
     });
 }
@@ -602,6 +530,7 @@ window.onload = () => {
 
     if (db) {
         const sortDesc = (a, b) => b.timestamp - a.timestamp;
+        
         syncNode('i', inv);
         syncNode('s', sales, sortDesc);
         syncNode('a', archive, sortDesc);
@@ -611,9 +540,22 @@ window.onload = () => {
         syncNode('e', expenses);
         syncNode('sup', suppliers);
         syncNode('logs', logs, sortDesc);
+        syncNode('g', guarantors);
+        syncNode('comm', commissions, sortDesc);
 
-        db.ref('currency').on('value', snap => { if(snap.val()) { currentCurrency = snap.val(); requestRender(); }});
-        db.ref('sec').on('value', snap => { if(snap.val()) { securitySettings = snap.val(); requestRender(); }});
+        db.ref('currency').on('value', snap => {
+            if(snap.val()) {
+                currentCurrency = snap.val();
+                requestRender();
+            }
+        });
+
+        db.ref('sec').on('value', snap => {
+            if(snap.val()) {
+                securitySettings = snap.val();
+                requestRender();
+            }
+        });
     }
 
     loadCurrency();
@@ -621,13 +563,17 @@ window.onload = () => {
     toggleSaleMode();
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
+        if (e.key === 'Escape') {
+            closeModal();
+        }
     });
 
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.customer-select')) {
             const d = document.getElementById('customer-dropdown');
-            if (d) d.classList.remove('show');
+            if (d) {
+                d.classList.remove('show');
+            }
         }
     });
 };
@@ -650,6 +596,7 @@ function requireAuth(actionType, callback) {
 function applyPermissions() {
     const adminMenu = document.getElementById('admin-only-menu');
     const adminFeatures = document.querySelectorAll('.admin-feature');
+    
     if (currentUserRole === "Admin") {
         if (adminMenu) adminMenu.style.display = 'block';
         adminFeatures.forEach(el => el.style.display = 'block');
@@ -676,34 +623,29 @@ function checkInvPass() {
 
 function deleteImage(url) {
     if (url && url.includes('firebasestorage')) {
-        try { storage.refFromURL(url).delete().catch(e => console.log("Image delete handled silently")); } catch(e){}
+        try {
+            storage.refFromURL(url).delete().catch(e => console.log("Image delete handled silently"));
+        } catch(e) {}
     }
 }
 
 function handleSearch() {
     render();
-    if (isInventoryOpen) showInventory();
+    if (isInventoryOpen) {
+        showInventory();
+    }
+    
     const modalTitle = document.getElementById('modal-title');
     if (modalTitle) {
         const t = modalTitle.innerText;
         const l = translations[document.getElementById('lang-sel').value];
-        if (t === l.marchive) showArchive(true);
-        if (t === l.mtrash || t === "TRASH") showRecycleBin(true);
+        if (t === l.marchive) {
+            showArchive(true);
+        }
+        if (t === l.mtrash || t === "TRASH") {
+            showRecycleBin(true);
+        }
     }
-}
-
-function togglePrivacy() {
-    privacyHidden = !privacyHidden;
-    render();
-}
-
-function toggleDark() {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    const l = translations[document.getElementById('lang-sel').value];
-    document.getElementById('m-dark').innerText = isDark ? l.mlight : l.mdark;
-    document.getElementById('mode-icon').className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
-    toggleMenu();
 }
 
 function previewDoc(input) {
@@ -805,7 +747,15 @@ function calc() {
 
     document.getElementById('o-mon').innerText = currentCurrency.symbol + (mon > 0 ? mon.toFixed(2) : 0);
     document.getElementById('o-total').innerText = currentCurrency.symbol + total.toFixed(2);
-    return { total: Number(total.toFixed(2)), mon: Number(mon.toFixed(2)), b: Number(b.toFixed(2)), discount: Number(discount.toFixed(2)), d: Number(d.toFixed(2)), m: m };
+    
+    return { 
+        total: Number(total.toFixed(2)), 
+        mon: Number(mon.toFixed(2)), 
+        b: Number(b.toFixed(2)), 
+        discount: Number(discount.toFixed(2)), 
+        d: Number(d.toFixed(2)), 
+        m: m 
+    };
 }
 
 function showCustomerList() {
@@ -820,6 +770,7 @@ function filterCustomers() {
     const l = translations[document.getElementById('lang-sel').value];
     
     const filtered = customers.filter(c => c.name.toLowerCase().includes(term));
+    
     if (filtered.length === 0) {
         dropdown.innerHTML = `
         <div class="customer-item" onclick="addNewCustomer()">
@@ -843,8 +794,16 @@ function addNewCustomer() {
     const name = escapeHTML(document.getElementById('i-name').value.trim());
     const phone = escapeHTML(document.getElementById('i-phone').value.trim());
     const l = translations[document.getElementById('lang-sel').value];
-    if (!name || !phone) { showToast("Enter name and phone first!", "warning"); return; }
-    if (customers.find(c => c.phone === phone)) { showToast(l.customer_exists, "warning"); return; }
+    
+    if (!name || !phone) { 
+        showToast("Enter name and phone first!", "warning"); 
+        return; 
+    }
+    
+    if (customers.find(c => c.phone === phone)) { 
+        showToast(l.customer_exists, "warning"); 
+        return; 
+    }
     
     let custId = Date.now();
     let updates = {};
@@ -864,11 +823,14 @@ function updateCustomerDropdown() {
 function showCustomers() {
     const l = translations[document.getElementById('lang-sel').value];
     document.getElementById('modal-title').innerText = l.mcustomers;
+    
     document.getElementById('modal-content').innerHTML = `
     <div class="card" style="margin-bottom:15px;">
         <input type="text" id="new-cust-name" placeholder="${l.lname}">
         <input type="tel" id="new-cust-phone" placeholder="${l.lphone}" style="margin-top:10px;">
-        <button class="main-btn" onclick="saveNewCustomer()"><i class="fa-solid fa-plus"></i> ${l.add_customer}</button>
+        <button class="main-btn" onclick="saveNewCustomerModal()">
+            <i class="fa-solid fa-plus"></i> ${l.add_customer}
+        </button>
     </div>
     <div class="table-wrap">
         <table>
@@ -902,6 +864,7 @@ function showCustomers() {
             </tbody>
         </table>
     </div>`;
+    
     document.getElementById('modal-universal').style.display = 'flex';
     toggleMenu();
 }
@@ -918,6 +881,7 @@ function showCustomerStatement(phone) {
     if (!cCust) return;
     
     let totalBought = 0, totalPaid = 0;
+    
     let statementHtml = `
         <div class="statement-header">
             <h3>${escapeHTML(cCust.name)}</h3>
@@ -941,6 +905,7 @@ function showCustomerStatement(phone) {
     all.forEach(s => {
         totalBought += parseFloat(s.total);
         let sPaid = 0;
+        
         if(s.type === 'Debt') {
             sPaid = parseFloat(s.total) - parseFloat(s.mon);
         } else if (s.type === 'Cash') {
@@ -996,13 +961,20 @@ function toggleBlacklist(id, currentStatus) {
     }
 }
 
-function saveNewCustomer() {
+function saveNewCustomerModal() {
     const name = escapeHTML(document.getElementById('new-cust-name').value.trim());
     const phone = escapeHTML(document.getElementById('new-cust-phone').value.trim());
     const l = translations[document.getElementById('lang-sel').value];
     
-    if (!name || !phone) { showToast("Fill all fields!", "warning"); return; }
-    if (customers.find(c => c.phone === phone)) { showToast(l.customer_exists, "warning"); return; }
+    if (!name || !phone) { 
+        showToast("Fill all fields!", "warning"); 
+        return; 
+    }
+    
+    if (customers.find(c => c.phone === phone)) { 
+        showToast(l.customer_exists, "warning"); 
+        return; 
+    }
     
     let custId = Date.now();
     db.ref().update({ ['/c/' + custId]: { name, phone, id: custId, blacklist: false } }).then(() => {
@@ -1018,6 +990,83 @@ function deleteCustomer(id) {
             logAction("DELETE CUSTOMER", "Deleted customer ID: " + id); 
             showToast("Deleted!", "success"); 
             showCustomers(); 
+        });
+    }
+}
+
+function showGuarantors() {
+    const l = translations[document.getElementById('lang-sel').value];
+    document.getElementById('modal-title').innerText = l.m_guarantors;
+    
+    document.getElementById('modal-content').innerHTML = `
+    <div class="card" style="margin-bottom:15px; border-left: 5px solid var(--primary);">
+        <input type="text" id="new-g-name" placeholder="${l.lname}">
+        <input type="tel" id="new-g-phone" placeholder="${l.lphone}" style="margin-top:10px;">
+        <button class="main-btn" onclick="saveNewGuarantor()">
+            <i class="fa-solid fa-plus"></i> Add Guarantor
+        </button>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>${l.lname}</th>
+                    <th>${l.lphone}</th>
+                    <th>Linked Sales</th>
+                    <th>${l.th_del}</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${guarantors.map(g => {
+                    let linked = sales.filter(s => s.witnessPhone === g.phone).length;
+                    return `
+                    <tr>
+                        <td><b>${escapeHTML(g.name)}</b></td>
+                        <td>${escapeHTML(g.phone)}</td>
+                        <td style="color:${linked > 2 ? 'var(--danger)' : 'var(--success)'}; font-weight:bold;">${linked} Active</td>
+                        <td>
+                            <button onclick="deleteGuarantor(${g.id})" class="btn-sm" style="background:var(--danger);">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('')}
+            </tbody>
+        </table>
+    </div>`;
+    
+    document.getElementById('modal-universal').style.display = 'flex';
+    toggleMenu();
+}
+
+function saveNewGuarantor() {
+    const name = escapeHTML(document.getElementById('new-g-name').value.trim());
+    const phone = escapeHTML(document.getElementById('new-g-phone').value.trim());
+    
+    if (!name || !phone) { 
+        showToast("Fill all fields!", "warning"); 
+        return; 
+    }
+    
+    if (guarantors.find(g => g.phone === phone)) { 
+        showToast("Guarantor already exists!", "warning"); 
+        return; 
+    }
+    
+    let gId = Date.now();
+    db.ref().update({ ['/g/' + gId]: { name, phone, id: gId } }).then(() => {
+        logAction("ADD GUARANTOR", "Added guarantor: " + name);
+        showToast("Guarantor Saved", "success");
+        showGuarantors();
+    });
+}
+
+function deleteGuarantor(id) {
+    if (confirm("Delete guarantor?")) {
+        db.ref('/g/' + id).remove().then(() => { 
+            logAction("DELETE GUARANTOR", "Deleted ID: " + id); 
+            showToast("Deleted!", "success"); 
+            showGuarantors(); 
         });
     }
 }
@@ -1044,6 +1093,7 @@ function showAuditLog() {
             });
         }
         html += `</div>`;
+        
         document.getElementById('modal-content').innerHTML = html;
         document.getElementById('modal-universal').style.display = 'flex';
         toggleMenu();
@@ -1052,12 +1102,15 @@ function showAuditLog() {
 
 function loadCurrency() {
     const saved = localStorage.getItem('pos_currency');
-    if (saved) currentCurrency = JSON.parse(saved);
+    if (saved) {
+        currentCurrency = JSON.parse(saved);
+    }
 }
 
 function showCurrencySettings() {
     const l = translations[document.getElementById('lang-sel').value];
     document.getElementById('modal-title').innerText = l.mcurrency;
+    
     document.getElementById('modal-content').innerHTML = `
     <div class="card">
         <label style="font-weight:700;">Select Currency</label>
@@ -1067,14 +1120,18 @@ function showCurrencySettings() {
             <option value="IRR" ${currentCurrency.code === 'IRR' ? 'selected' : ''}>${l.currency_irr || 'تومان'} (IRR) - تومان</option>
             <option value="TRY" ${currentCurrency.code === 'TRY' ? 'selected' : ''}>${l.currency_try} (TRY) - ₺</option>
         </select>
+        
         <label style="font-weight:700; margin-top:15px; display:block;">Exchange Rate (to USD)</label>
         <input type="number" id="currency-rate" value="${currentCurrency.rate}" step="0.01" placeholder="1.0">
-        <button class="main-btn" onclick="saveCurrency()"><i class="fa-solid fa-save"></i> Save</button>
+        
+        <button class="main-btn" onclick="saveCurrency()">
+            <i class="fa-solid fa-save"></i> Save
+        </button>
     </div>`;
+    
     document.getElementById('modal-universal').style.display = 'flex';
     toggleMenu();
 }
-
 function changeCurrency() {
     const code = document.getElementById('currency-select').value;
     const rates = { USD: 1, IQD: 1450, IRR: 50000, TRY: 30 };
@@ -1102,8 +1159,18 @@ function showSecuritySettings() {
     
     let html = `
     <div class="card">
+        `;
+        
+    if (securitySettings.masterPass) {
+        html += `
+        <label style="font-weight:700; color:var(--danger);">${l.auth_req || 'Current Pass or Admin Code (to change):'}</label>
+        <input type="password" id="sec-auth-input" placeholder="Current Pass OR 6-digit Code" style="border-color:var(--danger); margin-bottom:15px;">
+        `;
+    }
+        
+    html += `
         <label style="font-weight:700;">${l.sec_pass}</label>
-        <input type="password" id="sec-master-pass" value="${securitySettings.masterPass || ''}" placeholder="Leave empty to disable password">
+        <input type="password" id="sec-master-pass" placeholder="Leave empty to remove password">
         
         <label style="font-weight:700; margin-top:20px; display:block;">Select Protected Actions:</label>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
@@ -1114,7 +1181,9 @@ function showSecuritySettings() {
             <label><input type="checkbox" id="chk-trash_delete" ${securitySettings.protectedSections.includes('trash_delete') ? 'checked' : ''}> ${l.prot_del}</label>
         </div>
         
-        <button class="main-btn" onclick="saveSecuritySettings()"><i class="fa-solid fa-save"></i> ${l.sec_save}</button>
+        <button class="main-btn" onclick="saveSecuritySettings()">
+            <i class="fa-solid fa-save"></i> ${l.sec_save}
+        </button>
     </div>`;
     
     document.getElementById('modal-content').innerHTML = html;
@@ -1123,7 +1192,10 @@ function showSecuritySettings() {
 }
 
 function saveSecuritySettings() {
+    const l = translations[document.getElementById('lang-sel').value];
     const newPass = document.getElementById('sec-master-pass').value.trim();
+    const authInput = document.getElementById('sec-auth-input') ? document.getElementById('sec-auth-input').value.trim() : '';
+    
     const chks = ['inv_add', 'sale_edit', 'sale_return', 'pay_receive', 'trash_delete'];
     let newProtected = [];
     
@@ -1132,7 +1204,34 @@ function saveSecuritySettings() {
             newProtected.push(chk);
         }
     });
-    
+
+    if (securitySettings.masterPass) {
+        if (!authInput) {
+            showToast(l.err_auth_req || "Please provide current password or Admin code!", "danger");
+            return;
+        }
+        
+        if (authInput === securitySettings.masterPass) {
+            executeSaveSec(newPass, newProtected);
+        } else if (authInput.length === 6) {
+            db.ref('activationCodes/' + authInput).once('value').then(snap => {
+                if (snap.exists() && snap.val().role === 'Admin') {
+                    executeSaveSec(newPass, newProtected);
+                } else {
+                    showToast(l.err_auth_fail || "Invalid Password or Admin Code!", "danger");
+                }
+            }).catch(() => {
+                showToast("Error checking code!", "danger");
+            });
+        } else {
+            showToast(l.err_auth_fail || "Invalid Password or Admin Code!", "danger");
+        }
+    } else {
+        executeSaveSec(newPass, newProtected);
+    }
+}
+
+function executeSaveSec(newPass, newProtected) {
     db.ref('/sec').set({ masterPass: newPass, protectedSections: newProtected }).then(() => {
         logAction("SECURITY SETTINGS", "Updated security and passwords");
         showToast("Security Settings Saved!", "success");
@@ -1147,6 +1246,12 @@ function showExpenses() {
     
     document.getElementById('modal-content').innerHTML = `
     <div class="card" style="margin-bottom:15px; border-left: 5px solid var(--danger);">
+        <select id="exp-cat" style="margin-bottom:10px;">
+            <option value="${l.cat_rent}">${l.cat_rent}</option>
+            <option value="${l.cat_salary}">${l.cat_salary}</option>
+            <option value="${l.cat_bills}">${l.cat_bills}</option>
+            <option value="${l.cat_other}">${l.cat_other}</option>
+        </select>
         <input type="text" id="exp-desc" placeholder="${l.th_desc}...">
         <input type="number" id="exp-amount" placeholder="${l.th_amt}..." min="0" step="0.01" style="margin-top:10px;">
         <button class="main-btn danger" onclick="addExpense()" style="margin-top:15px;">
@@ -1160,6 +1265,7 @@ function showExpenses() {
         <table>
             <thead>
                 <tr>
+                    <th>${l.exp_cat}</th>
                     <th>${l.th_desc}</th>
                     <th>${l.th_amt}</th>
                     <th>${l.th_date}</th>
@@ -1169,6 +1275,7 @@ function showExpenses() {
             <tbody>
                 ${expenses.map(x => `
                 <tr>
+                    <td><small style="background:var(--danger); color:white; padding:2px 5px; border-radius:5px;">${escapeHTML(x.cat || l.cat_other)}</small></td>
                     <td>${escapeHTML(x.desc)}</td>
                     <td style="color:var(--danger); font-weight:bold;">${currentCurrency.symbol}${x.amount}</td>
                     <td>${x.date}</td>
@@ -1181,11 +1288,13 @@ function showExpenses() {
             </tbody>
         </table>
     </div>`;
+    
     document.getElementById('modal-universal').style.display = 'flex';
     toggleMenu();
 }
 
 function addExpense() {
+    let cat = document.getElementById('exp-cat').value;
     let desc = escapeHTML(document.getElementById('exp-desc').value.trim());
     let amount = parseFloat(document.getElementById('exp-amount').value);
     
@@ -1195,8 +1304,10 @@ function addExpense() {
     }
     
     let id = Date.now();
-    db.ref().update({ [`/e/${id}`]: { id: id, desc: desc, amount: amount, date: new Date().toLocaleDateString() } }).then(() => {
-        logAction("ADD EXPENSE", "Amount: " + amount + " - " + desc);
+    db.ref().update({ 
+        [`/e/${id}`]: { id: id, cat: cat, desc: desc, amount: amount, date: new Date().toLocaleDateString() } 
+    }).then(() => {
+        logAction("ADD EXPENSE", "Cat: " + cat + " | Amt: " + amount + " | " + desc);
         showToast("Success", "success");
         showExpenses();
     });
@@ -1247,6 +1358,7 @@ function showSuppliers() {
             </tbody>
         </table>
     </div>`;
+    
     document.getElementById('modal-universal').style.display = 'flex';
     toggleMenu();
 }
@@ -1261,7 +1373,9 @@ function addSupplier() {
     }
     
     let id = Date.now();
-    db.ref().update({ [`/sup/${id}`]: { id: id, name: name, phone: phone } }).then(() => {
+    db.ref().update({ 
+        [`/sup/${id}`]: { id: id, name: name, phone: phone } 
+    }).then(() => {
         logAction("ADD SUPPLIER", "Name: " + name);
         showToast("Success", "success");
         showSuppliers();
@@ -1276,6 +1390,57 @@ function deleteSupplier(id) {
             showSuppliers();
         });
     }
+}
+
+// COMMISSIONS MANAGEMENT 
+function showCommissions() {
+    const l = translations[document.getElementById('lang-sel').value];
+    document.getElementById('modal-title').innerText = l.m_commissions;
+    
+    let userTotals = {};
+    commissions.forEach(c => {
+        if(!userTotals[c.user]) {
+            userTotals[c.user] = 0;
+        }
+        userTotals[c.user] += parseFloat(c.amount);
+    });
+
+    let summaryHtml = `<div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:15px;">`;
+    for (let u in userTotals) {
+        summaryHtml += `
+        <div class="rep-stat" style="flex:1;">
+            <small>${u}</small>
+            <h3 style="color:var(--success);">${currentCurrency.symbol}${userTotals[u].toFixed(2)}</h3>
+        </div>`;
+    }
+    summaryHtml += `</div>`;
+
+    document.getElementById('modal-content').innerHTML = `
+    ${summaryHtml}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Sale ID</th>
+                    <th>${l.comm_amt}</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${commissions.map(c => `
+                <tr>
+                    <td><b>${escapeHTML(c.user)}</b></td>
+                    <td><small>${c.saleId}</small></td>
+                    <td style="color:var(--success); font-weight:bold;">${currentCurrency.symbol}${parseFloat(c.amount).toFixed(2)}</td>
+                    <td>${c.date}</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
+    </div>`;
+    
+    document.getElementById('modal-universal').style.display = 'flex';
+    toggleMenu();
 }
 
 async function saveSale() {
@@ -1342,6 +1507,7 @@ async function saveSale() {
 
     const now = new Date();
     const saleId = Date.now();
+    
     const saleData = {
         id: saleId,
         name: n,
@@ -1392,6 +1558,23 @@ async function saveSale() {
 
             if (!customers.find(c => c.phone === phone)) {
                 updates['/c/' + saleId] = { name: n, phone, id: saleId, blacklist: false };
+            }
+            
+            if (witPhone && saleType === 'Installments' && !guarantors.find(g => g.phone === witPhone)) {
+                updates['/g/' + saleId] = { name: wit, phone: witPhone, id: saleId };
+            }
+
+            // Simple Commission: 1% of total collected today (down payment or full cash)
+            let commAmt = saleType === 'Cash' ? p.total * 0.01 : p.d * 0.01;
+            if (commAmt > 0) {
+                updates['/comm/' + saleId] = { 
+                    id: saleId, 
+                    user: currentUsername, 
+                    saleId: saleId, 
+                    amount: commAmt.toFixed(2), 
+                    date: now.toLocaleDateString(), 
+                    timestamp: now.getTime() 
+                };
             }
 
             db.ref().update(updates).then(() => {
@@ -1452,6 +1635,7 @@ function editSale(id) {
                     <i class="fa-solid fa-check-double"></i> ${l.update}
                 </button>
             </div>`;
+        
         document.getElementById('modal-universal').style.display = 'flex';
     });
 }
@@ -1459,6 +1643,7 @@ function editSale(id) {
 function updateSale(id) {
     let sIdx = sales.findIndex(x => x.id === id);
     let aIdx = archive.findIndex(x => x.id === id);
+    
     let target = sIdx !== -1 ? sales[sIdx] : archive[aIdx];
     let path = sIdx !== -1 ? `/s/${id}` : `/a/${id}`;
     
@@ -1498,11 +1683,14 @@ function returnSale(id) {
             }
             
             let refundAmount = parseFloat(saleItem.down) + (parseFloat(saleItem.mon) * parseInt(saleItem.paid || 0));
-            if (saleItem.type === 'Debt') refundAmount = parseFloat(saleItem.total) - parseFloat(saleItem.mon);
+            if (saleItem.type === 'Debt') {
+                refundAmount = parseFloat(saleItem.total) - parseFloat(saleItem.mon);
+            }
             
             let expId = Date.now();
             updates[`/e/${expId}`] = {
                 id: expId,
+                cat: 'Refunds',
                 desc: `گەڕاندنەوەی کاڵا: ${saleItem.item} - ${saleItem.name}`,
                 amount: refundAmount,
                 date: new Date().toLocaleDateString()
@@ -1514,10 +1702,15 @@ function returnSale(id) {
                 }
             });
 
-            if(saleItem.customerDoc) deleteImage(saleItem.customerDoc);
+            if(saleItem.customerDoc) {
+                deleteImage(saleItem.customerDoc);
+            }
             
-            if (sIdx !== -1) { updates[`/s/${id}`] = null; } 
-            else { updates[`/a/${id}`] = null; }
+            if (sIdx !== -1) { 
+                updates[`/s/${id}`] = null; 
+            } else {
+                updates[`/a/${id}`] = null; 
+            }
             
             db.ref().update(updates).then(() => {
                 logAction("RETURN SALE", "Returned item: " + saleItem.item + " for " + saleItem.name);
@@ -1532,7 +1725,7 @@ function pay(id) {
         let idx = sales.findIndex(x => x.id === id);
         if (idx !== -1) {
             let saleObj = { ...sales[idx] };
-            let count = 1, amountToPay = 0;
+            let count = 1, amountToPay = 0, lateFee = 0;
             
             if (saleObj.type === 'Debt') {
                 amountToPay = parseFloat(prompt("چەند پارەی ددەت؟", saleObj.mon)) || 0;
@@ -1543,6 +1736,9 @@ function pay(id) {
                 if (count > available) count = available;
                 if (count <= 0) return;
                 amountToPay = parseFloat(saleObj.mon);
+                
+                const l = translations[document.getElementById('lang-sel').value];
+                lateFee = parseFloat(prompt(l.late_fee + " (0 if none):", "0")) || 0;
             }
 
             const now = new Date(), payTime = now.toLocaleString();
@@ -1555,9 +1751,20 @@ function pay(id) {
                 let newDebt = Math.max(0, currentDebt - amountToPay);
                 saleObj.mon = Number(newDebt.toFixed(2));
                 
-                saleObj.paymentsHistory.push({ installmentNo: 'Debt Payment', amount: amountToPay.toFixed(2), date: payTime, collector: currentUserRole });
+                saleObj.paymentsHistory.push({ 
+                    installmentNo: 'Debt Payment', 
+                    amount: (amountToPay + lateFee).toFixed(2), 
+                    lateFee: lateFee, 
+                    date: payTime, 
+                    collector: currentUserRole 
+                });
+                
                 const repId = Date.now();
-                const rep = { ...saleObj, saleId: id, id: repId, payDate: payTime, mon: Number(amountToPay.toFixed(2)), currentPayment: 'Debt', remAmt: saleObj.mon, remCount: 0, timestamp: repId };
+                const rep = { 
+                    ...saleObj, saleId: id, id: repId, payDate: payTime, 
+                    mon: Number((amountToPay + lateFee).toFixed(2)), 
+                    currentPayment: 'Debt', remAmt: saleObj.mon, remCount: 0, timestamp: repId 
+                };
                 
                 updates[`/r/${repId}`] = rep;
                 tempReports.push(rep);
@@ -1572,15 +1779,30 @@ function pay(id) {
             } else {
                 for (let i = 0; i < count; i++) {
                     saleObj.paid++;
-                    saleObj.paymentsHistory.push({ installmentNo: saleObj.paid, amount: amountToPay.toFixed(2), date: payTime, collector: currentUserRole });
+                    let amtWithFee = i === 0 ? amountToPay + lateFee : amountToPay; 
+                    
+                    saleObj.paymentsHistory.push({ 
+                        installmentNo: saleObj.paid, 
+                        amount: amtWithFee.toFixed(2), 
+                        lateFee: (i===0 ? lateFee : 0), 
+                        date: payTime, 
+                        collector: currentUserRole 
+                    });
+                    
                     const paidAmt = (parseFloat(saleObj.mon) * saleObj.paid);
                     const calcRemain = Math.max(0, (parseFloat(saleObj.total) - parseFloat(saleObj.down) - paidAmt));
                     const repId = Date.now() + i;
-                    const rep = { ...saleObj, saleId: id, id: repId, payDate: payTime, mon: Number(amountToPay.toFixed(2)), currentPayment: saleObj.paid, remAmt: Number(calcRemain.toFixed(2)), remCount: (saleObj.months - saleObj.paid), timestamp: repId };
+                    
+                    const rep = { 
+                        ...saleObj, saleId: id, id: repId, payDate: payTime, 
+                        mon: Number(amtWithFee.toFixed(2)), currentPayment: saleObj.paid, 
+                        remAmt: Number(calcRemain.toFixed(2)), remCount: (saleObj.months - saleObj.paid), timestamp: repId 
+                    };
                     
                     updates[`/r/${repId}`] = rep;
                     tempReports.push(rep);
                 }
+                
                 if (saleObj.paid >= saleObj.months) { 
                     updates[`/a/${id}`] = saleObj; 
                     updates[`/s/${id}`] = null; 
@@ -1591,10 +1813,12 @@ function pay(id) {
             }
             
             db.ref().update(updates).then(() => {
-                logAction("RECEIVED PAYMENT", "Received " + amountToPay + " from " + saleObj.name);
+                logAction("RECEIVED PAYMENT", "Received " + (amountToPay + lateFee) + " from " + saleObj.name + " (Late Fee: " + lateFee + ")");
                 const l = translations[document.getElementById('lang-sel').value];
                 showToast(l.success_pay, "success");
-                if (tempReports.length > 0) showReceiptEditor(tempReports[tempReports.length - 1]);
+                if (tempReports.length > 0) {
+                    showReceiptEditor(tempReports[tempReports.length - 1]);
+                }
             });
         }
     });
@@ -1610,9 +1834,13 @@ function showReceiptEditor(rep) {
     let detailsHtml = "";
     const d = rep.itemDetails;
     if (d) {
-        if (d.type === "Mobile") detailsHtml = `${escapeHTML(d.model) || ''} | ${escapeHTML(d.storage) || ''}/${escapeHTML(d.ram) || ''}GB`;
-        else if (d.type === "Computer") detailsHtml = `${escapeHTML(d.cpu) || ''} | RAM: ${escapeHTML(d.ram) || ''}GB`;
-        else detailsHtml = escapeHTML(d.otherInfo) || '---';
+        if (d.type === "Mobile") {
+            detailsHtml = `${escapeHTML(d.model) || ''} | ${escapeHTML(d.storage) || ''}/${escapeHTML(d.ram) || ''}GB`;
+        } else if (d.type === "Computer") {
+            detailsHtml = `${escapeHTML(d.cpu) || ''} | RAM: ${escapeHTML(d.ram) || ''}GB`;
+        } else {
+            detailsHtml = escapeHTML(d.otherInfo) || '---';
+        }
     }
 
     document.getElementById('modal-content').innerHTML = `
@@ -1626,6 +1854,7 @@ function showReceiptEditor(rep) {
             <label>Remaining</label><input type="number" id="edit-rec-rem" value="${rep.remAmt}">
             <label>Payment Date</label><input type="text" id="edit-rec-date" value="${rep.payDate}">
         </div>
+        
         <div class="receipt-preview" id="preview-box" style="direction: ${isRtl ? 'rtl' : 'ltr'};">
             <div style="text-align:center;">
                 <img src="https://i.postimg.cc/3WMQdH2P/17ABF58A-85E9-4C1A-B6DD-97977E81AA3C.jpg" style="width:80px; margin-bottom:10px;" alt="Logo">
@@ -1641,6 +1870,7 @@ function showReceiptEditor(rep) {
             <div id="qr-preview" style="display:flex; justify-content:center; margin-top:15px;"></div>
             <p style="text-align:center; font-size:0.8rem; margin-top:15px;">Powered by BIZHAR RASHEED</p>
         </div>
+        
         <div class="print-settings">
             <div>
                 <label style="font-size:12px; font-weight:bold;">PAPER</label>
@@ -1657,6 +1887,7 @@ function showReceiptEditor(rep) {
                 </select>
             </div>
         </div>
+        
         <button class="main-btn" onclick="saveEditedReceipt()">
             <i class="fa-solid fa-save"></i> ${l.save_changes}
         </button>
@@ -1671,7 +1902,9 @@ function showReceiptEditor(rep) {
 
     ['edit-rec-name', 'edit-rec-item', 'edit-rec-details', 'edit-rec-total', 'edit-rec-rem', 'edit-rec-date'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.addEventListener('input', updatePreview);
+        if (el) {
+            el.addEventListener('input', updatePreview);
+        }
     });
     
     document.getElementById('modal-universal').style.display = 'flex';
@@ -1727,7 +1960,9 @@ function saveEditedReceipt() {
         updates[path + '/name'] = rep.name;
         updates[path + '/item'] = rep.item;
         updates[path + '/total'] = rep.total;
-        if (rep.itemDetails) updates[path + '/itemDetails'] = rep.itemDetails;
+        if (rep.itemDetails) {
+            updates[path + '/itemDetails'] = rep.itemDetails;
+        }
     }
 
     db.ref().update(updates).then(() => {
@@ -1739,8 +1974,11 @@ function saveEditedReceipt() {
 
 function reprintReceipt(reportTimestamp) {
     const r = reports.find(r => r.timestamp === reportTimestamp);
-    if (r) showReceiptEditor(r);
-    else showToast("Receipt details not found!", "danger");
+    if (r) {
+        showReceiptEditor(r);
+    } else {
+        showToast("Receipt details not found!", "danger");
+    }
 }
 
 function showLedger(id) {
@@ -1783,7 +2021,8 @@ function showLedger(id) {
             html += `
             <div class="history-item">
                 <div>
-                    <b>${isNaN(p.installmentNo) ? p.installmentNo : 'Installment #' + p.installmentNo}</b><br>
+                    <b>${isNaN(p.installmentNo) ? p.installmentNo : 'Installment #' + p.installmentNo}</b>
+                    ${p.lateFee > 0 ? `<span style="color:var(--danger); font-size:10px; margin-left:5px;">(+Fee: ${p.lateFee})</span>` : ''}<br>
                     <small><i class="fa-solid fa-calendar-day"></i> ${p.date}</small><br>
                     <small><i class="fa-solid fa-user-check"></i> ${p.collector || 'Admin'}</small>
                 </div>
@@ -1983,7 +2222,9 @@ function executePrint(data) {
     
     setTimeout(() => {
         window.print();
-        if (styleTag.parentNode) styleTag.remove();
+        if (styleTag.parentNode) {
+            styleTag.remove();
+        }
     }, 800);
 }
 
@@ -2132,6 +2373,7 @@ function directPrintLabel(id) {
 function showLabelMaker() {
     const l = translations[document.getElementById('lang-sel').value];
     document.getElementById('modal-title').innerText = l.mlabel;
+    
     document.getElementById('modal-content').innerHTML = `
         <div class="card">
             <select id="label-item-sel" onchange="previewLabel()">
@@ -2141,6 +2383,7 @@ function showLabelMaker() {
             <div id="label-preview-area" style="margin-top:20px; display:flex; justify-content:center;"></div>
             <button class="main-btn" onclick="printLabel()"><i class="fa-solid fa-print"></i> ${l.print_qr}</button>
         </div>`;
+        
     document.getElementById('modal-universal').style.display = 'flex';
     toggleMenu();
 }
@@ -2331,11 +2574,17 @@ function applyLang() {
     
     Object.entries(elements).forEach(([id, text]) => {
         const el = document.getElementById(id);
-        if (el) el.innerText = text;
+        if (el) {
+            el.innerText = text;
+        }
     });
 
-    if (document.getElementById('lbl-code')) document.getElementById('lbl-code').innerHTML = `<i class="fa-solid fa-key"></i> ${l.lbl_code}`;
-    if (document.getElementById('link-wa')) document.getElementById('link-wa').innerHTML = `<i class="fa-brands fa-whatsapp"></i> ${l.wa_link}`;
+    if (document.getElementById('lbl-code')) {
+        document.getElementById('lbl-code').innerHTML = `<i class="fa-solid fa-key"></i> ${l.lbl_code}`;
+    }
+    if (document.getElementById('link-wa')) {
+        document.getElementById('link-wa').innerHTML = `<i class="fa-brands fa-whatsapp"></i> ${l.wa_link}`;
+    }
 
     document.getElementById('t-form').innerHTML = `<i class="fa-solid fa-cart-plus"></i> ${l.tform}`;
     document.getElementById('l-sale-type').innerText = l.lsaletype;
@@ -2367,15 +2616,21 @@ function applyLang() {
     document.getElementById('s1').innerText = l.s1;
     
     const s4El = document.getElementById('s4');
-    if (s4El) s4El.innerHTML = `${l.net_profit} <i class="fa-solid fa-eye privacy-toggle" onclick="togglePrivacy()"></i>`;
+    if (s4El) {
+        s4El.innerHTML = `${l.net_profit} <i class="fa-solid fa-eye privacy-toggle" onclick="togglePrivacy()"></i>`;
+    }
 
     const payMethodLabel = document.getElementById('l-payment-method');
-    if (payMethodLabel) payMethodLabel.innerText = l.pay_method;
+    if (payMethodLabel) {
+        payMethodLabel.innerText = l.pay_method;
+    }
 
     if (document.getElementById('m-expenses')) document.getElementById('m-expenses').innerText = l.m_expenses;
     if (document.getElementById('m-suppliers')) document.getElementById('m-suppliers').innerText = l.m_suppliers;
     if (document.getElementById('m-stocktake')) document.getElementById('m-stocktake').innerText = l.m_stocktake || "Stocktaking";
     if (document.getElementById('m-audit')) document.getElementById('m-audit').innerText = l.m_audit || "Audit Log";
+    if (document.getElementById('m-guarantors')) document.getElementById('m-guarantors').innerText = l.m_guarantors || "Guarantors";
+    if (document.getElementById('m-commissions')) document.getElementById('m-commissions').innerText = l.m_commissions || "Commissions";
     
     if (document.getElementById('l-imei')) document.getElementById('l-imei').innerText = l.imei || "IMEI / SERIAL";
     if (document.getElementById('l-discount')) document.getElementById('l-discount').innerText = l.discount || "DISCOUNT $";
@@ -2393,6 +2648,7 @@ function applyLang() {
 
     const isDark = document.body.classList.contains('dark-mode');
     document.getElementById('m-dark').innerText = isDark ? l.mlight : l.mdark;
+    
     requestRender();
 }
 
@@ -2402,7 +2658,9 @@ function render() {
     const vAnnual = document.getElementById('v-annual');
     const vRem = document.getElementById('v-rem');
     
-    if (v1) v1.innerText = inv.reduce((a, b) => a + parseInt(b.qty), 0);
+    if (v1) {
+        v1.innerText = inv.reduce((a, b) => a + parseInt(b.qty), 0);
+    }
     
     let pro = 0, remTotal = 0;
     const q = document.getElementById('search-input').value.toLowerCase();
@@ -2430,21 +2688,31 @@ function render() {
     };
     
     sales.forEach(processSaleProfit);
-    archive.forEach(s => { pro += (parseFloat(s.total) - parseFloat(s.cost || 0)); });
+    archive.forEach(s => { 
+        pro += (parseFloat(s.total) - parseFloat(s.cost || 0)); 
+    });
 
     let totalExp = expenses.reduce((a, b) => a + parseFloat(b.amount), 0);
     let netProfit = pro - totalExp;
 
-    if (v4) v4.innerText = privacyHidden ? "****" : currentCurrency.symbol + Number(netProfit.toFixed(0));
-    if (vAnnual) vAnnual.innerText = privacyHidden ? "****" : currentCurrency.symbol + Number((netProfit * 1.6).toFixed(0));
-    if (vRem) vRem.innerText = currentCurrency.symbol + Number(remTotal.toFixed(0));
+    if (v4) {
+        v4.innerText = privacyHidden ? "****" : currentCurrency.symbol + Number(netProfit.toFixed(0));
+    }
+    if (vAnnual) {
+        vAnnual.innerText = privacyHidden ? "****" : currentCurrency.symbol + Number((netProfit * 1.6).toFixed(0));
+    }
+    if (vRem) {
+        vRem.innerText = currentCurrency.symbol + Number(remTotal.toFixed(0));
+    }
     
     let sel = document.getElementById('i-item');
     if (sel) {
         let curr = sel.value;
         let selHtml = '<option value="">--- ITEM ---</option>';
         inv.forEach(x => {
-            if (x.qty > 0) selHtml += `<option value="${x.id}">${escapeHTML(x.name)} ${x.barcode ? '('+escapeHTML(x.barcode)+')' : ''}</option>`;
+            if (x.qty > 0) {
+                selHtml += `<option value="${x.id}">${escapeHTML(x.name)} ${x.barcode ? '('+escapeHTML(x.barcode)+')' : ''}</option>`;
+            }
         });
         sel.innerHTML = selHtml;
         sel.value = curr;
@@ -2500,7 +2768,9 @@ function showReports(type = 'daily') {
     const l = translations[document.getElementById('lang-sel').value];
     document.getElementById('modal-title').innerText = l.mreports;
     const menuOverlay = document.getElementById('menu-overlay');
-    if (menuOverlay && menuOverlay.classList.contains('show')) toggleMenu();
+    if (menuOverlay && menuOverlay.classList.contains('show')) {
+        toggleMenu();
+    }
     
     const now = new Date();
     let filtered = [];
@@ -2645,7 +2915,9 @@ function toggleLayout() {
 
 function toggleMenu() {
     const overlay = document.getElementById('menu-overlay');
-    if (overlay) overlay.classList.toggle('show');
+    if (overlay) {
+        overlay.classList.toggle('show');
+    }
 }
 
 function delInv(id) {
@@ -2699,6 +2971,7 @@ function executeSoftDelete(id) {
 function showArchive(isRefresh = false) {
     const q = document.getElementById('search-input').value.toLowerCase();
     const l = translations[document.getElementById('lang-sel').value];
+    
     let filtered = archive.filter(x => {
         return x.name.toLowerCase().includes(q) || x.item.toLowerCase().includes(q) || x.id.toString().includes(q);
     });
@@ -2722,6 +2995,7 @@ function showArchive(isRefresh = false) {
             </tbody>
         </table>
     </div>`;
+    
     document.getElementById('modal-universal').style.display = 'flex';
     if (!isRefresh) toggleMenu();
 }
@@ -2729,6 +3003,7 @@ function showArchive(isRefresh = false) {
 function showRecycleBin(isRefresh = false) {
     const q = document.getElementById('search-input').value.toLowerCase();
     const l = translations[document.getElementById('lang-sel').value];
+    
     let filtered = trash.filter(x => {
         return x.name.toLowerCase().includes(q) || x.item.toLowerCase().includes(q) || x.id.toString().includes(q);
     });
@@ -2751,6 +3026,7 @@ function showRecycleBin(isRefresh = false) {
             </tbody>
         </table>
     </div>`;
+    
     document.getElementById('modal-universal').style.display = 'flex';
     if (!isRefresh) toggleMenu();
 }
@@ -2784,14 +3060,18 @@ function restore(id) {
 function permanentlyDelete(id) {
     if(confirm("سڕینەوەی یەکجاری؟ (PERMANENT DELETE?)")) {
         let item = trash.find(x => x.id === id);
-        if(item && item.customerDoc) deleteImage(item.customerDoc);
+        if(item && item.customerDoc) {
+            deleteImage(item.customerDoc);
+        }
         
         db.ref('/t/' + id).remove().then(() => { 
             logAction("PERMANENT DELETE", "Deleted sale ID " + id);
             showToast("Deleted Permanently!", "success"); 
             const title = document.getElementById('modal-title').innerText;
             const l = translations[document.getElementById('lang-sel').value];
-            if(title === l.mtrash || title === "TRASH") showRecycleBin(true); 
+            if(title === l.mtrash || title === "TRASH") {
+                showRecycleBin(true); 
+            }
         });
     }
 }
@@ -2836,6 +3116,8 @@ function exportJSON() {
             e: expenses,
             sup: suppliers,
             logs: logs,
+            g: guarantors,
+            comm: commissions,
             sec: securitySettings
         }));
         const dlAnchorElem = document.createElement('a');
@@ -2873,11 +3155,13 @@ function restoreData(e) {
             expenses = d.e || [];
             suppliers = d.sup || [];
             logs = d.logs || [];
+            guarantors = d.g || [];
+            commissions = d.comm || [];
             securitySettings = d.sec || { masterPass: "", protectedSections: [] };
             
             db.ref().update({
                 i: inv, s: sales, a: archive, t: trash, r: reports,
-                c: customers, e: expenses, sup: suppliers, logs: logs, sec: securitySettings
+                c: customers, e: expenses, sup: suppliers, logs: logs, g: guarantors, comm: commissions, sec: securitySettings
             }).then(() => {
                 const l = translations[document.getElementById('lang-sel').value];
                 showToast(l.success_restore, "success");
@@ -2907,3 +3191,30 @@ function showAbout() {
     document.getElementById('modal-universal').style.display = 'flex';
     toggleMenu();
 }
+
+// ==========================================
+// PWA & OFFLINE SYNC SUPPORT
+// ==========================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(registration => console.log('ServiceWorker registered with scope:', registration.scope))
+            .catch(err => console.log('ServiceWorker registration failed:', err));
+    });
+}
+
+window.addEventListener('online', () => {
+    const indicator = document.getElementById('offline-indicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+    showToast("ئینتەرنێت هاتەڤە! داتا هاتنە هەڤکێشکرن.", "success");
+});
+
+window.addEventListener('offline', () => {
+    const indicator = document.getElementById('offline-indicator');
+    if (indicator) {
+        indicator.style.display = 'block';
+    }
+    showToast("پەیوەندی ب ئینتەرنێتێ پچڕا! سیستەم ب ئۆفلاین کار دکەت.", "warning");
+});
